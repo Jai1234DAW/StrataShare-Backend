@@ -9,7 +9,7 @@ class Filters @Inject()(
       defaultFilters:EnabledFilters,
 cacheControlFilter: CacheControlFilter,
 nodeFilter: NodeFilter,
-dateFilter: DateFilter           )
+dateFilter: DateFilter
 ) extends DefaultHttpFilters(
   defaultFilters.filters :+ cacheControlFilter :+ nodeFilter :+ dateFilter: _*
 )

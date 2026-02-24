@@ -5,6 +5,7 @@ import play.api.http._
 import play.api.mvc._
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
+import dev.pompilius.Strings
 
 @Singleton
 class NodeFilter @Inject() (Configuration: Configuration)(implicit
@@ -15,7 +16,8 @@ class NodeFilter @Inject() (Configuration: Configuration)(implicit
   def apply(
       nextFilter: RequestHeader => Future[Result]
   )(requestHeader: RequestHeader): Future[Result] = {
-    nextFilter(requestHeader).map (_.withHeaders(Strings.X_NODE_ID -> Configuration.nodeId.toString)
+    nextFilter(requestHeader).map (
+      _.withHeaders(Strings.X_NODE_ID -> Configuration.nodeId.toString))
 
   }
 }
