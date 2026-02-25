@@ -1,7 +1,7 @@
 package dev.pompilius.shared.infrastructure.filters
 
 import org.apache.pekko.stream.Materializer
-import org.playframework.cacheControl.HttpDate
+import org.playframework.cachecontrol.HttpDate
 import play.api.http.HeaderNames
 import play.api.mvc._
 
@@ -17,9 +17,9 @@ class DateFilter @Inject() (implicit
   def apply(
       nextFilter: RequestHeader => Future[Result]
   )(requestHeader: RequestHeader): Future[Result] = {
-    nextFilter(requestHeader).map { result =>
-      val currentDate = HttpDate.format(System.currentTimeMillis())
-      result.withHeaders(HeaderNames.DATE -> currentDate)
-    }
+    nextFilter(requestHeader).map (
+      _.withHeaders(HeaderNames.DATE-> HttpDate.format(HttpDate.now))
+    )
   }
 }
+

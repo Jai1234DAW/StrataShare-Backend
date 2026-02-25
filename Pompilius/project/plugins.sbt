@@ -8,3 +8,6 @@ addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.5.3")
 
 // https://github.com/sksamuel/sbt-scapegoat/
 addSbtPlugin("com.sksamuel.scapegoat" %% "sbt-scapegoat" % "1.2.10")
+
+//Mirar esto para formatear el código:
+addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.5.2")

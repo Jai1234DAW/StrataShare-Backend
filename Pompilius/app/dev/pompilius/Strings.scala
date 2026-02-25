@@ -9,4 +9,16 @@ object Strings {
   val X_NODE_ID = "X-Node-Id"
 
 
+  //Constantes
+  val local= "local"
+  val dev= "dev"
+
+  //Propiedades y parámetros
+  val baseUrl = "baseUrl"
+  val environment = "environment"
+  val nodeId = "nodeId"
+  val nodes="nodes"
+  val logAllExceptions="logAllExceptions"
+  val logAllRequests="logAllRequests"
+  val useSSL="useSSL"
 }

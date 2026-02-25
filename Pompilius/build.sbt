@@ -1,6 +1,6 @@
 name := """pompilius"""
 organization := "dev.pompilius"
-version := "1.1.1"
+version := "1.1.3"
 
 scalaVersion := "2.13.16"
 
@@ -27,7 +27,7 @@ lazy val root = (project in file("."))
         "git rev-parse HEAD".!!.trim
       }
     ),
-    buildInfoPackage := "dev.tnr.elback",
+    buildInfoPackage := "dev.pompilius",
     buildInfoUsePackageAsPath := true,
     ScapegoatCommon.scapegoatSettings
   )

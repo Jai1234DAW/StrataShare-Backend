@@ -1,5 +1,6 @@
 logs
 target
+project/project
 /.bsp
 /.idea
 /.idea_modules
@@ -7,3 +8,7 @@ target
 /.project
 /.settings
 /RUNNING_PID
+/secret
+/local
+*.sc
+*.log
