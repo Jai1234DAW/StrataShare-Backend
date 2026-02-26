@@ -5,11 +5,10 @@ import play.api.http.{DefaultHttpFilters, EnabledFilters}
 import javax.inject.{Inject, Singleton}
 
 @Singleton
-class Filters @Inject()(
-      defaultFilters:EnabledFilters,
-cacheControlFilter: CacheControlFilter,
-nodeFilter: NodeFilter,
-dateFilter: DateFilter
+class Filters @Inject() (
+    defaultFilters: EnabledFilters,
+    cacheControlFilter: CacheControlFilter,
+    dateFilter: DateFilter
 ) extends DefaultHttpFilters(
-  defaultFilters.filters :+ cacheControlFilter :+ nodeFilter :+ dateFilter: _*
-)
+      defaultFilters.filters :+ cacheControlFilter :+ dateFilter: _*
+    )

@@ -1,11 +1,8 @@
 name := """pompilius"""
 organization := "dev.pompilius"
-version := "1.1.3"
+version := "1.0.0"
 
 scalaVersion := "2.13.16"
-
-// javacOptions ++= Seq("-source", "11", "-target", "11")
-// scalacOptions ++= Seq("-release:11")
 
 import scala.sys.process.*
 
@@ -32,10 +29,6 @@ lazy val root = (project in file("."))
     ScapegoatCommon.scapegoatSettings
   )
 
-play.sbt.routes.RoutesKeys.routesImport ++= Seq(
-  "dev.tnr.elback.shared.domain.Pagination",
-  "dev.tnr.elback.shared.infrastructure.binders.PaginationBinder.paginationBinder"
-)
 
 libraryDependencies ++= Seq(
   guice,
@@ -58,9 +51,6 @@ libraryDependencies ++= Seq(
   "org.scalikejdbc" %% "scalikejdbc-joda-time" % scalikeJdbcVersion
 )
 
-// https://mvnrepository.com/artifact/commons-codec/commons-codec
-libraryDependencies += "commons-codec" % "commons-codec" % "1.19.0"
-
 // https://github.com/lloydmeta/enumeratum
 libraryDependencies ++= Seq(
   "com.beachape" %% "enumeratum" % "1.9.0",
@@ -71,15 +61,11 @@ libraryDependencies ++= Seq(
 // Jsoup for web scraping
 libraryDependencies += "org.jsoup" % "jsoup" % "1.21.1"
 
+// https://mvnrepository.com/artifact/commons-codec/commons-codec
+libraryDependencies += "commons-codec" % "commons-codec" % "1.19.0"
+
 // https://mvnrepository.com/artifact/org.apache.commons/commons-text
 libraryDependencies += "org.apache.commons" % "commons-text" % "1.14.0"
-
-// https://poi.apache.org/
-libraryDependencies += "org.apache.poi" % "poi" % "5.4.1"
-libraryDependencies += "org.apache.poi" % "poi-ooxml" % "5.4.1"
-
-// https://mvnrepository.com/artifact/biz.paluch.logging/logstash-gelf
-libraryDependencies += "biz.paluch.logging" % "logstash-gelf" % "1.15.1"
 
 // https://mvnrepository.com/artifact/io.github.play-swagger/play-swagger
 libraryDependencies += "io.github.play-swagger" %% "play-swagger" % "2.0.4"
