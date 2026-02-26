@@ -18,7 +18,9 @@ object Strings {
   val environment = "environment"
   val nodeId = "nodeId"
   val nodes="nodes"
+  val limit = "limit"
   val logAllExceptions="logAllExceptions"
   val logAllRequests="logAllRequests"
   val useSSL="useSSL"
+  val offset: String = "offset"
 }
