@@ -1,9 +1,28 @@
 package dev.pompilius.shared.domain
 
-import org.apache.pekko.http.scaladsl.model.DateTime
-
+import org.joda.time.DateTime
 
 trait Clock {
-  def now():DateTime
-  def startOfDay(): DateTime=now
+  def now: DateTime
+
+  def startOfDay: DateTime = now.withTimeAtStartOfDay()
+
+  def endOfDay: DateTime = startOfDay.plusDays(1)
+
+  def startOfWeek: DateTime = startOfDay.withDayOfWeek(1)
+
+  def endOfWeek: DateTime = startOfWeek.plusWeeks(1)
+
+  def startOfMonth: DateTime = startOfDay.withDayOfMonth(1)
+
+  def endOfMonth: DateTime = startOfMonth.plusMonths(1)
+
+  def startOfYear: DateTime = startOfDay.withDayOfYear(1)
+
+  def endOfYear: DateTime = startOfYear.plusYears(1)
+
+  def withoutSeconds: DateTime = now.withSecondOfMinute(0)
+
+  def withoutMinutes: DateTime = withoutSeconds.withMinuteOfHour(0)
+
 }
