@@ -3,7 +3,7 @@
 # --- !Ups
 
 CREATE TABLE `role` (
-     `role_id` bigint NOT NULL,
+     `id` bigint NOT NULL,
      `name` varchar(64) NOT NULL,
      `notes` text,
      PRIMARY KEY (`id`),
@@ -63,7 +63,7 @@ CREATE TABLE `role_permissions` (
     PRIMARY KEY (`role_id`, `permission`),
     CONSTRAINT `fk_role_permissions_role`
         FOREIGN KEY (`role_id`)
-        REFERENCES `roles`(`role_id`)
+        REFERENCES `roles`(`id`)
         ON DELETE CASCADE
 ) CHARSET=utf8mb4;
 
