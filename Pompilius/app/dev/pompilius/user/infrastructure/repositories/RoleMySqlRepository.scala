@@ -2,15 +2,13 @@ package dev.pompilius.user.infrastructure.repositories
 
 import dev.pompilius.shared.domain.Pagination
 import dev.pompilius.shared.infrastructure.ScalikeUtil
-
 import dev.pompilius.shared.infrastructure.contexts.DbExecutionContext
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
 import dev.pompilius.user.domain.{Role, RoleId, RoleRepository}
+import scalikejdbc._
+import org.apache.pekko.Done
 
-
-
-@Singleton
 
 @Singleton
 class RoleMySqlRepository @Inject() (rolePermissionMySqlRepository: RolePermissionMySqlRepository)(implicit
@@ -98,17 +96,11 @@ class RoleMySqlRepository @Inject() (rolePermissionMySqlRepository: RolePermissi
   override def delete(roleId: RoleId): Future[Done] =
     Future {
       DB.localTx { implicit session =>
-        // Borramos los permisos asociados al rol
-        withSQL {
-          deleteFrom(rolePermissionMySqlRepository).where.eq(rolePermissionMySqlRepository.column.roleId, roleId.id)
-        }.update()
-
-        // Borramos el rol
+        // Borramos el rol, recordando que los permisos se borrarán auto mágicamente.
         withSQL {
           deleteFrom(this).where.eq(column.id, roleId.id)
         }.update()
       }
       Done
     }
-
 }
