@@ -1,8 +1,9 @@
 package dev.pompilius.user.infrastructure.repositories
 
 import dev.pompilius.shared.domain.Pagination
-import scalikejdbc.SQLSyntaxSupport
+import dev.pompilius.shared.infrastructure.ScalikeUtil
 
+import dev.pompilius.shared.infrastructure.contexts.DbExecutionContext
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
 import dev.pompilius.user.domain.{Role, RoleId, RoleRepository}
@@ -13,7 +14,7 @@ import dev.pompilius.user.domain.{Role, RoleId, RoleRepository}
 
 @Singleton
 class RoleMySqlRepository @Inject() (rolePermissionMySqlRepository: RolePermissionMySqlRepository)(implicit
-                                                                                                   dbExecutionContext: DbExecutionContext
+  dbExecutionContext: DbExecutionContext
 ) extends SQLSyntaxSupport[Role]
   with RoleRepository {
 
