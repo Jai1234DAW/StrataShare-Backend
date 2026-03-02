@@ -1,7 +1,10 @@
 package dev.pompilius.user.domain
 
 import com.google.inject.ImplementedBy
+import dev.pompilius.shared.domain.Pagination
+import dev.pompilius.user.infrastructure.repositories.RoleMySqlRepository
 import org.apache.pekko.Done
+import scala.concurrent.Future
 
 
 @ImplementedBy(classOf[RoleMySqlRepository])
