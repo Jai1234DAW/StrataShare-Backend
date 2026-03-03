@@ -63,12 +63,12 @@ CREATE TABLE `role_permissions` (
     PRIMARY KEY (`role_id`, `permission`),
     CONSTRAINT `fk_role_permissions_role`
         FOREIGN KEY (`role_id`)
-        REFERENCES `roles`(`id`)
+        REFERENCES `role`(`id`)
         ON DELETE CASCADE
 ) CHARSET=utf8mb4;
 
 
-CREATE TABLE `users` (
+CREATE TABLE `user` (
      `id` bigint NOT NULL,
      `username` varchar(32) CHARACTER SET ascii COLLATE ascii_general_ci NOT NULL,
      `password_hash` varchar(96) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
