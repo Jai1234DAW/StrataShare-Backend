@@ -20,8 +20,6 @@ case class User(
     language: Option[Lang],
     notes: Option[String],
     Bio: Option[String],
-    //Mirar esto de aquí porque no estoy segura.
-    roleId: RoleId
 ) {
 
   def fullName: String = {
