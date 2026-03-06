@@ -1,10 +1,13 @@
 package dev.pompilius.user.infrastructure.repositories
 
+import dev.pompilius.shared.domain.Pagination
 import dev.pompilius.shared.infrastructure.contexts.DbExecutionContext
-import dev.pompilius.user.domain.{RoleId, UserId, UserRole, UserRoleRepository}
+import dev.pompilius.user.domain.{Role, UserId, UserRole, UserRoleFilter, UserRoleRepository}
 import org.apache.pekko.Done
+import dev.pompilius.shared.infrastructure.ScalikeUtil
 import scalikejdbc._
 
+import java.time.ZoneId
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
 
@@ -13,6 +16,8 @@ class UserRoleMySqlRepository @Inject() (implicit dbExecutionContext: DbExecutio
     extends UserRoleRepository
     with SQLSyntaxSupport[UserRole] {
 
+  //Para que uso esto?
+  implicit val overwrittenZoneId: OverwrittenZoneId = OverwrittenZoneId(ZoneId.of("UTC"))
   override val tableName = "user_role"
 
   def apply(ur: SyntaxProvider[UserRole])(rs: WrappedResultSet): UserRole =
@@ -21,7 +26,7 @@ class UserRoleMySqlRepository @Inject() (implicit dbExecutionContext: DbExecutio
   def apply(ur: ResultName[UserRole])(rs: WrappedResultSet): UserRole =
     UserRole(
       userId = UserId(rs.get[Long](ur.userId)),
-      roleId = RoleId(rs.get[Long](ur.roleId))
+      role = Role.withNameInsensitive(rs.get[String](ur.role))
     )
 
   val ur: scalikejdbc.QuerySQLSyntaxProvider[scalikejdbc.SQLSyntaxSupport[UserRole], UserRole] = {
@@ -37,23 +42,82 @@ class UserRoleMySqlRepository @Inject() (implicit dbExecutionContext: DbExecutio
       }
     }
 
-  override def setUserRoles(userId: UserId, roles: List[RoleId]): Future[Done] =
+  override def findBy(userId: UserId, role: Role): Future[Option[UserRole]] =
     Future {
       DB.localTx { implicit session =>
         withSQL {
-          deleteFrom(this).where.eq(column.userId, userId.id)
-        }.update()
+          selectFrom(this as ur).where.eq(ur.userId, userId).and.eq(ur.role, role.toString)
+        }.map(apply(ur.resultName)(_)).single()
+      }
+    }
 
-        val params: List[Seq[Any]] = roles.map(roleId => Seq(userId.id, roleId.id))
+  //MIRAR ESTO2AAW
+  private def filterToSqlSyntax(filter: UserRoleFilter): Option[SQLSyntax] = {
+    val filters = List(
+      filter.userId.map(id => sqls.eq(ur.userId, id)),
+      filter.role.map(role => sqls.eq(ur.role, role.toString))
+    ).flatten
+
+    if (filters.nonEmpty) Some(sqls.joinWithAnd(filters: _*)) else None
+  }
+
+  override def find(filter: UserRoleFilter, pag: Pagination): Future[List[UserRole]] =
+    Future {
+
+      DB.localTx { implicit session =>
+        withSQL {
+          selectFrom(this as ur)
+            .append(
+              filterToSqlSyntax(filter).map(sqls.where(_)).getOrElse(sqls.empty)
+            )
+            .orderBy(ur.userId, ur.role)
+            .desc
+            .append(
+              ScalikeUtil.pag(pag)
+            )
+        }.map(apply(ur.resultName)(_)).list()
+      }
+    }
+
+  override def save(userRole: UserRole): Future[Done] =
+    Future {
+      DB.localTx { implicit session =>
+        val values = List(
+          column.userId -> userRole.userId,
+          column.role -> userRole.role.toString
+        )
+
         withSQL {
           insert
             .into(this)
-            .namedValues(
-              column.userId -> sqls.?,
-              column.roleId -> sqls.?
-            )
-        }.batch(params: _*).apply()
+            .namedValues(values: _*)
+            .append(ScalikeUtil.onDuplicateUpdate(values: _*))
+        }.update()
       }
       Done
     }
+
+  override def setUserRoles(userId: UserId, roles: Set[Role]): Future[Done] =
+    Future {
+      DB.localTx { implicit session =>
+        withSQL {
+          deleteFrom(this).where.eq(column.userId, userId)
+        }.update()
+
+        val params: List[Seq[Any]] = roles.toList.map(role => Seq(userId.id, role.toString))
+
+        if (params.nonEmpty) {
+          withSQL {
+            insert
+              .into(this)
+              .namedValues(
+                column.userId -> sqls.?,
+                column.role -> sqls.?
+              )
+          }.batch(params: _*).apply()
+        }
+      }
+      Done
+    }
+
 }

@@ -4,12 +4,16 @@ import com.google.inject.ImplementedBy
 import org.apache.pekko.Done
 
 import scala.concurrent.Future
+import dev.pompilius.shared.domain.Pagination
 
 @ImplementedBy(classOf[UserRoleMySqlRepository])
-trait RolePermissionRepository {
-
+trait UserRoleRepository {
   def getAllByUserId(userId: UserId): Future[List[UserRole]]
+  def findBy(userId: UserId, role: Role): Future[Option[UserRole]]
 
-  def setUserRoles(UserId: UserId,roles: List[Role]): Future[Done]
+  def find(filter: UserRoleFilter, pag: Pagination): Future[List[UserRole]]
 
+  def save(userRole: UserRole): Future[Done]
+
+  def setUserRoles(userId: UserId, roles: Set[Role]): Future[Done]
 }

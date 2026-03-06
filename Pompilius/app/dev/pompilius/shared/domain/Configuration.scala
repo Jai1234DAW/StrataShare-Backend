@@ -2,6 +2,8 @@ package dev.pompilius.shared.domain
 
 import com.google.inject.ImplementedBy
 
+import javax.crypto.spec.SecretKeySpec
+
 //Mirar esto
 import dev.pompilius.shared.infrastructure.PlayConfiguration
 import org.joda.time.DateTime
@@ -93,6 +95,18 @@ trait Configuration {
       maxRequest: Int,
       timeWindow: FiniteDuration,
       whitelist: HashSet[String]
+  )
+
+  def mails: Mails
+
+  case class Mails(
+      whitelistDomains: HashSet[String],
+      disposableDomains: HashSet[String],
+      allowDisposableMails: Boolean,
+      allowAlias: Boolean,
+      tokenSecretKey: SecretKeySpec,
+      sendEmailQueueInitialDelay: FiniteDuration,
+      sendEmailQueueInterval: FiniteDuration
   )
 
 }

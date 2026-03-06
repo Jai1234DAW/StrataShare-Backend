@@ -3,11 +3,9 @@ package dev.pompilius.auth.domain
 import org.apache.pekko.http.scaladsl.model.DateTime
 import dev.pompilius.user.domain.UserId
 
-
 case class Session(
-    id: SessionId,
-    userId: UserId,
     token: SessionToken,
+    userId: UserId,
     deleted: Boolean,
     created: DateTime,
     address: String,

@@ -23,3 +23,4 @@ trait UserRepository {
   def save(user: User): Future[Done]
 
 }
+
