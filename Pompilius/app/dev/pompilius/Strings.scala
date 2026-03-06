@@ -10,12 +10,22 @@ object Strings {
 
   //Propiedades y parámetros
   val baseUrl = "baseUrl"
+  val code="code"
+  val country="country"
+  val debugId="debugId"
+  val email="email"
   val environment = "environment"
-  val nodeId = "nodeId"
-  val nodes="nodes"
+  val error="error"
+  val firstName="firstName"
+  val id="id"
+  val lastName="lastName"
   val limit = "limit"
   val logAllExceptions="logAllExceptions"
   val logAllRequests="logAllRequests"
+  val phone="phone"
+  val userId="userId"
+  val username="username"
+
   val useSSL="useSSL"
   val offset: String = "offset"
 }

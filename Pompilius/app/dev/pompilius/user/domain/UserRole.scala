@@ -1,3 +1,3 @@
 package dev.pompilius.user.domain
 
-case class UserRole(userId: UserId, roleId: RoleId)
+case class UserRole(userId: UserId, role: Role)

@@ -2,72 +2,6 @@
 
 # --- !Ups
 
-CREATE TABLE `role` (
-     `id` bigint NOT NULL,
-     `name` varchar(64) NOT NULL,
-     `notes` text,
-     PRIMARY KEY (`id`),
-     UNIQUE KEY `NAME_IDX` (`name`)
-) CHARSET=utf8mb4;
-
-
-CREATE TABLE `role_permissions` (
-    `role_id` BIGINT NOT NULL,
-    `permission` ENUM(
-            -- Admin
-            'ADMIN_ROLES',
-        'ADMIN_USERS',
-        'ADMIN_ACCOUNTS',
-        'ADMIN_REGIONS',
-
-        -- Readonly
-        'VIEW_ROLES',
-        'VIEW_USERS',
-        'VIEW_ACCOUNTS',
-        'VIEW_REGIONS',
-        'VIEW_ALL_REPORTS',
-
-        -- Support
-        'SUPPORT',
-        'LOGIN_AS',
-        'IMAGES',
-
-        -- Estudiante
-        'CREATE_STUDIES',
-        'EDIT_STUDIES',
-        'DELETE_STUDIES',
-        'CREATE_SAMPLES',
-        'EDIT_SAMPLES',
-        'DELETE_SAMPLES',
-        'RATE_STUDIES',
-        'REQUEST_ACCESS',
-        'PARTICIPATE_TRADES',
-        'MONETIZE_RESOURCES',
-        'VIEW_MAPS',
-        'VIEW_STATS_BASIC',
-        'VIEW_HISTORY',
-
-        -- Profesional
-        'UNLIMITED_TRADES',
-        'VIEW_STATS_FULL',
-        'RATE_CREDIBILITY',
-        'GRADE_STUDIES',
-
-        -- Aficionado o Investigador independiente
-        'VIEW_PUBLIC_STUDIES',
-        'COMMENT_PUBLIC',
-        'LIMITED_TRADES',
-        'PURCHASE_RESOURCES',
-        'VIEW_HISTORY_LIMITED'
-) NOT NULL,
-    PRIMARY KEY (`role_id`, `permission`),
-    CONSTRAINT `fk_role_permissions_role`
-        FOREIGN KEY (`role_id`)
-        REFERENCES `role`(`id`)
-        ON DELETE CASCADE
-) CHARSET=utf8mb4;
-
-
 CREATE TABLE `user` (
      `id` bigint NOT NULL,
      `username` varchar(32) CHARACTER SET ascii COLLATE ascii_general_ci NOT NULL,
@@ -84,15 +18,21 @@ CREATE TABLE `user` (
      `updated` datetime NOT NULL,
      `notes` text,
      `bio` text,
-     `role_id` bigint NOT NULL,
 
      PRIMARY KEY (`id`),
      UNIQUE KEY `USERS_USERNAME_IDX` (`username`),
-     UNIQUE KEY `USER_EMAIL_IDX` (`email`),
-     CONSTRAINT `fk_users_role`
-         FOREIGN KEY (`role_id`)
-             REFERENCES `role`(`id`)
-             ON DELETE RESTRICT
+     UNIQUE KEY `USER_EMAIL_IDX` (`email`)
 ) CHARSET=utf8mb4;
 
+
+CREATE TABLE `user_role` (
+                             `user_id` BIGINT NOT NULL,
+                             `role` ENUM('STUDENT', 'PROFESSIONAL', 'AMATEUR', 'SUPPORT', 'ADMIN') NOT NULL,
+                             PRIMARY KEY (`user_id`, `role`),
+                             CONSTRAINT `fk_user_role_user`
+                                 FOREIGN KEY (`user_id`)
+                                     REFERENCES `user` (`id`)
+                                     ON DELETE CASCADE
+) ENGINE=InnoDB
+CHARSET=utf8mb4;
 

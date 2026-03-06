@@ -1,4 +1,4 @@
-#Tabla de usuarios y roles
+# Tabla de usuarios y roles
 
 # --- !Ups
 CREATE TABLE `user_role` (

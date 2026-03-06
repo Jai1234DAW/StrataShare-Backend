@@ -1,6 +1,7 @@
 package dev.pompilius.user.domain
 
 import dev.pompilius.country.domain.Country
+import dev.pompilius.image.domain.ImageId
 import org.joda.time.DateTime
 import play.api.i18n.Lang
 
@@ -8,18 +9,18 @@ case class User(
     id: UserId,
     username: String,
     passwordHash: String,
-    country: Country,
     enabled: Boolean,
     email: String,
+    country: Country,
     firstName: Option[String],
     lastName: Option[String],
     phone: Option[String],
+    language: Option[Lang],
     created: DateTime,
     updated: DateTime,
-    //Avatar:,
-    language: Option[Lang],
+    avatar: Option[ImageId],
     notes: Option[String],
-    Bio: Option[String],
+    bio: Option[String],
 ) {
 
   def fullName: String = {

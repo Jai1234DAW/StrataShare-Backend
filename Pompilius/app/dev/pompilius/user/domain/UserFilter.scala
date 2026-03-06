@@ -8,6 +8,5 @@ case class UserFilter(
     lastName: Option[String] = None,
     enabled: Option[Boolean] = None,
     country: Option[Country] = None,
-    roleId: Option[RoleId] = None,
     search: Option[String] = None
 )
