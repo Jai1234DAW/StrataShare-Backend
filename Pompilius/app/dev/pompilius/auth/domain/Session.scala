@@ -1,14 +1,15 @@
 package dev.pompilius.auth.domain
 
-import org.apache.pekko.http.scaladsl.model.DateTime
+import dev.pompilius.country.domain.Country
+import org.joda.time.DateTime
 import dev.pompilius.user.domain.UserId
 
 case class Session(
-    token: SessionToken,
+    sessionId: SessionId,
     userId: UserId,
     deleted: Boolean,
     created: DateTime,
     address: String,
     userAgent: Option[String] = None,
-    country: Option[String] = None
+    country: Option[Country] = None
 )
