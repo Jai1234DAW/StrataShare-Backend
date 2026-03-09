@@ -1,8 +1,12 @@
 package dev.pompilius.shared.domain
 
+import com.google.inject.ImplementedBy
+import dev.pompilius.shared.infrastructure.HardwareClock
 import org.joda.time.DateTime
 
+@ImplementedBy(classOf[HardwareClock])
 trait Clock {
+
   def now: DateTime
 
   def startOfDay: DateTime = now.withTimeAtStartOfDay()

@@ -26,13 +26,14 @@ CREATE TABLE `user` (
 
 
 CREATE TABLE `user_role` (
-                             `user_id` BIGINT NOT NULL,
-                             `role` ENUM('STUDENT', 'PROFESSIONAL', 'AMATEUR', 'SUPPORT', 'ADMIN') NOT NULL,
-                             PRIMARY KEY (`user_id`, `role`),
-                             CONSTRAINT `fk_user_role_user`
-                                 FOREIGN KEY (`user_id`)
-                                     REFERENCES `user` (`id`)
-                                     ON DELETE CASCADE
+     `user_id` BIGINT NOT NULL,
+     `role` ENUM('STUDENT', 'PROFESSIONAL', 'AMATEUR', 'SUPPORT', 'ADMIN') NOT NULL,
+
+     PRIMARY KEY (`user_id`, `role`),
+     KEY `IDX_USER_ROLE_ROLE` (`role`),
+     CONSTRAINT `fk_user_role_user`
+         FOREIGN KEY (`user_id`)
+             REFERENCES `user` (`id`)
+             ON DELETE CASCADE
 ) ENGINE=InnoDB
 CHARSET=utf8mb4;
-
