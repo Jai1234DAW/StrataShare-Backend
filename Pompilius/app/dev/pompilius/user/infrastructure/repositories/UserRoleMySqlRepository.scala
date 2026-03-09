@@ -16,7 +16,7 @@ class UserRoleMySqlRepository @Inject() (implicit dbExecutionContext: DbExecutio
     extends UserRoleRepository
     with SQLSyntaxSupport[UserRole] {
 
-  //Para que uso esto?
+  //Usabilidad de esto
   implicit val overwrittenZoneId: OverwrittenZoneId = OverwrittenZoneId(ZoneId.of("UTC"))
   override val tableName = "user_role"
 
@@ -42,24 +42,28 @@ class UserRoleMySqlRepository @Inject() (implicit dbExecutionContext: DbExecutio
       }
     }
 
+
+  //Mirar estos métodos
   override def findBy(userId: UserId, role: Role): Future[Option[UserRole]] =
     Future {
       DB.localTx { implicit session =>
         withSQL {
-          selectFrom(this as ur).where.eq(ur.userId, userId).and.eq(ur.role, role.toString)
+          selectFrom(this as ur).where.eq(ur.userId, userId.id).and.eq(ur.role, role.toString)
         }.map(apply(ur.resultName)(_)).single()
       }
     }
 
-  //MIRAR ESTO2AAW
+
+  //MIRAR ESTO
   private def filterToSqlSyntax(filter: UserRoleFilter): Option[SQLSyntax] = {
     val filters = List(
-      filter.userId.map(id => sqls.eq(ur.userId, id)),
+      filter.userId.map(id => sqls.eq(ur.userId, id.id)),
       filter.role.map(role => sqls.eq(ur.role, role.toString))
     ).flatten
 
     if (filters.nonEmpty) Some(sqls.joinWithAnd(filters: _*)) else None
   }
+
 
   override def find(filter: UserRoleFilter, pag: Pagination): Future[List[UserRole]] =
     Future {
@@ -83,7 +87,7 @@ class UserRoleMySqlRepository @Inject() (implicit dbExecutionContext: DbExecutio
     Future {
       DB.localTx { implicit session =>
         val values = List(
-          column.userId -> userRole.userId,
+          column.userId -> userRole.userId.id,
           column.role -> userRole.role.toString
         )
 
@@ -101,7 +105,7 @@ class UserRoleMySqlRepository @Inject() (implicit dbExecutionContext: DbExecutio
     Future {
       DB.localTx { implicit session =>
         withSQL {
-          deleteFrom(this).where.eq(column.userId, userId)
+          deleteFrom(this).where.eq(column.userId, userId.id)
         }.update()
 
         val params: List[Seq[Any]] = roles.toList.map(role => Seq(userId.id, role.toString))
