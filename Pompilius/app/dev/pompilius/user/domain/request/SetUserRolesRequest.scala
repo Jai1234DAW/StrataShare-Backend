@@ -1,4 +1,5 @@
 package dev.pompilius.user.domain.request
-import dev.pompilius.user.domain.RoleId
 
-case class SetUserRolesRequest (roles:List[RoleId])
+import dev.pompilius.user.domain.Role
+
+case class SetUserRolesRequest (roles: Set[Role])
