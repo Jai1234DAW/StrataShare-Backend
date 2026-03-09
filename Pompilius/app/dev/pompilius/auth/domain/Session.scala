@@ -5,7 +5,7 @@ import org.joda.time.DateTime
 import dev.pompilius.user.domain.UserId
 
 case class Session(
-    sessionId: SessionId,
+    id: SessionId,
     userId: UserId,
     deleted: Boolean,
     created: DateTime,
