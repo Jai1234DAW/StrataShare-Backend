@@ -2,7 +2,7 @@ package dev.pompilius.shared.domain
 
 import com.google.inject.ImplementedBy
 
-import javax.crypto.spec.SecretKeySpec
+//import javax.crypto.spec.SecretKeySpec
 
 //Mirar esto
 import dev.pompilius.shared.infrastructure.PlayConfiguration
@@ -29,7 +29,7 @@ trait Configuration {
       scalaVersion: String,
       sbtVersion: String,
       buildTime: DateTime,
-      //Mirar esto para que se utiliza.
+      //Mirar esto para qué se utiliza.
       gitBranch: String,
       gitCommit: String,
       startTime: DateTime
@@ -97,16 +97,16 @@ trait Configuration {
       whitelist: HashSet[String]
   )
 
-  def mails: Mails
+  //def mails: Mails
 
-  case class Mails(
-      whitelistDomains: HashSet[String],
-      disposableDomains: HashSet[String],
-      allowDisposableMails: Boolean,
-      allowAlias: Boolean,
-      tokenSecretKey: SecretKeySpec,
-      sendEmailQueueInitialDelay: FiniteDuration,
-      sendEmailQueueInterval: FiniteDuration
-  )
+  //case class Mails(
+      //whitelistDomains: HashSet[String],
+      //disposableDomains: HashSet[String],
+      //allowDisposableMails: Boolean,
+      //allowAlias: Boolean,
+      //tokenSecretKey: SecretKeySpec,
+      //sendEmailQueueInitialDelay: FiniteDuration,
+      //sendEmailQueueInterval: FiniteDuration
+  //)
 
 }
