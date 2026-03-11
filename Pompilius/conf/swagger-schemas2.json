@@ -1,0 +1,75 @@
+{
+  "LoginAsRequest": {
+    "properties": {
+      "username": {
+        "type": "string",
+        "default": "user",
+        "required": true,
+        "description": "The username of the user."
+      }
+    }
+  },
+  "LoginRequest": {
+    "properties": {
+      "username": {
+        "type": "string",
+        "default": "user",
+        "required": true,
+        "description": "The username of the user."
+      },
+      "password": {
+        "type": "string",
+        "default": "12345678",
+        "required": true,
+        "description": "The password of the user."
+      }
+    }
+  },
+  "PasswordResetRequest": {
+    "properties": {
+      "newPassword": {
+        "type": "string",
+        "default": "newPassword",
+        "required": true,
+        "description": "The new password for the user."
+      },
+      "token": {
+        "type": "string",
+        "default": "token",
+        "required": true,
+        "description": "The password reset token."
+      },
+      "closeAllSessions": {
+        "type": "boolean",
+        "default": true,
+        "required": true,
+        "description": "Whether to close all sessions after resetting the password."
+      }
+    }
+  },
+  "PasswordResetRequestByEmail": {
+    "properties": {
+      "email": {
+        "type": "string",
+        "default": "user@example.com",
+        "required": true,
+        "description": "The email address of the user requesting a password reset."
+      }
+    }
+  },
+
+  "Session": {
+    "properties": {
+      "created": {
+        "type": "string",
+        "format": "date-time",
+        "default": "2022-01-01T12:30:00Z",
+        "required": true
+      },
+      "country": {
+        "$ref": "#/components/schemas/Country",
+        "required": false
+      }
+    }
+  }
+}
