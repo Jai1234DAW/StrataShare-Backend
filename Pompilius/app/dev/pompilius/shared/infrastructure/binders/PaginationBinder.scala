@@ -9,7 +9,8 @@ object PaginationBinder {
   val defaultLimit: Int = 20
 
   implicit def paginationBinder(implicit
-      intBinder: QueryStringBindable[Int]
+      intBinder: QueryStringBindable[Int],
+      seqStringBinder: QueryStringBindable[Seq[String]]
   ): QueryStringBindable[Pagination] =
     new QueryStringBindable[Pagination] {
 
@@ -32,6 +33,12 @@ object PaginationBinder {
             Some(defaultLimit)
         }
 
+        val orderBy = seqStringBinder.bind(Strings.orderBy, params) match {
+          case Some(Right(value)) =>
+            value.flatMap(_.trim.split(',').toSeq.map(_.trim)).filter(_.nonEmpty)
+          case _ =>
+            Seq.empty[String]
+        }
         Some(Right(Pagination(offset, limit)))
 
       }
@@ -43,7 +50,10 @@ object PaginationBinder {
       ): String = {
         Seq(
           pagination.limit.map(limit => intBinder.unbind(Strings.limit, limit)),
-          Some(intBinder.unbind(Strings.offset, pagination.offset))
+          Some(intBinder.unbind(Strings.offset, pagination.offset)),
+          if (pagination.orderBy.nonEmpty) {
+            Some(seqStringBinder.unbind(Strings.orderBy, pagination.orderBy))
+          } else None
         ).flatten.mkString("&")
       }
 
