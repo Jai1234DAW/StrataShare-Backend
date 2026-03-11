@@ -1,0 +1,1526 @@
+{
+  "Account": {
+    "properties": {
+      "id": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": true
+      },
+      "name": {
+        "type": "string",
+        "default": "name",
+        "required": true
+      },
+      "enabled": {
+        "type": "boolean",
+        "default": "true",
+        "required": true
+      },
+      "secretKey": {
+        "type": "string",
+        "default": "3gqbdpbym4ua:3gqbdpbym4ua3gqbdpbym4ua3gqbdpby",
+        "required": true
+      },
+      "publicKey": {
+        "type": "string",
+        "default": "3gqbdpbym4ua:3gqbdpbym4ua3gqbdpbym4ua3gqbdpby",
+        "required": true
+      },
+      "features": {
+        "items": {
+          "type": "string",
+          "default": "FORMS",
+          "required": true
+        }
+      },
+      "availablePermissions": {
+        "items": {
+          "type": "string",
+          "default": "ACCOUNT_ADMIN_MEMBERS",
+          "required": true
+        }
+      },
+      "theme": {
+        "$ref": "#/components/schemas/Theme",
+        "required": false
+      },
+      "created": {
+        "type": "string",
+        "format": "date-time",
+        "default": "2022-01-01T12:30:00Z",
+        "required": true
+      },
+      "updated": {
+        "type": "string",
+        "format": "date-time",
+        "default": "2022-01-01T12:30:00Z",
+        "required": true
+      }
+    }
+  },
+  "AccountList": {
+    "properties": {
+      "items": {
+        "items": {
+          "$ref": "#/components/schemas/Account"
+        }
+      },
+      "moreItems": {
+        "type": "boolean",
+        "default": false,
+        "required": true
+      }
+    }
+  },
+  "AccountMember": {
+    "properties": {
+      "accountId": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": true
+      },
+      "user": {
+        "$ref": "#/components/schemas/AdminUser",
+        "required": true
+      },
+      "permissions": {
+        "items": {
+          "type": "string",
+          "default": "VIEW",
+          "required": true
+        }
+      }
+    }
+  },
+  "AccountMemberList": {
+    "properties": {
+      "items": {
+        "items": {
+          "$ref": "#/components/schemas/AccountMember"
+        }
+      },
+      "moreItems": {
+        "type": "boolean",
+        "default": false,
+        "required": true
+      }
+    }
+  },
+  "AccountPublicMember": {
+    "properties": {
+      "accountId": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": true
+      },
+      "email": {
+        "type": "string",
+        "default": "abc@abc.com",
+        "required": true
+      },
+      "user": {
+        "$ref": "#/components/schemas/PublicUser",
+        "required": true
+      },
+      "permissions": {
+        "items": {
+          "type": "string",
+          "default": "ACCOUNT_VIEW",
+          "required": true
+        }
+      }
+    }
+  },
+  "AccountPublicMemberList": {
+    "properties": {
+      "items": {
+        "items": {
+          "$ref": "#/components/schemas/AccountPublicMember"
+        }
+      },
+      "moreItems": {
+        "type": "boolean",
+        "default": false,
+        "required": true
+      }
+    }
+  },
+  "AccountWithPermissions": {
+    "properties": {
+      "id": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": true
+      },
+      "name": {
+        "type": "string",
+        "default": "name",
+        "required": true
+      },
+      "publicKey": {
+        "type": "string",
+        "default": "3gqbdpbym4ua:3gqbdpbym4ua3gqbdpbym4ua3gqbdpby",
+        "required": true
+      },
+      "permissions": {
+        "items": {
+          "type": "string",
+          "default": "VIEW",
+          "required": true
+        }
+      },
+      "theme": {
+        "$ref": "#/components/schemas/Theme",
+        "required": false
+      }
+    }
+  },
+  "AddAccountMemberRequest": {
+    "properties": {
+      "email": {
+        "type": "string",
+        "default": "abc@abc.com"
+      }
+    }
+  },
+  "AddRegionCountriesRequest": {
+    "properties": {
+      "countries": {
+        "items": {
+          "type": "string",
+          "default": "ES"
+        }
+      },
+      "from": {
+        "type": "string",
+        "default": "yt330r",
+        "required": false
+      },
+      "addAllCountries": {
+        "type": "boolean",
+        "default": "false",
+        "required": false
+      }
+    }
+  },
+  "AdminChangeUserPasswordRequest": {
+    "properties": {
+      "newPassword": {
+        "type": "string",
+        "default": "12345678",
+        "required": true
+      }
+    }
+  },
+  "AdminCreateRoleRequest": {
+    "properties": {
+      "name": {
+        "type": "string",
+        "default": "name",
+        "required": true
+      },
+      "notes": {
+        "type": "string",
+        "default": "Only visible for administrators",
+        "required": false
+      }
+    }
+  },
+  "AdminCreateUserRequest": {
+    "properties": {
+      "username": {
+        "type": "string",
+        "default": "user",
+        "required": true
+      },
+      "password": {
+        "type": "string",
+        "default": "12345678",
+        "required": false
+      },
+      "enabled": {
+        "type": "boolean",
+        "default": "true",
+        "required": true
+      },
+      "email": {
+        "type": "string",
+        "default": "user@domain.com",
+        "required": true
+      },
+      "phone": {
+        "type": "string",
+        "default": "666123456",
+        "required": false
+      },
+      "firstName": {
+        "type": "string",
+        "default": "John",
+        "required": false
+      },
+      "lastName": {
+        "type": "string",
+        "default": "Smith",
+        "required": false
+      },
+      "country": {
+        "type": "string",
+        "default": "ES",
+        "required": true
+      },
+      "language": {
+        "type": "string",
+        "default": "es",
+        "required": false
+      },
+      "notes": {
+        "type": "string",
+        "default": "Only visible to administrators",
+        "required": false
+      },
+      "bio": {
+        "type": "string",
+        "default": "Visible to all users",
+        "required": false
+      }
+    }
+  },
+  "AdminPermission": {
+    "properties": {
+      "name": {
+        "type": "string",
+        "default": "ADMIN_ROLES",
+        "required": true
+      }
+    }
+  },
+  "AdminPermissionList": {
+    "properties": {
+      "items": {
+        "items": {
+          "$ref": "#/components/schemas/AdminPermission"
+        }
+      },
+      "moreItems": {
+        "type": "boolean",
+        "default": false,
+        "required": true
+      }
+    }
+  },
+  "AdminRole": {
+    "properties": {
+      "id": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": true
+      },
+      "name": {
+        "type": "string",
+        "default": "name",
+        "required": true
+      },
+      "notes": {
+        "type": "string",
+        "default": "Only visible for administrators",
+        "required": false
+      },
+      "permissions": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "default": [
+          "ADMIN_USERS"
+        ],
+        "required": true
+      }
+    }
+  },
+  "AdminRoleList": {
+    "properties": {
+      "items": {
+        "items": {
+          "$ref": "#/components/schemas/AdminRole"
+        }
+      },
+      "moreItems": {
+        "type": "boolean",
+        "default": false,
+        "required": true
+      }
+    }
+  },
+  "AdminUpdateRoleRequest": {
+    "properties": {
+      "name": {
+        "type": "string",
+        "default": "name",
+        "required": true
+      },
+      "notes": {
+        "type": "string",
+        "default": "Only visible for administrators",
+        "required": false
+      }
+    }
+  },
+  "AdminUpdateUserRequest": {
+    "properties": {
+      "username": {
+        "type": "string",
+        "default": "user",
+        "required": true
+      },
+      "enabled": {
+        "type": "boolean",
+        "default": "true",
+        "required": true
+      },
+      "email": {
+        "type": "string",
+        "default": "user@domain.com",
+        "required": true
+      },
+      "phone": {
+        "type": "string",
+        "default": "666123456",
+        "required": false
+      },
+      "firstName": {
+        "type": "string",
+        "default": "John",
+        "required": false
+      },
+      "lastName": {
+        "type": "string",
+        "default": "Smith",
+        "required": false
+      },
+      "country": {
+        "type": "string",
+        "default": "ES",
+        "required": true
+      },
+      "language": {
+        "type": "string",
+        "default": "es",
+        "required": false
+      },
+      "notes": {
+        "type": "string",
+        "default": "Only visible to administrators",
+        "required": false
+      },
+      "bio": {
+        "type": "string",
+        "default": "Visible to all users",
+        "required": false
+      }
+    }
+  },
+  "AdminUser": {
+    "properties": {
+      "id": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": true
+      },
+      "username": {
+        "type": "string",
+        "default": "user",
+        "required": true
+      },
+      "enabled": {
+        "type": "boolean",
+        "default": true,
+        "required": true
+      },
+      "level": {
+        "type": "integer",
+        "default": 0,
+        "required": true,
+        "description": "An administrator can only modify users of the same or lower level"
+      },
+      "email": {
+        "type": "string",
+        "default": "email@domain.com",
+        "required": true
+      },
+      "phone": {
+        "type": "string",
+        "default": "666123456",
+        "required": false
+      },
+      "avatar": {
+        "$ref": "#/components/schemas/Image",
+        "required": true
+      },
+      "header": {
+        "$ref": "#/components/schemas/Image",
+        "required": true
+      },
+      "firstName": {
+        "type": "string",
+        "default": "John",
+        "required": false
+      },
+      "lastName": {
+        "type": "string",
+        "default": "Smith",
+        "required": false
+      },
+      "country": {
+        "$ref": "#/components/schemas/Country",
+        "required": true
+      },
+      "language": {
+        "type": "string",
+        "default": "es",
+        "required": false
+      },
+      "created": {
+        "type": "string",
+        "format": "date-time",
+        "default": "2022-01-01T12:30:00Z",
+        "required": true
+      },
+      "updated": {
+        "type": "string",
+        "format": "date-time",
+        "default": "2022-01-01T12:30:00Z",
+        "required": true
+      },
+      "notes": {
+        "type": "string",
+        "default": "Only visible to administrators",
+        "required": false
+      },
+      "bio": {
+        "type": "string",
+        "default": "Visible to all users",
+        "required": false
+      },
+      "notifyOnSecretReceived": {
+        "type": "boolean",
+        "default": true,
+        "required": true
+      },
+      "notifyOnFileReceived": {
+        "type": "boolean",
+        "default": true,
+        "required": true
+      },
+      "notifyOnSecretOpened": {
+        "type": "boolean",
+        "default": true,
+        "required": true
+      },
+      "notifyOnFileDownload": {
+        "type": "boolean",
+        "default": true,
+        "required": true
+      },
+      "roles": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Role"
+        },
+        "required": true
+      },
+      "permissions": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "default": [
+          "ADMIN_USERS"
+        ],
+        "required": true
+      }
+    }
+  },
+  "AdminUserList": {
+    "properties": {
+      "items": {
+        "items": {
+          "$ref": "#/components/schemas/AdminUser"
+        }
+      },
+      "moreItems": {
+        "type": "boolean",
+        "default": false,
+        "required": true
+      }
+    }
+  },
+  "ChangeMailRequest": {
+    "properties": {
+      "email": {
+        "type": "string",
+        "default": "example@example.com",
+        "required": true,
+        "description": "This email MUST be the same as the one inside the token"
+      },
+      "token": {
+        "type": "string",
+        "default": "token",
+        "required": true
+      }
+    }
+  },
+  "ChangeUserPasswordRequest": {
+    "properties": {
+      "oldPassword": {
+        "type": "string",
+        "default": "12345678",
+        "required": true
+      },
+      "newPassword": {
+        "type": "string",
+        "default": "12345678",
+        "required": true
+      },
+      "closeAllSessions": {
+        "type": "boolean",
+        "default": "true",
+        "required": true,
+        "description": "If true, all user sessions will be closed"
+      }
+    }
+  },
+  "Country": {
+    "properties": {
+      "code": {
+        "type": "string",
+        "default": "ES",
+        "required": true
+      },
+      "fullName": {
+        "type": "string",
+        "default": "Spain",
+        "required": true
+      }
+    }
+  },
+  "CountryList": {
+    "properties": {
+      "items": {
+        "items": {
+          "$ref": "#/components/schemas/Country"
+        }
+      },
+      "moreItems": {
+        "type": "boolean",
+        "default": false,
+        "required": true
+      }
+    }
+  },
+  "CreateAccountRequest": {
+    "properties": {
+      "name": {
+        "type": "string",
+        "default": "Onlytips"
+      },
+      "enabled": {
+        "type": "boolean",
+        "default": "true"
+      },
+      "features": {
+        "items": {
+          "type": "string",
+          "default": "FORMS",
+          "required": true
+        }
+      },
+      "theme": {
+        "$ref": "#/components/schemas/Theme",
+        "required": false
+      }
+    }
+  },
+  "CreateMailboxRequest": {
+    "properties": {
+      "password": {
+        "type": "string",
+        "default": "mailboxPassword"
+      },
+      "name": {
+        "type": "string",
+        "default": "My Mailbox"
+      },
+      "publicName": {
+        "type": "string",
+        "default": "Send me a file"
+      },
+      "closeAfterReceive": {
+        "type": "boolean",
+        "default": "false"
+      }
+    }
+  },
+  "CreateRegionRequest": {
+    "properties": {
+      "name": {
+        "type": "string",
+        "default": "Europe"
+      },
+      "relevance": {
+        "type": "number",
+        "default": 0
+      },
+      "description": {
+        "type": "string"
+      }
+    }
+  },
+  "CreateSecretRequest": {
+    "properties": {
+      "text": {
+        "type": "string",
+        "default": "You secret text"
+      },
+      "noExpiration": {
+        "type": "boolean",
+        "default": "false"
+      },
+      "destroyOnOpen": {
+        "type": "boolean",
+        "default": "true"
+      }
+    }
+  },
+  "CreateMailboxSecretRequest": {
+    "properties": {
+      "text": {
+        "type": "string",
+        "default": "You secret text"
+      }
+    }
+  },
+  "FormResponseRequest": {
+    "properties": {
+      "string": {
+        "type": "string",
+        "default": "value"
+      },
+      "number": {
+        "type": "double",
+        "default": "12.34"
+      },
+      "boolean": {
+        "type": "boolean",
+        "default": "true"
+      }
+    }
+  },
+  "Image": {
+    "properties": {
+      "id": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": true
+      },
+      "variants": {
+        "$ref": "#/components/schemas/ImageVariant"
+      }
+    }
+  },
+  "ImageVariant": {
+    "properties": {
+      "public": {
+        "type": "string",
+        "default": "https://imagedelivery.net/mCOYp2Z-36yYQy_OujAmOw/dc30571f-5a90-493a-126e-4a54bd294d00/public",
+        "required": true
+      }
+    }
+  },
+  "LoginAsRequest": {
+    "properties": {
+      "username": {
+        "type": "string",
+        "default": "user",
+        "required": true,
+        "description": "Username of the user to be impersonated"
+      }
+    }
+  },
+  "LoginRequest": {
+    "properties": {
+      "username": {
+        "type": "string",
+        "default": "user",
+        "required": true
+      },
+      "password": {
+        "type": "string",
+        "default": "12345678",
+        "required": true
+      }
+    }
+  },
+  "Mailbox": {
+    "properties": {
+      "id": {
+        "type": "string",
+        "default": "kxg234of7"
+      },
+      "name": {
+        "type": "string",
+        "default": "My Mailbox"
+      },
+      "publicName": {
+        "type": "string",
+        "default": "Send me a file"
+      },
+      "token": {
+        "type": "string",
+        "default": "token",
+        "required": true
+      },
+      "createdAt": {
+        "type": "string",
+        "format": "date-time",
+        "default": "2022-01-01T12:30:00Z"
+      },
+      "updatedAt": {
+        "type": "string",
+        "format": "date-time",
+        "default": "2022-01-01T12:30:00Z"
+      },
+      "closed": {
+        "type": "boolean",
+        "default": "false"
+      },
+      "closeAfterReceive": {
+        "type": "boolean",
+        "default": "false"
+      },
+      "unreadCount": {
+        "type": "integer",
+        "default": "0"
+      }
+    }
+  },
+  "MailboxList": {
+    "properties": {
+      "items": {
+        "items": {
+          "$ref": "#/components/schemas/Mailbox"
+        }
+      },
+      "moreItems": {
+        "type": "boolean"
+      }
+    }
+  },
+  "MailValidation": {
+    "properties": {
+      "canonical": {
+        "type": "string",
+        "default": "canonical@gmail.com"
+      },
+      "valid": {
+        "type": "boolean",
+        "default": "true"
+      },
+      "disposable": {
+        "type": "boolean",
+        "default": "false"
+      }
+    }
+  },
+  "OpenedSecret": {
+    "properties": {
+      "text": {
+        "type": "string",
+        "default": "Your secret text"
+      }
+    }
+  },
+  "OpenMailboxRequest": {
+    "properties": {
+      "password": {
+        "type": "string",
+        "default": "mailboxPassword",
+        "required": true
+      }
+    }
+  },
+  "OpenSecretRequest": {
+    "properties": {
+      "token": {
+        "type": "string",
+        "default": "token"
+      },
+      "key": {
+        "type": "string",
+        "default": "key"
+      }
+    }
+  },
+  "OpenSharedFileRequest": {
+    "properties": {
+      "token": {
+        "type": "string",
+        "default": "token"
+      },
+      "key": {
+        "type": "string",
+        "default": "key"
+      }
+    }
+  },
+  "PasswordResetRequest": {
+    "properties": {
+      "newPassword": {
+        "type": "string",
+        "default": "newPassword",
+        "required": true
+      },
+      "token": {
+        "type": "string",
+        "default": "token",
+        "required": true
+      },
+      "closeAllSessions": {
+        "type": "boolean",
+        "default": true,
+        "required": true
+      }
+    }
+  },
+  "PublicMailbox": {
+    "properties": {
+      "id": {
+        "type": "string",
+        "default": "kxg234of7"
+      },
+      "publicName": {
+        "type": "string",
+        "default": "Send me a file"
+      },
+      "closeAfterReceive": {
+        "type": "boolean",
+        "default": "false"
+      }
+    }
+  },
+  "PublicUser": {
+    "properties": {
+      "id": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": true
+      },
+      "username": {
+        "type": "string",
+        "default": "user",
+        "required": true
+      },
+      "firstName": {
+        "type": "string",
+        "default": "John",
+        "required": false
+      },
+      "lastName": {
+        "type": "string",
+        "default": "Smith",
+        "required": false
+      },
+      "avatar": {
+        "$ref": "#/components/schemas/Image",
+        "required": true
+      },
+      "header": {
+        "$ref": "#/components/schemas/Image",
+        "required": true
+      },
+      "bio": {
+        "type": "string",
+        "default": "Visible to all users",
+        "required": false
+      }
+    }
+  },
+  "Region": {
+    "properties": {
+      "id": {
+        "type": "string",
+        "default": "yt330r"
+      },
+      "name": {
+        "type": "string",
+        "default": "Europe"
+      },
+      "relevance": {
+        "type": "number",
+        "default": 0
+      },
+      "description": {
+        "type": "string"
+      }
+    }
+  },
+  "RegionList": {
+    "properties": {
+      "items": {
+        "items": {
+          "$ref": "#/components/schemas/Region"
+        }
+      },
+      "moreItems": {
+        "type": "boolean"
+      }
+    }
+  },
+  "Report": {
+    "properties": {
+      "id": {
+        "type": "string",
+        "default": "yt330r"
+      },
+      "name": {
+        "type": "string"
+      },
+      "title": {
+        "type": "string"
+      },
+      "authorizedUsers": {
+        "items": {
+          "$ref": "#/components/schemas/User"
+        }
+      },
+      "authorizedAccounts": {
+        "items": {
+          "$ref": "#/components/schemas/Account"
+        }
+      },
+      "parameters": {
+        "items": {
+          "$ref": "#/components/schemas/ReportParameter"
+        }
+      }
+    }
+  },
+  "ReportList": {
+    "properties": {
+      "items": {
+        "items": {
+          "$ref": "#/components/schemas/Report"
+        }
+      },
+      "moreItems": {
+        "type": "boolean"
+      }
+    }
+  },
+  "ReportParameter": {
+    "properties": {
+      "name": {
+        "type": "string",
+        "default": "sellerId"
+      },
+      "dataType": {
+        "type": "string",
+        "default": "STRING"
+      },
+      "description": {
+        "type": "string",
+        "default": "Optional description"
+      }
+    }
+  },
+  "Role": {
+    "properties": {
+      "id": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": true
+      },
+      "name": {
+        "type": "string",
+        "default": "name",
+        "required": true
+      }
+    }
+  },
+  "RoleList": {
+    "properties": {
+      "items": {
+        "items": {
+          "$ref": "#/components/schemas/Role"
+        }
+      },
+      "moreItems": {
+        "type": "boolean",
+        "default": false,
+        "required": true
+      }
+    }
+  },
+  "Secret": {
+    "properties": {
+      "id": {
+        "type": "string",
+        "default": "kxg234of7"
+      },
+      "token": {
+        "type": "string",
+        "default": "token"
+      },
+      "expiresOn": {
+        "type": "string",
+        "format": "date-time",
+        "default": "2022-01-01T12:30:00Z"
+      },
+      "destroyOnOpen": {
+        "type": "boolean",
+        "default": "true"
+      }
+    }
+  },
+  "SecretList": {
+    "properties": {
+      "items": {
+        "items": {
+          "$ref": "#/components/schemas/Secret"
+        }
+      },
+      "moreItems": {
+        "type": "boolean",
+        "default": false,
+        "required": true
+      }
+    }
+  },
+  "SendChangeMailRequest": {
+    "properties": {
+      "email": {
+        "type": "string",
+        "default": "user@example.com",
+        "required": true
+      }
+    }
+  },
+  "SendPasswordResetMailRequest": {
+    "properties": {
+      "email": {
+        "type": "string",
+        "default": "user@example.com",
+        "required": true
+      }
+    }
+  },
+  "Session": {
+    "properties": {
+      "created": {
+        "type": "string",
+        "format": "date-time",
+        "default": "2022-01-01T12:30:00Z",
+        "required": true
+      },
+      "country": {
+        "$ref": "#/components/schemas/Country",
+        "required": false
+      }
+    }
+  },
+  "SetRolePermissionsRequest": {
+    "properties": {
+      "permissions": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "default": [
+          "ADMIN_USERS"
+        ]
+      }
+    }
+  },
+  "SetUserRolesRequest": {
+    "properties": {
+      "roles": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "default": [
+          "3gqbdpbym4ua",
+          "3gqbdpbym4ub"
+        ]
+      }
+    }
+  },
+  "SharedFile": {
+    "properties": {
+      "id": {
+        "type": "string",
+        "default": "kxg234of7"
+      },
+      "node": {
+        "type": "integer",
+        "default": "1"
+      },
+      "token": {
+        "type": "string",
+        "default": "token"
+      },
+      "name": {
+        "type": "string",
+        "default": "file.zip"
+      },
+      "size": {
+        "type": "integer",
+        "default": "4096"
+      },
+      "expiresOn": {
+        "type": "string",
+        "format": "date-time",
+        "default": "2022-01-01T12:30:00Z"
+      },
+      "destroyOnOpen": {
+        "type": "boolean",
+        "default": "true"
+      }
+    }
+  },
+  "SharedFileList": {
+    "properties": {
+      "items": {
+        "items": {
+          "$ref": "#/components/schemas/SharedFile"
+        }
+      },
+      "moreItems": {
+        "type": "boolean",
+        "default": false,
+        "required": true
+      }
+    }
+  },
+  "StringList": {
+    "properties": {
+      "items": {
+        "items": {
+          "type": "string",
+          "default": "Item 1"
+        }
+      },
+      "moreItems": {
+        "type": "boolean",
+        "default": false,
+        "required": true
+      }
+    }
+  },
+  "Theme": {
+    "type": "object",
+    "required": false,
+    "properties": {
+      "primary": {
+        "type": "string",
+        "default": "#000000"
+      },
+      "secondary": {
+        "type": "string",
+        "default": "#000000"
+      },
+      "background": {
+        "type": "string",
+        "default": "#000000"
+      },
+      "text": {
+        "type": "string",
+        "default": "#000000"
+      }
+    }
+  },
+  "UpdateAccountMemberRequest": {
+    "properties": {
+      "permissions": {
+        "items": {
+          "type": "string",
+          "default": "VIEW"
+        }
+      }
+    }
+  },
+  "UpdateAccountRequest": {
+    "properties": {
+      "name": {
+        "type": "string",
+        "default": "Onlytips"
+      },
+      "enabled": {
+        "type": "boolean",
+        "default": "true"
+      },
+      "features": {
+        "items": {
+          "type": "string",
+          "default": "FORMS",
+          "required": true
+        }
+      },
+      "theme": {
+        "$ref": "#/components/schemas/Theme",
+        "required": false
+      }
+    }
+  },
+  "UpdateRegionRequest": {
+    "properties": {
+      "name": {
+        "type": "string",
+        "default": "Europe"
+      },
+      "relevance": {
+        "type": "number",
+        "default": 0
+      },
+      "description": {
+        "type": "string"
+      }
+    }
+  },
+  "UpdateUserRequest": {
+    "properties": {
+      "username": {
+        "type": "string",
+        "default": "user",
+        "required": true
+      },
+      "phone": {
+        "type": "string",
+        "default": "666123456",
+        "required": false
+      },
+      "firstName": {
+        "type": "string",
+        "default": "John",
+        "required": false
+      },
+      "lastName": {
+        "type": "string",
+        "default": "Smith",
+        "required": false
+      },
+      "country": {
+        "type": "string",
+        "default": "ES",
+        "required": true
+      },
+      "language": {
+        "type": "string",
+        "default": "es",
+        "required": false
+      }
+    }
+  },
+  "UpdateSettingsRequest": {
+    "properties": {
+      "notifyOnSecretReceived": {
+        "type": "boolean",
+        "default": true,
+        "required": true
+      },
+      "notifyOnFileReceived": {
+        "type": "boolean",
+        "default": true,
+        "required": true
+      },
+      "notifyOnSecretOpened": {
+        "type": "boolean",
+        "default": true,
+        "required": true
+      },
+      "notifyOnFileDownload": {
+        "type": "boolean",
+        "default": true,
+        "required": true
+      }
+    }
+  },
+  "UploadedImageRequest": {
+    "properties": {
+      "id": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": true
+      }
+    }
+  },
+  "User": {
+    "properties": {
+      "id": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": true
+      },
+      "username": {
+        "type": "string",
+        "default": "user",
+        "required": true
+      },
+      "email": {
+        "type": "string",
+        "default": "email@domain.com",
+        "required": true
+      },
+      "phone": {
+        "type": "string",
+        "default": "666123456",
+        "required": false
+      },
+      "avatar": {
+        "$ref": "#/components/schemas/Image",
+        "required": true
+      },
+      "header": {
+        "$ref": "#/components/schemas/Image",
+        "required": true
+      },
+      "firstName": {
+        "type": "string",
+        "default": "John",
+        "required": false
+      },
+      "lastName": {
+        "type": "string",
+        "default": "Smith",
+        "required": false
+      },
+      "country": {
+        "$ref": "#/components/schemas/Country",
+        "required": true
+      },
+      "language": {
+        "type": "string",
+        "default": "es",
+        "required": false
+      },
+      "created": {
+        "type": "string",
+        "format": "date-time",
+        "default": "2022-01-01T12:30:00Z",
+        "required": true
+      },
+      "updated": {
+        "type": "string",
+        "format": "date-time",
+        "default": "2022-01-01T12:30:00Z",
+        "required": true
+      },
+      "notifyOnSecretReceived": {
+        "type": "boolean",
+        "default": true,
+        "required": true
+      },
+      "notifyOnFileReceived": {
+        "type": "boolean",
+        "default": true,
+        "required": true
+      },
+      "notifyOnSecretOpened": {
+        "type": "boolean",
+        "default": true,
+        "required": true
+      },
+      "notifyOnFileDownload": {
+        "type": "boolean",
+        "default": true,
+        "required": true
+      }
+    }
+  },
+  "UserList": {
+    "properties": {
+      "items": {
+        "items": {
+          "$ref": "#/components/schemas/User"
+        }
+      },
+      "moreItems": {
+        "type": "boolean",
+        "default": false,
+        "required": true
+      }
+    }
+  },
+  "UserSession": {
+    "properties": {
+      "user": {
+        "$ref": "#/components/schemas/User"
+      },
+      "session": {
+        "$ref": "#/components/schemas/Session"
+      },
+      "permissions": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "default": [
+          "ADMIN_USERS"
+        ]
+      },
+      "accounts": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/AccountWithPermissions"
+        }
+      }
+    }
+  },
+  "Video": {
+    "properties": {
+      "id": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": true
+      },
+      "deliveryUrl": {
+        "type": "string",
+        "default": "https://example.com/video.mp4"
+      }
+    }
+  },
+  "VideoStatus": {
+    "properties": {
+      "id": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": true
+      },
+      "readyToStream": {
+        "type": "boolean",
+        "default": true,
+        "required": true
+      },
+      "uploaded": {
+        "type": "string",
+        "format": "date-time",
+        "default": "2022-01-01T12:30:00Z",
+        "required": false
+      },
+      "state": {
+        "type": "string",
+        "default": "ready",
+        "required": false
+      },
+      "thumbnail": {
+        "type": "string",
+        "default": "https://example.com/thumbnail.jpg",
+        "required": false
+      },
+      "deliveryUrl": {
+        "type": "string",
+        "default": "https://example.com/thumbnail.jpg",
+        "required": false
+      }
+    }
+  }
+}
