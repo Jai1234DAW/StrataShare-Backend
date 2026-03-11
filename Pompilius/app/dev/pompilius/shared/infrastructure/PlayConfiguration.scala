@@ -78,7 +78,8 @@ class PlayConfiguration @Inject() (
     maxRequest = playConfig.get[Int]("auth.maxRequest"),
     timeWindow = playConfig.get[FiniteDuration]("auth.timeWindow"),
     resetLinkDuration = playConfig.get[FiniteDuration]("auth.resetLinkDuration"),
-    resetPasswordUrl = playConfig.get[String]("auth.resetPasswordUrl")
+    resetPasswordUrl = playConfig.get[String]("auth.resetPasswordUrl"),
+    maxAge = playConfig.get[FiniteDuration]("auth.maxAge"),
   )
 
   // Cache
@@ -107,8 +108,7 @@ class PlayConfiguration @Inject() (
   override def rateLimit: RateLimit =
     RateLimit(
       maxRequest = playConfig.get[Int]("rateLimit.maxRequest"),
-      timeWindow = playConfig.get[FiniteDuration]("rateLimit.timeWindow"),
-      whitelist = HashSet(playConfig.get[Seq[String]]("rateLimit.whitelist"): _*)
+      timeWindow = playConfig.get[FiniteDuration]("rateLimit.timeWindow")
     )
 
 }
