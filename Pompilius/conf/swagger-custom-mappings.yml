@@ -1,0 +1,22 @@
+---
+  - type: java.time.LocalDate
+    specAsParameter:
+      - type: string
+        format: date
+        default: "1990-01-01"
+        description: "Day using ISO-8601, such as 2007-12-03"
+  - type: org.joda.time.DateTime
+    specAsParameter:
+      - type: string
+        format: date-time
+        default: "2022-01-01T12:30:00Z"
+        description: "Datetime using ISO-8601"
+    specAsProperty:
+      type: string
+      format: date-time
+      default: "2022-01-01T12:30:00Z"
+      description: "Datetime using ISO-8601"
+  # Scala any does not map to anything on swagger, so use string
+  - type: any
+    specAsParameter:
+      - type: string
