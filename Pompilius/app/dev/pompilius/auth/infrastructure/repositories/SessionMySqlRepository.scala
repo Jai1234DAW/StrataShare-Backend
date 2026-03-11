@@ -16,8 +16,8 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
 
 @Singleton
-class SessionMySqlRepository @Inject()(implicit dbExecutionContext: DbExecutionContext)
-  extends SessionRepository
+class SessionMySqlRepository @Inject() (implicit dbExecutionContext: DbExecutionContext)
+    extends SessionRepository
     with SQLSyntaxSupport[Session] {
 
   override val tableName = "session"
@@ -75,10 +75,9 @@ class SessionMySqlRepository @Inject()(implicit dbExecutionContext: DbExecutionC
     if (filters.nonEmpty) Some(sqls.joinWithAnd(filters: _*)) else None
   }
 
-
   override def save(
-                     session: Session
-                   ): Future[Done] =
+      session: Session
+  ): Future[Done] =
     Future {
       DB.localTx { implicit dBSession =>
         withSQL {
@@ -105,11 +104,11 @@ class SessionMySqlRepository @Inject()(implicit dbExecutionContext: DbExecutionC
         withSQL {
           update(this)
             .set(column.deleted -> true)
-            .where.eq(column.userId, userId.id)
+            .where
+            .eq(column.userId, userId.id)
             .and(keep.map(id => sqls.ne(column.id, id.id)))
         }.update()
       }
-
       Done
     }
 
