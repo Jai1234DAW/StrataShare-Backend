@@ -2,14 +2,16 @@ package dev.pompilius.shared.domain
 
 case class Pagination(
     offset: Int,
-    limit: Option[Int]
+    limit: Option[Int],
+    orderBy: Seq[String] = Seq.empty
 ) {
-  def OneMore: Pagination=this.copy(limit=this.limit.map(_+1))
-  def key:String=s"$offset,${limit.map(_.toString).getOrElse("all")}"
+  def OneMore: Pagination = this.copy(limit = this.limit.map(_ + 1))
+  def key: String = s"$offset,${limit.map(_.toString).getOrElse("all")}"
 
 }
 
 object Pagination {
-  val all: Pagination=Pagination(offset=0,limit=None)
-  val single: Pagination=Pagination(offset=0,limit=Some(1))
+  def apply(limit: Int): Pagination = Pagination(offset = 0, limit = Some(limit), orderBy = Seq.empty)
+  val all: Pagination = Pagination(offset = 0, limit = None, orderBy = Seq.empty)
+  val single: Pagination = Pagination(offset = 0, limit = Some(1),  orderBy = Seq.empty)
 }

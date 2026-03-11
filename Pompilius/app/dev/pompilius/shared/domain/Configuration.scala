@@ -62,7 +62,8 @@ trait Configuration {
       resetLinkDuration: FiniteDuration,
       resetPasswordUrl: String,
       maxRequest: Int,
-      timeWindow: FiniteDuration
+      timeWindow: FiniteDuration,
+      maxAge:FiniteDuration
   )
 
   def auth: Auth
@@ -93,8 +94,7 @@ trait Configuration {
 
   case class RateLimit(
       maxRequest: Int,
-      timeWindow: FiniteDuration,
-      whitelist: HashSet[String]
+      timeWindow: FiniteDuration
   )
 
   //def mails: Mails
