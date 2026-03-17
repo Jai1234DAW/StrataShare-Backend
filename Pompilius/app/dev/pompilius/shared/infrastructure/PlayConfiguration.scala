@@ -2,32 +2,37 @@ package dev.pompilius.shared.infrastructure
 
 import com.typesafe.config.ConfigException.WrongType
 import dev.pompilius.Strings
+import dev.pompilius.country.domain.Country
 import dev.pompilius.shared.domain.{Clock, Configuration}
 import dev.pompilius.BuildInfo
 import org.joda.time.{DateTime, DateTimeZone}
 import play.api.Environment
 import play.api.i18n.Lang
 
+import java.nio.file.Paths
 import javax.inject.{Inject, Singleton}
-import scala.collection.immutable.HashSet
 import scala.concurrent.duration.FiniteDuration
 
 @SuppressWarnings(Array("UnusedMethodParameter"))
 @Singleton
 class PlayConfiguration @Inject() (
-  playConfig: play.api.Configuration,
-  env: Environment,
-  clock: Clock
+    playConfig: play.api.Configuration,
+    env: Environment,
+    clock: Clock
 ) extends Configuration {
 
   private val logger = play.api.Logger(getClass)
 
   // Root
   override val environment: String = playConfig.get[String](Strings.environment)
+  override val nodeId: Int = playConfig.get[Int](Strings.nodeId)
   override val isTheLocalEnv: Boolean = {
     environment.equalsIgnoreCase(Strings.local)
   }
 
+  override val isTheDefaultNode: Boolean = {
+    nodeId == 0
+  }
   override val logAllExceptions: Boolean = {
     playConfig.get[Boolean](Strings.logAllExceptions)
   }
@@ -79,7 +84,18 @@ class PlayConfiguration @Inject() (
     timeWindow = playConfig.get[FiniteDuration]("auth.timeWindow"),
     resetLinkDuration = playConfig.get[FiniteDuration]("auth.resetLinkDuration"),
     resetPasswordUrl = playConfig.get[String]("auth.resetPasswordUrl"),
-    maxAge = playConfig.get[FiniteDuration]("auth.maxAge"),
+    maxAge = playConfig.get[FiniteDuration]("auth.maxAge")
+  )
+
+  // Attachments
+  override val attachments: Attachments = Attachments(
+    masterKey = playConfig.get[String]("attachments.masterKey"),
+    path = Paths.get(playConfig.get[String]("attachments.path")),
+    tokenValidity = playConfig.get[FiniteDuration]("attachments.tokenValidity"),
+    avatars = Avatars(
+      maxWidth = playConfig.get[Int]("attachments.avatars.maxWidth"),
+      maxHeight = playConfig.get[Int]("attachments.avatars.maxHeight")
+    )
   )
 
   // Cache
@@ -96,6 +112,12 @@ class PlayConfiguration @Inject() (
     changeMailUrl = playConfig.get[String]("users.changeMailUrl")
   )
 
+  //Country
+  override val countries: Countries = Countries(
+    featured = playConfig.get[Seq[String]]("countries.featured").flatMap(Country.withNameInsensitiveOption).toList,
+    allowCountryOverride = playConfig.get[Boolean]("countries.allowCountryOverride")
+  )
+
   // EagerSingletons
   override val eagerSingletonsEnabled: Seq[String] =
     playConfig
@@ -110,5 +132,4 @@ class PlayConfiguration @Inject() (
       maxRequest = playConfig.get[Int]("rateLimit.maxRequest"),
       timeWindow = playConfig.get[FiniteDuration]("rateLimit.timeWindow")
     )
-
 }

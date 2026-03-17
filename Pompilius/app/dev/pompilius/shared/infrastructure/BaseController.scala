@@ -1,93 +1,50 @@
 package dev.pompilius.shared.infrastructure
 
 import dev.pompilius.shared.domain.exceptions.{ForbiddenException, TooManyRequestsException, UnauthorizedException}
-import dev.pompilius.shared.domain.{Clock, Configuration,Pagination}
-import dev.pompilius.user.domain._
+import dev.pompilius.shared.domain.{Clock, Configuration, Pagination, RequestFingerprint}
+import dev.pompilius.users.domain._
 import dev.pompilius.auth.domain.{Session, SessionId, SessionRepository, SessionValidator}
 import dev.pompilius.Strings
+import dev.pompilius.country.domain.Country
 import dev.pompilius.shared.infrastructure.binders.PaginationBinder
 import org.joda.time.DateTime
 import play.api.cache.AsyncCacheApi
-import play.api.http.HeaderNames
 import play.api.i18n.{Lang, Langs}
-import play.api.libs.json.Json
-import play.api.mvc.{
-  ActionBuilder,
-  AnyContent,
-  AnyContentAsJson,
-  InjectedController,
-  QueryStringBindable,
-  Request,
-  Result
-}
+import play.api.mvc.{InjectedController, QueryStringBindable, Request, Result}
 
 import javax.inject.Inject
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
+import play.api.http.HeaderNames
 
 trait BaseController extends InjectedController {
 
+  //Configuracion general de la aplicacion, con valores cargados desde el application.conf. Se utiliza para acceder a valores de configuracion en los controladores sin necesidad de inyectar la configuracion en cada uno de ellos.
   private[this] var _config: Configuration = _
 
   @SuppressWarnings(Array("NullParameter"))
   def configuration: Configuration = {
-    if (_config != null) _config
-    else {
-      throw new NoSuchElementException(
-        "Config not set! Call setConfiguration or create the instance with dependency injection."
-      )
-    }
+    if (_config == null) fallbackConfig else _config
   }
 
   @Inject
-  def setConfiguration(config: Configuration): Unit = {
-    _config = config
+  def setConfig(configuration: Configuration): Unit = {
+    _config = configuration
   }
 
-  private[this] var _clock: Clock = _
-
-  @SuppressWarnings(Array("NullParameter"))
-  def clock: Clock = {
-    if (_clock != null) _clock
-    else {
-      throw new NoSuchElementException(
-        "clock not set! Call setClock or create the instance with dependency injection."
-      )
-    }
+  protected def fallbackConfig: Configuration = {
+    throw new NoSuchElementException(
+      "Config not set! Call setConfig or create the instance with dependency injection."
+    )
   }
 
-  @Inject
-  def setClock(c: Clock): Unit = {
-    _clock = c
-  }
-
-  private[this] var _cache: AsyncCacheApi = _
-
-  @SuppressWarnings(Array("NullParameter"))
-  def cache: AsyncCacheApi = {
-    if (_cache != null) _cache
-    else {
-      throw new NoSuchElementException(
-        "Cache not set! Call setCache or create the instance with dependency injection."
-      )
-    }
-  }
-
-  @Inject
-  def setCache(c: AsyncCacheApi): Unit = {
-    _cache = c
-  }
-
+  //Los idiomas disponibles en la aplicacion, configurados en application.conf. Se utiliza para determinar el idioma preferido del usuario a partir de la cabecera Accept-Language de la request, y para internacionalizar los mensajes de error y otros textos que se devuelven al usuario.
   private[this] var _langs: Langs = _
 
   @SuppressWarnings(Array("NullParameter"))
   def langs: Langs = {
-    if (_langs != null) _langs
-    else
-      throw new NoSuchElementException(
-        "Langs not set! Call setLangs or create the instance with dependency injection."
-      )
+    if (_langs == null) fallbackLangs else _langs
   }
 
   @Inject
@@ -95,19 +52,60 @@ trait BaseController extends InjectedController {
     _langs = l
   }
 
+  protected def fallbackLangs: Langs = {
+    throw new NoSuchElementException(
+      "Langs not set! Call setLangs or create the instance with dependency injection."
+    )
+  }
+
   def getLanguage[A](implicit request: Request[A]): Lang = {
     langs.preferred(request.acceptLanguages.flatMap(lang => Try(Lang(lang.language)).toOption))
   }
 
+  //El reloj de la aplicacion, utilizado para obtener la fecha y hora actual. Se inyecta para facilitar el testing, permitiendo simular diferentes momentos en el tiempo.
+  private[this] var _clock: Clock = _
+
+  @SuppressWarnings(Array("NullParameter"))
+  def clock: Clock = {
+    if (_clock == null) fallbackClock else _clock
+  }
+
+  @Inject
+  def setClock(c: Clock): Unit = {
+    _clock = c
+  }
+
+  protected def fallbackClock: Clock = {
+    throw new NoSuchElementException(
+      "Clock not set! Call setClock or create the instance with dependency injection."
+    )
+  }
+
+  private[this] var _cache: AsyncCacheApi = _
+
+  @SuppressWarnings(Array("NullParameter"))
+  def cache: AsyncCacheApi = {
+    if (_cache == null) fallbackCache else _cache
+  }
+
+  @Inject
+  def setCache(ca: AsyncCacheApi): Unit = {
+    _cache = ca
+  }
+
+  protected def fallbackCache: AsyncCacheApi = {
+    throw new NoSuchElementException(
+      "Clock not set! Call setClock or create the instance with dependency injection."
+    )
+  }
+
+  //
   private[this] var _sessionValidator: SessionValidator = _
 
   @SuppressWarnings(Array("NullParameter"))
   def sessionValidator: SessionValidator = {
-    if (_sessionValidator != null) _sessionValidator
-    else
-      throw new NoSuchElementException(
-        "SessionValidator not set! Call setSessionValidator or create the instance with dependency injection."
-      )
+    if (_sessionValidator == null) fallbackSessionValidator
+    else _sessionValidator
   }
 
   @Inject
@@ -115,16 +113,18 @@ trait BaseController extends InjectedController {
     _sessionValidator = sv
   }
 
+  protected def fallbackSessionValidator: SessionValidator = {
+    throw new NoSuchElementException(
+      "SessionValidator not set! Call setSessionValidator or create the instance with dependency injection."
+    )
+  }
+
+  //
   private[this] var _userRepository: UserRepository = _
 
   @SuppressWarnings(Array("NullParameter"))
   def userRepository: UserRepository = {
-    if (_userRepository != null) _userRepository
-    else {
-      throw new NoSuchElementException(
-        "UserRepository not set! Call setUserRepository or create the instance with dependency injection."
-      )
-    }
+    if (_userRepository == null) fallbackUserRepository else _userRepository
   }
 
   @Inject
@@ -132,39 +132,48 @@ trait BaseController extends InjectedController {
     _userRepository = ur
   }
 
+  protected def fallbackUserRepository: UserRepository = {
+    throw new NoSuchElementException(
+      "UserRepository not set! Call setUserRepository or create the instance with dependency injection."
+    )
+  }
+
   //QUEDE AQUI
   private[this] var _userRoleRepository: UserRoleRepository = _
 
   @SuppressWarnings(Array("NullParameter"))
   def userRoleRepository: UserRoleRepository = {
-    if (_userRoleRepository != null) _userRoleRepository
-    else {
-      throw new NoSuchElementException(
-        "UserRoleRepository not set! Call setUserRoleRepository or create the instance with dependency injection."
-      )
-    }
+    if (_userRoleRepository == null) fallbackUserRoleRepository else _userRoleRepository
   }
 
   @Inject
-  def setUserRoleRepository(ur: UserRoleRepository): Unit = {
-    _userRoleRepository = ur
+  def setUserRoleRepository(urr: UserRoleRepository): Unit = {
+    _userRoleRepository = urr
   }
 
+  protected def fallbackUserRoleRepository: UserRoleRepository = {
+    throw new NoSuchElementException(
+      "UserRoleRepository not set! Call setUserRepository or create the instance with dependency injection."
+    )
+  }
+
+  //
   private[this] var _sessionRepository: SessionRepository = _
 
   @SuppressWarnings(Array("NullParameter"))
   def sessionRepository: SessionRepository = {
-    if (_sessionRepository != null) _sessionRepository
-    else {
-      throw new NoSuchElementException(
-        "SessionRepository not set! Call setSessionRepository or create the instance with dependency injection."
-      )
-    }
+    if (_sessionRepository == null) fallbackSessionRepository else _sessionRepository
   }
 
   @Inject
   def setSessionRepository(sr: SessionRepository): Unit = {
     _sessionRepository = sr
+  }
+
+  protected def fallbackSessionRepository: SessionRepository = {
+    throw new NoSuchElementException(
+      "SessionRepository not set! Call setSessionRepository or create the instance with dependency injection."
+    )
   }
 
   // Obtiene y valida la sesión actual de usuario, o None si el usuario no ha iniciado sesión
@@ -342,6 +351,25 @@ trait BaseController extends InjectedController {
           None
       }
       .getOrElse(Seq.empty)
+  }
+
+  def findCountryCode[A](implicit request: Request[A]): Option[String] = {
+    val ipCountry = request.headers.get(Strings.N_IPCOUNTRY).map(_.take(3).toUpperCase)
+    //Si la configuración lo permite, usamos el pais que nos envía el usuario en una cookie??
+    if (!configuration.countries.allowCountryOverride) ipCountry
+    else {
+      request.cookies.get(Strings.countryOverride).map(_.value.take(3).toUpperCase).orElse(ipCountry)
+    }
+  }
+
+  //Esto es para crear una "huella" del navegador
+  def getFingerprint[A](implicit request: Request[A]): RequestFingerprint = {
+    RequestFingerprint(
+      remoteAddress = request.remoteAddress,
+      country = findCountryCode.flatMap(Country.withNameInsensitiveOption),
+      userAgent = request.headers.get(HeaderNames.USER_AGENT).map(_.take(512)),
+      language = request.headers.get(HeaderNames.ACCEPT_LANGUAGE).map(_.take(256))
+    )
   }
 
 }
