@@ -1,7 +1,7 @@
-package dev.pompilius.attachments.domain
+package dev.pompilius.attachment.domain
 
 import com.google.inject.ImplementedBy
-import dev.pompilius.attachments.infrastructure.repositories.AttachmentMySqlRepository
+import dev.pompilius.attachment.infrastructure.repositories.AttachmentMySqlRepository
 import org.apache.pekko.Done
 
 import scala.concurrent.Future

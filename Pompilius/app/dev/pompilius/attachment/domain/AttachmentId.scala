@@ -1,4 +1,4 @@
-package dev.pompilius.attachments.domain
+package dev.pompilius.attachment.domain
 
 import dev.pompilius.shared.domain.{Snowflake, SnowflakeId}
 
