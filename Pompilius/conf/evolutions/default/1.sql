@@ -2,7 +2,7 @@
 
 # --- !Ups
 
-CREATE TABLE `user` (
+CREATE TABLE `users` (
      `id` bigint NOT NULL,
      `username` varchar(32) CHARACTER SET ascii COLLATE ascii_general_ci NOT NULL,
      `password_hash` varchar(96) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
@@ -25,7 +25,7 @@ CREATE TABLE `user` (
 ) CHARSET=utf8mb4;
 
 
-CREATE TABLE `user_role` (
+CREATE TABLE `users_role` (
      `user_id` BIGINT NOT NULL,
      `role` ENUM('STUDENT', 'PROFESSIONAL', 'AMATEUR', 'SUPPORT', 'ADMIN') NOT NULL,
 
@@ -33,7 +33,6 @@ CREATE TABLE `user_role` (
      KEY `IDX_USER_ROLE_ROLE` (`role`),
      CONSTRAINT `fk_user_role_user`
          FOREIGN KEY (`user_id`)
-             REFERENCES `user` (`id`)
+             REFERENCES `users` (`id`)
              ON DELETE CASCADE
-) ENGINE=InnoDB
-CHARSET=utf8mb4;
+) CHARSET=utf8mb4;
