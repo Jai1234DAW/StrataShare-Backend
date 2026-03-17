@@ -2,7 +2,7 @@ package dev.pompilius.auth.domain
 
 import dev.pompilius.country.domain.Country
 import org.joda.time.DateTime
-import dev.pompilius.user.domain.UserId
+import dev.pompilius.users.domain.UserId
 
 case class Session(
     id: SessionId,

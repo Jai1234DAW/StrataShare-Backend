@@ -1,6 +1,6 @@
 package dev.pompilius.auth.domain
 
-import dev.pompilius.user.domain.UserId
+import dev.pompilius.users.domain.UserId
 
 case class SessionFilter(
     id: Option[SessionId] = None,

@@ -7,7 +7,7 @@ import scalikejdbc.jodatime.JodaTypeBinder._
 import dev.pompilius.auth.domain.{Session, SessionId, SessionRepository, SessionFilter}
 import dev.pompilius.country.domain.Country
 import dev.pompilius.shared.infrastructure.contexts.DbExecutionContext
-import dev.pompilius.user.domain.UserId
+import dev.pompilius.users.domain.UserId
 import dev.pompilius.shared.domain.Pagination
 import dev.pompilius.shared.infrastructure.ScalikeUtil
 

@@ -2,7 +2,7 @@ package dev.pompilius.auth.domain
 
 import com.google.inject.ImplementedBy
 import dev.pompilius.shared.domain.{Clock, Configuration}
-import dev.pompilius.user.domain.UserId
+import dev.pompilius.users.domain.UserId
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
