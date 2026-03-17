@@ -1,22 +1,25 @@
 package dev.pompilius.shared.domain
 
 import com.google.inject.ImplementedBy
+import dev.pompilius.country.domain.Country
 
+import java.nio.file.Path
 //import javax.crypto.spec.SecretKeySpec
 
-//Mirar esto
 import dev.pompilius.shared.infrastructure.PlayConfiguration
 import org.joda.time.DateTime
 import play.api.i18n.Lang
 
 import scala.collection.immutable.HashSet
-import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.duration.{FiniteDuration, Duration}
 
 @ImplementedBy(classOf[PlayConfiguration])
 trait Configuration {
 
   def environment: String
+  def nodeId: Int
   def isTheLocalEnv: Boolean
+  def isTheDefaultNode: Boolean
   def logAllExceptions: Boolean
 
   def baseUrl: String
@@ -29,7 +32,6 @@ trait Configuration {
       scalaVersion: String,
       sbtVersion: String,
       buildTime: DateTime,
-      //Mirar esto para qué se utiliza.
       gitBranch: String,
       gitCommit: String,
       startTime: DateTime
@@ -51,6 +53,13 @@ trait Configuration {
 
   def context: Context
 
+  def countries: Countries
+
+  case class Countries(
+      featured: List[Country],
+      allowCountryOverride: Boolean
+  )
+
   case class Session(
       maxAge: FiniteDuration
   )
@@ -63,7 +72,7 @@ trait Configuration {
       resetPasswordUrl: String,
       maxRequest: Int,
       timeWindow: FiniteDuration,
-      maxAge:FiniteDuration
+      maxAge: FiniteDuration
   )
 
   def auth: Auth
@@ -97,16 +106,31 @@ trait Configuration {
       timeWindow: FiniteDuration
   )
 
+  // Attachments
+  case class Avatars(
+      maxWidth: Int,
+      maxHeight: Int
+  )
+  case class Attachments(
+      masterKey: String,
+      path: Path,
+      tokenValidity: FiniteDuration,
+      avatars: Avatars
+  )
+
+  def attachments: Attachments
+
+
   //def mails: Mails
 
   //case class Mails(
-      //whitelistDomains: HashSet[String],
-      //disposableDomains: HashSet[String],
-      //allowDisposableMails: Boolean,
-      //allowAlias: Boolean,
-      //tokenSecretKey: SecretKeySpec,
-      //sendEmailQueueInitialDelay: FiniteDuration,
-      //sendEmailQueueInterval: FiniteDuration
+  //whitelistDomains: HashSet[String],
+  //disposableDomains: HashSet[String],
+  //allowDisposableMails: Boolean,
+  //allowAlias: Boolean,
+  //tokenSecretKey: SecretKeySpec,
+  //sendEmailQueueInitialDelay: FiniteDuration,
+  //sendEmailQueueInterval: FiniteDuration
   //)
 
 }
