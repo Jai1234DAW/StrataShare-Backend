@@ -2,7 +2,7 @@ package dev.pompilius.auth.domain
 
 import com.google.inject.ImplementedBy
 import dev.pompilius.auth.infrastructure.repositories.SessionMySqlRepository
-import dev.pompilius.user.domain.UserId
+import dev.pompilius.users.domain.UserId
 import org.apache.pekko.Done
 import dev.pompilius.shared.domain.Pagination
 import scala.concurrent.Future
