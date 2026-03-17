@@ -11,5 +11,5 @@ CREATE TABLE `session` (
        `country` varchar(3) CHARACTER SET ascii COLLATE ascii_general_ci DEFAULT NULL,
        PRIMARY KEY (`id`),
        CONSTRAINT `fk_sessions_user`
-           FOREIGN KEY (`user_id`) REFERENCES `user`(`id`)
+           FOREIGN KEY (`user_id`) REFERENCES `users`(`id`)
 ) CHARSET=utf8mb4;
