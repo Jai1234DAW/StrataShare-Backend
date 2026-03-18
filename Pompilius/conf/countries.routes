@@ -1,0 +1,12 @@
+###
+#  summary: Get all countries
+#  roles: {"required": "none", "roles": []}
+#  responses:
+#    200:
+#      description: Success
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/CountryList'
+###
+GET        /       dev.pompilius.country.infrastructure.controllers.CountryController.getCountries

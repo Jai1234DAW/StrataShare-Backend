@@ -1,7 +1,7 @@
 ---
 openapi: 3.0.0
 info:
-  title: "pompilius"
+  title: "Pompilius"
   description: ""
 schemes:
   - "http"

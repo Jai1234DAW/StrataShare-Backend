@@ -1,0 +1,8 @@
+###
+#  summary: Get person avatar
+#  roles: {"required": "none", "roles": []}
+#  responses:
+#    200:
+#      description: Person avatar
+###
+GET           /:personId/avatar                             dev.pompilius.users.infrastructure.controllers.UserController.downloadAvatar(personId: String)
