@@ -1,0 +1,8 @@
+###
+#  summary: Get application context
+#  roles: {"required": "none", "roles": []}
+#  responses:
+#    200:
+#      description: Success
+###
+GET        /        dev.pompilius.context.infrastructure.controllers.ContextController.getContext

@@ -3,5 +3,25 @@
 # https://www.playframework.com/documentation/latest/ScalaRouting
 # ~~~~
 
+### NoDocs ###
+GET        /swagger/swagger.json                 dev.pompilius.swagger.infrastructure.controllers.SwaggerController.generateSwaggerSpec
+### NoDocs ###
+GET        /swagger/swagger-ui/index.html        dev.pompilius.swagger.infrastructure.controllers.SwaggerController.getIndexSwagger
+### NoDocs ###
+GET        /swagger/swagger-ui/*file             controllers.Assets.at(path: String="/public/lib/swagger-ui", file:String)
+
+
 # An example controller showing a sample home page
-GET     /                           dev.pompilius.controllers.HomeController.index()
+#GET        /                               dev.pompilius.context.infrastructure.controllers.ContextController.getContext
+
+#GET        /:node/:attachmentId/:ts        dev.pompilius.attachment.infrastructure.controllers.AttachmentController.downloadAttachment(node: Int, attachmentId: String, ts: Long)
+
+#GET           /:personId/avatar            dev.pompilius.users.infrastructure.controllers.UserController.downloadAvatar(userId: String)
+
+### NoDocs ###
+GET        /api/assets/*file                           controllers.Assets.versioned(path="/public", file: Asset)
+
+# Endpoints de usuario
+->         /api/context                                context.Routes
+->         /api/countries                              countries.Routes
+->         /api/users                                  users.Routes
