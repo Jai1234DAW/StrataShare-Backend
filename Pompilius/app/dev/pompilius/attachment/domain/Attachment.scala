@@ -12,7 +12,6 @@ case class Attachment(
     size: Long,
     createdAt: DateTime,
     isPublic: Boolean = true,
-    fingerprint: Option[String],
     deleted: Boolean = false,
     metadata: Option[String]
 )
