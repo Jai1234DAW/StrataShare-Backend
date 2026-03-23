@@ -1,3 +1,327 @@
 {
-
+  "User": {
+    "properties": {
+      "id": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": true
+      },
+      "username": {
+        "type": "string",
+        "default": "user",
+        "required": true
+      },
+      "email": {
+        "type": "string",
+        "default": "email@domain.com",
+        "required": true
+      },
+      "phone": {
+        "type": "string",
+        "default": "666123456",
+        "required": false
+      },
+      "avatar": {
+        "$ref": "#/components/schemas/Attachment",
+        "required": false
+      },
+      "firstName": {
+        "type": "string",
+        "default": "John",
+        "required": false
+      },
+      "lastName": {
+        "type": "string",
+        "default": "Smith",
+        "required": false
+      },
+      "country": {
+        "$ref": "#/components/schemas/Country",
+        "required": true
+      },
+      "language": {
+        "type": "string",
+        "default": "es",
+        "required": false
+      },
+      "created": {
+        "type": "string",
+        "format": "date-time",
+        "default": "2024-01-01T12:30:00Z",
+        "required": true
+      },
+      "updated": {
+        "type": "string",
+        "format": "date-time",
+        "default": "2022-01-01T12:30:00Z",
+        "required": true
+      }
+    }
+  },
+  "Session": {
+    "properties": {
+      "created": {
+        "type": "string",
+        "format": "date-time",
+        "default": "2022-01-01T12:30:00Z",
+        "required": true
+      },
+      "country": {
+        "$ref": "#/components/schemas/Country",
+        "required": false
+      }
+    }
+  },
+  "Country": {
+    "properties": {
+      "code": {
+        "type": "string",
+        "default": "ES",
+        "required": true
+      },
+      "fullName": {
+        "type": "string",
+        "default": "Spain",
+        "required": true
+      }
+    }
+  },
+  "Attachment": {
+    "properties": {
+      "id": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": true
+      },
+      "filename": {
+        "type": "string",
+        "default": "document.pdf",
+        "required": true
+      },
+      "description": {
+        "type": "string",
+        "default": "Document description",
+        "required": false
+      },
+      "contentType": {
+        "type": "string",
+        "default": "application/pdf",
+        "required": true
+      },
+      "size": {
+        "type": "integer",
+        "default": 102400,
+        "required": true
+      },
+      "createdAt": {
+        "type": "org.joda.time.DateTime",
+        "default": "2025-10-01T12:00:00Z",
+        "required": true
+      },
+      "isPublic": {
+        "type": "boolean",
+        "default": true,
+        "required": true
+      }
+    }
+  },
+  "LoginRequest": {
+    "properties": {
+      "username": {
+        "type": "string",
+        "default": "user",
+        "required": true
+      },
+      "password": {
+        "type": "string",
+        "default": "12345678",
+        "required": true
+      }
+    }
+  },
+  "UserSession": {
+    "properties": {
+      "user": {
+        "$ref": "#/components/schemas/User"
+      },
+      "session": {
+        "$ref": "#/components/schemas/Session"
+      },
+      "roles": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Role"
+        }
+      }
+    }
+  },
+  "Role": {
+    "type": "string",
+    "default": "STUDENT",
+    "required": true
+  },
+  "LoginAsRequest": {
+    "properties": {
+      "username": {
+        "type": "string",
+        "default": "user",
+        "required": true,
+        "description": "Username of the user to be impersonated"
+      }
+    }
+  },
+  "PasswordResetRequest": {
+    "properties": {
+      "newPassword": {
+        "type": "string",
+        "default": "newPassword",
+        "required": true
+      },
+      "token": {
+        "type": "string",
+        "default": "token",
+        "required": true
+      },
+      "closeAllSessions": {
+        "type": "boolean",
+        "default": true,
+        "required": true
+      }
+    }
+  },
+  "SendPasswordResetMailRequest": {
+    "properties": {
+      "email": {
+        "type": "string",
+        "default": "user@example.com",
+        "required": true
+      }
+    }
+  },
+  "RegisterUserRequest": {
+    "properties": {
+      "username": {
+        "type": "string",
+        "default": "user",
+        "required": true
+      },
+      "password": {
+        "type": "string",
+        "default": "12345678",
+        "required": true
+      },
+      "email": {
+        "type": "string",
+        "default": "user@example.com",
+        "required": true
+      },
+      "phone": {
+        "type": "string",
+        "default": "666123456",
+        "required": false
+      },
+      "firstName": {
+        "type": "string",
+        "default": "John",
+        "required": false
+      },
+      "lastName": {
+        "type": "string",
+        "default": "Smith",
+        "required": false
+      },
+      "country": {
+        "type": "string",
+        "default": "ES",
+        "required": true
+      },
+      "language": {
+        "type": "string",
+        "default": "es",
+        "required": false
+      },
+      "notes": {
+        "type": "string",
+        "default": "Additional notes for the registration process",
+        "required": false
+      },
+      "bio": {
+        "type": "string",
+        "default": "Short biography of the user",
+        "required": false
+      },
+      "role": {
+        "type": "string",
+        "default": "STUDENT",
+        "required": true
+      }
+    }
+  },
+  "UpdateUserRequest": {
+    "properties": {
+      "username": {
+        "type": "string",
+        "default": "user",
+        "required": true
+      },
+      "phone": {
+        "type": "string",
+        "default": "666123456",
+        "required": false
+      },
+      "firstName": {
+        "type": "string",
+        "default": "John",
+        "required": false
+      },
+      "lastName": {
+        "type": "string",
+        "default": "Smith",
+        "required": false
+      },
+      "country": {
+        "type": "string",
+        "default": "ES",
+        "required": true
+      },
+      "language": {
+        "type": "string",
+        "default": "es",
+        "required": false
+      },
+      "bio": {
+        "type": "string",
+        "default": "Short biography of the user",
+        "required": false
+      }
+    }
+  },
+  "ChangeUserPasswordRequest": {
+    "properties": {
+      "currentPassword": {
+        "type": "string",
+        "default": "currentPassword",
+        "required": true
+      },
+      "newPassword": {
+        "type": "string",
+        "default": "newPassword",
+        "required": true
+      },
+      "closeAllSessions": {
+        "type": "boolean",
+        "default": true,
+        "required": true
+      }
+    }
+  },
+  "UploadedAttachmentRequest": {
+    "properties": {
+      "id": {
+        "type": String,
+        "default": "3gqbdpbym4ua",
+        "required": true
+      }
+    }
+  }
 }
