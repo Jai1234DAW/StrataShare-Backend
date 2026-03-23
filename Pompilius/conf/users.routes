@@ -1,8 +1,138 @@
 ###
-#  summary: Get person avatar
+#  summary: Get user avatar
 #  roles: {"required": "none", "roles": []}
 #  responses:
 #    200:
-#      description: Person avatar
+#      description: User avatar
 ###
-GET           /:personId/avatar                             dev.pompilius.users.infrastructure.controllers.UserController.downloadAvatar(personId: String)
+GET           /:userId/avatar                             dev.pompilius.users.infrastructure.controllers.UserController.downloadAvatar(userId: String)
+
+
+###
+#  summary: Register a new user
+#  roles: {"required": "none", "roles": []}
+#  requestBody:
+#      required: true
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/RegisterUserRequest'
+#  responses:
+#    200:
+#      description: Success
+###
+POST         /registerUser                                  dev.pompilius.users.infrastructure.controllers.UserController.registerUser
+
+###
+#  summary: Update user info
+#  roles: {"required": "any", "roles": ["ADMIN", "PROFESSIONAL", "AMATEUR", "STUDENT"]}
+#  requestBody:
+#      required: true
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/UpdateUserRequest'
+#  responses:
+#    200:
+#      description: Success
+###
+PUT        /me                                    dev.pompilius.users.infrastructure.controllers.UserController.updateUser()
+
+###
+#  summary: Change user password
+#  roles: {"required": "any", "roles": ["ADMIN", "PROFESSIONAL", "AMATEUR", "STUDENT"]}
+#  requestBody:
+#      required: true
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/ChangeUserPasswordRequest'
+#  responses:
+#    200:
+#      description: Success
+###
+PUT       /me/password                               dev.pompilius.users.infrastructure.controllers.UserController.changePassword()
+
+###
+#summary: Update user avatar
+#  roles: {"required": "none", "roles": []}
+# requestBody:
+#    required: true
+#    content:
+#     multipart/form-data:
+#       schema:
+#         type: object
+#         properties:
+#           file:
+#             type: string
+#             format: binary
+# responses:
+#  200:
+#    description: Success
+#    content:
+#     application/json:
+#      schema:
+#       $ref: '#/components/schemas/User'
+###
+PUT      /me/avatar                                    dev.pompilius.users.infrastructure.controllers.UserController.changeAvatar()
+
+###
+#summary: Upload user avatar
+#  roles: {"required": "none", "roles": []}
+# requestBody:
+#    required: true
+#    content:
+#     application/:
+#      schema:
+#       $ref: '#/components/schemas/UploadedAttachmentRequest'
+# responses:
+#  200:
+#    description: Success
+#    content:
+#     application/json:
+#      schema:
+#       $ref: '#/components/schemas/User'
+
+POST    /me/avatar                                     dev.pompilius.users.infrastructure.controllers.UserController.uploadMyAvatar()
+
+###
+#  summary: Delete my avatar
+#  roles: {"required": "none", "roles": []}
+#  responses:
+#    200:
+#      description: Success
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/User'
+###
+DELETE        /me/avatar                   dev.pompilius.users.infrastructure.controllers.UserController.deleteAvatar()
+
+###
+#  summary: Delete my account
+#  roles: {"required": "none", "roles": []}
+#  consumes:
+#    - text/html'
+#  responses:
+#    200:
+#      description: Success
+###
+PUT        /me/delete                   dev.pompilius.users.infrastructure.controllers.UserController.deleteUser()
+
+###
+#   summary: Change user mail
+#  roles: {"required": "any", "roles": ["ADMIN", "PROFESSIONAL", "AMATEUR", "STUDENT"]}
+#  requestBody:
+#      required: true
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/ChangeUserEmailRequest'
+#  responses:
+#    200:
+#      description: Success
+###
+
+PUT        /me/email                   dev.pompilius.users.infrastructure.controllers.UserController.changeEmail()
+
+
