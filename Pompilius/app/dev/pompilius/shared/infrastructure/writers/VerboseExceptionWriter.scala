@@ -2,6 +2,7 @@ package dev.pompilius.shared.infrastructure.writers
 
 import com.google.inject.ImplementedBy
 import dev.pompilius.Strings
+import dev.pompilius.auth.domain.exceptions.InvalidPasswordOrUsernameException
 import play.mvc.Http.HeaderNames
 //import dev.pompilius.auth.domain.exceptions.InvalidPasswordOrUsernameException
 //Colocar aqui las excepciones que faltan
@@ -11,7 +12,7 @@ import play.mvc.Http.HeaderNames
 import dev.pompilius.shared.domain.VerboseException
 import dev.pompilius.shared.domain.exceptions._
 import dev.pompilius.shared.infrastructure.JsUtils.toJsValueWrapper
-//import dev.pompilius.user.domain.exceptions._
+import dev.pompilius.users.domain.exceptions._
 import play.api.libs.json._
 import play.api.mvc.{Result, Results}
 
@@ -58,22 +59,20 @@ class VerboseExceptionWriterImpl @Inject() extends VerboseExceptionWriter {
       case _: BadRequestException      => 1000
       case _: ForbiddenException       => 2000
       //case _: PageNotFoundException              => 3016
-      //case _: AccountMemberNotFoundException     => 3015
-      //case _: AccountNotFoundException           => 3014
       //case _: FormNotFoundException              => 3010
       //case _: ImageNotFoundException             => 3003
       //case _: RoleNotFoundException              => 3002
       //case _: UserNotFoundException              => 3001
-      case _: NotFoundException => 3000
-      //case _: InvalidPasswordOrUsernameException => 4001
+      case _: NotFoundException                  => 3000
+      case _: InvalidPasswordOrUsernameException => 4001
       //case _: UnauthorizedException              => 4000
       //case _: AccountNameAlreadyInUseException   => 6013
       //case _: RoleInUseException                 => 6004
       //case _: RoleNameAlreadyInUseException      => 6003
-      //case _: EmailAlreadyInUseException         => 6002
-      //case _: UsernameAlreadyInUseException      => 6001
-      case _: UnprocessableException => 6000
-      case _: GoneException          => 7000
+      case _: EmailAlreadyInUseException    => 6002
+      case _: UsernameAlreadyInUseException => 6001
+      case _: UnprocessableException        => 6000
+      case _: GoneException                 => 7000
       //case _: SendMailException                  => 5008
       //case _: ImageStorageException              => 5002
       case _: InternalServerException => 5001
@@ -92,16 +91,16 @@ class VerboseExceptionWriterImpl @Inject() extends VerboseExceptionWriter {
       //case _: AccountNotFoundException           => Results.NotFound
       //case _: ImageNotFoundException             => Results.NotFound
       //case _: RoleNotFoundException              => Results.NotFound
-      //case _: UserNotFoundException              => Results.NotFound
+      case _: UserNotFoundException              => Results.NotFound
       case _: NotFoundException => Results.NotFound
-      //case _: InvalidPasswordOrUsernameException => Results.Unauthorized
+      case _: InvalidPasswordOrUsernameException => Results.Unauthorized
       case _: UnauthorizedException => Results.Unauthorized
       case _: GoneException         => Results.Gone
       //case _: AccountNameAlreadyInUseException   => Results.UnprocessableEntity
       //case _: RoleInUseException                 => Results.UnprocessableEntity
       //case _: RoleNameAlreadyInUseException      => Results.UnprocessableEntity
-      //case _: EmailAlreadyInUseException         => Results.UnprocessableEntity
-      //case _: UsernameAlreadyInUseException      => Results.UnprocessableEntity
+      case _: EmailAlreadyInUseException         => Results.UnprocessableEntity
+      case _: UsernameAlreadyInUseException      => Results.UnprocessableEntity
       case _: UnprocessableException => Results.UnprocessableEntity
       //case _: SendMailException                  => Results.InternalServerError
       //case _: ImageStorageException              => Results.InternalServerError
