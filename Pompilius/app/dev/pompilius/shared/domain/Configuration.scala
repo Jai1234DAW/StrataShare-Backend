@@ -4,7 +4,7 @@ import com.google.inject.ImplementedBy
 import dev.pompilius.country.domain.Country
 
 import java.nio.file.Path
-//import javax.crypto.spec.SecretKeySpec
+import javax.crypto.spec.SecretKeySpec
 
 import dev.pompilius.shared.infrastructure.PlayConfiguration
 import org.joda.time.DateTime
@@ -72,7 +72,8 @@ trait Configuration {
       resetPasswordUrl: String,
       maxRequest: Int,
       timeWindow: FiniteDuration,
-      maxAge: FiniteDuration
+      maxAge: FiniteDuration,
+      allowLoginWithoutRoles: Boolean
   )
 
   def auth: Auth
@@ -112,25 +113,21 @@ trait Configuration {
       maxHeight: Int
   )
   case class Attachments(
-      masterKey: String,
       path: Path,
-      tokenValidity: FiniteDuration,
       avatars: Avatars
   )
 
   def attachments: Attachments
 
+  def mails: Mails
 
-  //def mails: Mails
-
-  //case class Mails(
-  //whitelistDomains: HashSet[String],
-  //disposableDomains: HashSet[String],
-  //allowDisposableMails: Boolean,
-  //allowAlias: Boolean,
-  //tokenSecretKey: SecretKeySpec,
-  //sendEmailQueueInitialDelay: FiniteDuration,
-  //sendEmailQueueInterval: FiniteDuration
-  //)
+  case class Mails(
+      disposableDomains: HashSet[String],
+      allowDisposableMails: Boolean,
+      allowAlias: Boolean,
+      tokenSecretKey: SecretKeySpec,
+      sendEmailQueueInitialDelay: FiniteDuration,
+      sendEmailQueueInterval: FiniteDuration
+  )
 
 }
