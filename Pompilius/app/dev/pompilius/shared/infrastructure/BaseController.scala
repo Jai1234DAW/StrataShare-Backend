@@ -266,13 +266,41 @@ trait BaseController extends InjectedController {
 //    }
 //  }
 
-  //MIRAR SI ESTO SERÁ NECESARIO
   def findRolesByUser(user: User)(implicit
       ec: ExecutionContext
   ): Future[List[Role]] = {
     userRoleRepository
       .find(UserRoleFilter(userId = Some(user.id)), Pagination.all)
       .map(_.map(_.role).distinct)
+  }
+
+  def hasRole[T](role: Role, userId: UserId)(implicit
+      request: Request[T],
+      ec: ExecutionContext
+  ): Future[Boolean] = {
+
+    findCurrentUser.flatMap {
+      case Some(user) =>
+        findRolesByUser(user).map { roles =>
+          roles.contains(role)
+        }
+      case None =>
+        Future.successful(false)
+    }
+  }
+
+  def hasRoleWithUser[T](role: Role, userId: UserId)(implicit
+      request: Request[T],
+      ec: ExecutionContext
+  ): Future[Option[(User, Boolean)]] = {
+    findCurrentUser.flatMap {
+      case Some(user) =>
+        findRolesByUser(user).map { roles =>
+          Some((user, roles.contains(role)))
+        }
+      case None =>
+        Future.successful(None)
+    }
   }
 
   // Se utiliza para asegurarnos de que la función que se pasa como parámetro solo
