@@ -1,0 +1,93 @@
+###
+#  summary: Get current user
+#  roles: {"required": "none", "roles": []}
+#  responses:
+#    200:
+#      description: Success
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/UserSession'
+###
+GET           /me                 dev.pompilius.auth.infrastructure.controllers.AuthController.me
+
+###
+#  summary: Delete current session
+#  roles: {"required": "none", "roles": []}
+#  responses:
+#    200:
+#      description: Success
+###
+DELETE        /me                 dev.pompilius.auth.infrastructure.controllers.AuthController.logout
+
+###
+#  summary: Login with password
+#  roles: {"required": "none", "roles": []}
+#  requestBody:
+#      required: true
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/LoginRequest'
+#  responses:
+#    200:
+#      description: Success
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/UserSession'
+###
+POST          /login              dev.pompilius.auth.infrastructure.controllers.AuthController.login
+
+###
+#  summary: Login as another user
+#  roles: {"required": "all", "roles": [ADMIN]}
+#  requestBody:
+#      required: true
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/LoginAsRequest'
+#  responses:
+#    200:
+#      description: Success
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/UserSession'
+###
+POST          /loginAs            dev.pompilius.auth.infrastructure.controllers.AuthController.loginAs
+
+###
+#  summary: Reset user password
+#  roles: {"required": "none", "roles": []}
+#  requestBody:
+#      required: true
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/PasswordResetRequest'
+#  responses:
+#    200:
+#      description: Success
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/UserSession'
+###
+POST          /reset              dev.pompilius.auth.infrastructure.controllers.AuthController.resetPassword
+
+###
+#  summary: Send password reset email
+#  roles: {"required": "none", "roles": []}
+#  requestBody:
+#      required: true
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/SendPasswordResetMailRequest'
+#  responses:
+#    200:
+#      description: Success
+###
+POST          /reset/email        dev.pompilius.auth.infrastructure.controllers.AuthController.sendPasswordResetMail
