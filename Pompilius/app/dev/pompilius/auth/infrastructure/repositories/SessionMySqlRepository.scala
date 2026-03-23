@@ -33,7 +33,8 @@ class SessionMySqlRepository @Inject() (implicit dbExecutionContext: DbExecution
       created = rs.get(s.created),
       address = rs.get(s.address),
       userAgent = rs.get(s.userAgent),
-      country = rs.get[Option[String]](s.country).flatMap(Country.withNameInsensitiveOption)
+      country = rs.get[Option[String]](s.country).flatMap(Country.withNameInsensitiveOption),
+      updatedAt = rs.get[Option[org.joda.time.DateTime]](s.updatedAt)
     )
 
   val s = this.syntax("s")
@@ -90,7 +91,8 @@ class SessionMySqlRepository @Inject() (implicit dbExecutionContext: DbExecution
               column.created -> session.created,
               column.address -> session.address,
               column.userAgent -> session.userAgent,
-              column.country -> session.country.map(_.toString)
+              column.country -> session.country.map(_.toString),
+                column.updatedAt -> session.updatedAt
             )
         }.update()
       }
