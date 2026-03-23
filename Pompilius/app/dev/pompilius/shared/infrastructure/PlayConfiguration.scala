@@ -9,9 +9,16 @@ import org.joda.time.{DateTime, DateTimeZone}
 import play.api.Environment
 import play.api.i18n.Lang
 
+import java.net.URI
 import java.nio.file.Paths
+import java.security.MessageDigest
+import javax.crypto.spec.SecretKeySpec
 import javax.inject.{Inject, Singleton}
+import scala.collection.immutable.HashSet
 import scala.concurrent.duration.FiniteDuration
+import scala.io.Source
+import scala.util.Try
+import scala.util.control.NonFatal
 
 @SuppressWarnings(Array("UnusedMethodParameter"))
 @Singleton
@@ -84,14 +91,13 @@ class PlayConfiguration @Inject() (
     timeWindow = playConfig.get[FiniteDuration]("auth.timeWindow"),
     resetLinkDuration = playConfig.get[FiniteDuration]("auth.resetLinkDuration"),
     resetPasswordUrl = playConfig.get[String]("auth.resetPasswordUrl"),
-    maxAge = playConfig.get[FiniteDuration]("auth.maxAge")
+    maxAge = playConfig.get[FiniteDuration]("auth.maxAge"),
+    allowLoginWithoutRoles = playConfig.get[Boolean]("auth.allowLoginWithoutRoles")
   )
 
   // Attachments
   override val attachments: Attachments = Attachments(
-    masterKey = playConfig.get[String]("attachments.masterKey"),
     path = Paths.get(playConfig.get[String]("attachments.path")),
-    tokenValidity = playConfig.get[FiniteDuration]("attachments.tokenValidity"),
     avatars = Avatars(
       maxWidth = playConfig.get[Int]("attachments.avatars.maxWidth"),
       maxHeight = playConfig.get[Int]("attachments.avatars.maxHeight")
@@ -132,4 +138,49 @@ class PlayConfiguration @Inject() (
       maxRequest = playConfig.get[Int]("rateLimit.maxRequest"),
       timeWindow = playConfig.get[FiniteDuration]("rateLimit.timeWindow")
     )
+
+  override val mails: Mails = {
+    // Carga la lista de dominios de email desechables
+    val disposableEmailDomains: HashSet[String] =
+      try {
+        val path = playConfig.get[String]("mails.domains.blacklist")
+        val lines =
+          Try(Source.fromFile(path, "UTF-8"))
+            .orElse(Try(Source.fromURL(new URI(path).toURL, "UTF-8")))
+            .getOrElse {
+              logger.warn(s"Unable to load disposable email domains from $path, using default list")
+              Source.fromURL(getClass.getResource("/disposable_email_blocklist.conf"), "UTF-8")
+            }
+            .getLines()
+            .map(_.trim.toLowerCase)
+            .filterNot(_.startsWith("#"))
+            .filter(_.nonEmpty)
+        HashSet(lines.toSeq: _*)
+      } catch {
+        case NonFatal(e) =>
+          logger.error("Error loading disposable email domains", e)
+          HashSet.empty[String]
+      }
+
+    val whitelistDomains: Set[String] =
+      playConfig
+        .get[Seq[String]]("mails.domains.whitelist")
+        .map(_.trim.toLowerCase)
+        .filter(_.nonEmpty)
+        .toSet
+
+    Mails(
+      disposableDomains = disposableEmailDomains -- whitelistDomains,
+      allowDisposableMails = playConfig.get[Boolean]("mails.allowDisposableMails"),
+      allowAlias = playConfig.get[Boolean]("mails.allowAlias"),
+      tokenSecretKey = new SecretKeySpec(
+        MessageDigest
+          .getInstance("SHA-256")
+          .digest(playConfig.get[String]("mails.tokenSecretKey").getBytes("UTF-8")),
+        "HmacSHA256"
+      ),
+      sendEmailQueueInitialDelay = playConfig.get[FiniteDuration]("mails.sendEmailQueue.initialDelay"),
+      sendEmailQueueInterval = playConfig.get[FiniteDuration]("mails.sendEmailQueue.interval")
+    )
+  }
 }
