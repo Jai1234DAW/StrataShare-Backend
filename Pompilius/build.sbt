@@ -103,3 +103,5 @@ scalacOptions ++= Seq(
   //  "-Ywarn-unused:imports",
   //  "-Ywarn-unused:privates"
 )
+
+libraryDependencies += "commons-io" % "commons-io" % "2.18.0"
