@@ -11,5 +11,6 @@ case class Session(
     created: DateTime,
     address: String,
     userAgent: Option[String] = None,
-    country: Option[Country] = None
+    country: Option[Country] = None,
+    updatedAt:Option[DateTime] = None,
 )
