@@ -24,37 +24,37 @@ DELETE        /me                 dev.pompilius.auth.infrastructure.controllers.
 #  summary: Login with password
 #  roles: {"required": "none", "roles": []}
 #  requestBody:
-#      required: true
-#      content:
-#       application/json:
+#    required: true
+#    content:
+#      application/json:
 #        schema:
-#         $ref: '#/components/schemas/LoginRequest'
+#          $ref: '#/components/schemas/LoginRequest'
 #  responses:
 #    200:
 #      description: Success
 #      content:
-#       application/json:
-#        schema:
-#         $ref: '#/components/schemas/UserSession'
+#        application/json:
+#          schema:
+#            $ref: '#/components/schemas/UserSession'
 ###
 POST          /login              dev.pompilius.auth.infrastructure.controllers.AuthController.login
 
 ###
 #  summary: Login as another user
-#  roles: {"required": "all", "roles": [ADMIN]}
+#  roles: {"required": "all", "roles": ["ADMIN"]}
 #  requestBody:
-#      required: true
-#      content:
-#       application/json:
+#    required: true
+#    content:
+#      application/json:
 #        schema:
-#         $ref: '#/components/schemas/LoginAsRequest'
+#          $ref: '#/components/schemas/LoginAsRequest'
 #  responses:
 #    200:
 #      description: Success
 #      content:
-#       application/json:
-#        schema:
-#         $ref: '#/components/schemas/UserSession'
+#        application/json:
+#          schema:
+#            $ref: '#/components/schemas/UserSession'
 ###
 POST          /loginAs            dev.pompilius.auth.infrastructure.controllers.AuthController.loginAs
 
