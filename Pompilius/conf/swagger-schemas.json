@@ -114,8 +114,9 @@
         "required": true
       },
       "createdAt": {
-        "type": "org.joda.time.DateTime",
-        "default": "2025-10-01T12:00:00Z",
+        "type": "string",
+        "format": "date-time",
+        "default": "2022-01-01T12:30:00Z",
         "required": true
       },
       "isPublic": {
@@ -150,15 +151,14 @@
       "roles": {
         "type": "array",
         "items": {
-          "$ref": "#/components/schemas/Role"
-        }
+          "type": "string"
+        },
+        "default": [
+          "STUDENT"
+        ],
+        "required": true
       }
     }
-  },
-  "Role": {
-    "type": "string",
-    "default": "STUDENT",
-    "required": true
   },
   "LoginAsRequest": {
     "properties": {
@@ -318,7 +318,7 @@
   "UploadedAttachmentRequest": {
     "properties": {
       "id": {
-        "type": String,
+        "type": "string",
         "default": "3gqbdpbym4ua",
         "required": true
       }

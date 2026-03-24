@@ -3,7 +3,7 @@
 #  roles: {"required": "none", "roles": []}
 #  responses:
 #    200:
-#      description: User avatar
+#      description: Success
 ###
 GET           /:userId/avatar                             dev.pompilius.users.infrastructure.controllers.UserController.downloadAvatar(userId: String)
 
@@ -54,9 +54,9 @@ PUT        /me                                    dev.pompilius.users.infrastruc
 PUT       /me/password                               dev.pompilius.users.infrastructure.controllers.UserController.changePassword()
 
 ###
-#summary: Update user avatar
+#  summary: Update user avatar
 #  roles: {"required": "none", "roles": []}
-# requestBody:
+#  requestBody:
 #    required: true
 #    content:
 #     multipart/form-data:
@@ -66,27 +66,27 @@ PUT       /me/password                               dev.pompilius.users.infrast
 #           file:
 #             type: string
 #             format: binary
-# responses:
-#  200:
-#    description: Success
-#    content:
-#     application/json:
-#      schema:
-#       $ref: '#/components/schemas/User'
+#  responses:
+#    200:
+#      description: Success
+#      content:
+#        application/json:
+#          schema:
+#            $ref: '#/components/schemas/User'
 ###
 PUT      /me/avatar                                    dev.pompilius.users.infrastructure.controllers.UserController.changeAvatar()
 
 ###
-#summary: Upload user avatar
+#  summary: Upload user avatar
 #  roles: {"required": "none", "roles": []}
-# requestBody:
+#  requestBody:
 #    required: true
 #    content:
 #     application/:
 #      schema:
 #       $ref: '#/components/schemas/UploadedAttachmentRequest'
-# responses:
-#  200:
+#  responses:
+#    200:
 #    description: Success
 #    content:
 #     application/json:
@@ -117,22 +117,7 @@ DELETE        /me/avatar                   dev.pompilius.users.infrastructure.co
 #    200:
 #      description: Success
 ###
-PUT        /me/delete                   dev.pompilius.users.infrastructure.controllers.UserController.deleteUser()
+PUT        /me/delete                     dev.pompilius.users.infrastructure.controllers.UserController.deleteUser()
 
-###
-#   summary: Change user mail
-#  roles: {"required": "any", "roles": ["ADMIN", "PROFESSIONAL", "AMATEUR", "STUDENT"]}
-#  requestBody:
-#      required: true
-#      content:
-#       application/json:
-#        schema:
-#         $ref: '#/components/schemas/ChangeUserEmailRequest'
-#  responses:
-#    200:
-#      description: Success
-###
-
-PUT        /me/email                   dev.pompilius.users.infrastructure.controllers.UserController.changeEmail()
 
 
