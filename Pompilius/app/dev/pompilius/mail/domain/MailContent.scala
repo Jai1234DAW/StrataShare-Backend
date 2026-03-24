@@ -1,13 +1,13 @@
 package dev.pompilius.mail.domain
 
-case class MailContent(contentType: String, content: String)
+case class MailContent(text: Option[String], html: Option[String])
 
 object MailContent {
 
-  def apply(content: String): MailContent = {
+  def apply(text: String): MailContent = {
     MailContent(
-      contentType = "text/plain",
-      content = content
+      text = Some(text),
+      html = None
     )
   }
 
