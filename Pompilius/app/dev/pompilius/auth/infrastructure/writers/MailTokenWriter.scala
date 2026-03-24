@@ -15,6 +15,7 @@ trait MailTokenWriter {
   def toString(mailToken: MailToken, secretKey: SecretKeySpec): Future[String]
 }
 
+// A lo mejor esto no lo necesito
 @Singleton
 class MailTokenWriterImpl @Inject()(implicit ec: ExecutionContext) extends MailTokenWriter {
 
