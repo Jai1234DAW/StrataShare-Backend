@@ -10,9 +10,19 @@ import dev.pompilius.users.domain._
 import dev.pompilius.attachment.domain.AttachmentCheck
 import play.api.libs.Files
 import play.api.libs.Files.TemporaryFile
-import play.api.libs.json.Json
-import dev.pompilius.users.domain.exceptions.{EmailAlreadyInUseException, UserNotFoundException, UsernameAlreadyInUseException}
-import dev.pompilius.users.infrastructure.parsers.{ChangeMailRequestParser, ChangeUserPasswordRequestParser, RegisterUserRequestParser, SendMailChangeRequestParser, UpdateUserRequestParser}
+import play.api.libs.json.{JsValue, Json}
+import dev.pompilius.users.domain.exceptions.{
+  EmailAlreadyInUseException,
+  UserNotFoundException,
+  UsernameAlreadyInUseException
+}
+import dev.pompilius.users.infrastructure.parsers.{
+  ChangeMailRequestParser,
+  ChangeUserPasswordRequestParser,
+  RegisterUserRequestParser,
+  SendMailChangeRequestParser,
+  UpdateUserRequestParser
+}
 import play.api.mvc._
 import dev.pompilius.auth.infrastructure.parsers.MailTokenParser
 
@@ -23,6 +33,7 @@ import dev.pompilius.auth.domain.MailToken
 import dev.pompilius.auth.infrastructure.writers.MailTokenWriter
 import dev.pompilius.mail.domain._
 import dev.pompilius.shared.infrastructure.UrlUtil
+import dev.pompilius.users.domain.Role.{AMATEUR, PROFESSIONAL}
 import play.api.i18n.MessagesImpl
 
 @Singleton
@@ -32,14 +43,15 @@ class UserController @Inject() (
     userRepository: UserRepository,
     attachmentWriter: AttachmentWriter,
     mailTokenWriter: MailTokenWriter,
-    sendMailQueue: SendMailQueue
+    mailRepository: MailRepository,
+    mailSentRepository: MailSentRepository
 )(implicit val ec: ExecutionContext)
     extends BaseController
     with Attachments {
 
   private val logger = play.api.Logger(getClass)
 
-  def registerUser: Action[AnyContent] =
+  def registerUser: Action[AnyContent] = {
     Action.async { implicit request =>
       val createUserRequest = RegisterUserRequestParser.parse(request)
 
@@ -75,6 +87,7 @@ class UserController @Inject() (
         }
 
         _ <- userRepository.save(newUser)
+        _ <- sendWelcomeEmail(newUser)
 
         newUserRole = UserRole(newUser.id, createUserRequest.role)
         _ <- userRoleRepository.save(newUserRole)
@@ -84,6 +97,38 @@ class UserController @Inject() (
         Ok(newUserJson)
       }
     }
+  }
+
+  private def sendWelcomeEmail(user: User): Future[Unit] = {
+    val address = MailAddress(name = Some(user.fullName), address = user.email)
+    val html = dev.pompilius.users.infrastructure.views.html
+      .welcome_email(
+        name = user.firstName.getOrElse(user.username),
+        actionUrl = configuration.baseUrl
+      )
+      .body
+
+    val content = MailContent(text = None, html = Some(html))
+    val mail = Mail(
+      to = address,
+      subject = Some(MailSubject("Welcome to Our Research Community")),
+      content = content
+    )
+
+    for {
+      _ <- mailRepository.sendMail(mail)
+      _ <- mailSentRepository.save(
+        MailSent(
+          id = MailSentId.gen(configuration.nodeId),
+          mailType = MailType.WELCOME,
+          address = address.address,
+          sentAt = clock.now,
+          userId = user.id,
+          metadata = None
+        )
+      )
+    } yield ()
+  }
 
   def downloadAvatar(userId: String): Action[AnyContent] =
     Action.async {
@@ -252,83 +297,37 @@ class UserController @Inject() (
       }
     }
 
-  def changeEmail: Action[AnyContent] =
-    Action.async { implicit request =>
-      withAuthenticatedUser {
-        case (_, currentUser, _) =>
-          val changeMailRequest = ChangeMailRequestParser.parse(request)
-          val mailToken = MailTokenParser.parse(changeMailRequest.token, configuration.mails.tokenSecretKey)
 
-          if (!mailToken.mail.equalsIgnoreCase(changeMailRequest.email)) {
-            throw new BadRequestException("The email does not match with the token")
+  //Otra función generada para enviar emails, vamos a intentar y si no comentamos
+
+  //Para validar el formato del username y su disponibilidad, esto es para mejorar la experiencia de usaurio en el frontend,
+  // no es estrictamente necesario ya que el backend también validará esto al crear o actualizar un usuario, pero así evitamos que el usuario
+  // tenga que esperar a enviar el formulario para saber si el username es válido o no.
+  def validateUsername: Action[JsValue] =
+    Action.async(parse.json) { implicit request =>
+      (request.body \ Strings.username).as[String] match {
+        case Strings.usernameRegex(username) =>
+          userRepository.findByUsername(username).map(_.isEmpty).map { available =>
+            // Si el nombre de usuario es válido, devolvemos su disponibilidad
+            Ok(Json.obj(Strings.available -> available, Strings.valid -> true))
           }
-
-          for {
-            _ <- userRepository.findByEmail(mailToken.mail).map {
-              // Si otro usuario esta usando este email, lanzamos una excepción
-              case Some(u) if u.id.id != currentUser.id.id =>
-                throw new EmailAlreadyInUseException()
-              case _ =>
-            }
-
-            updatedUser = currentUser.copy(
-              email = mailToken.mail
-            )
-
-            _ <- userRepository.save(updatedUser)
-
-            newUserJson <- userWriter.toJson(updatedUser)
-          } yield {
-            Ok(newUserJson)
-          }
+        case _ =>
+          // Si el nombre de usuario no es válido, devolvemos un error
+          Future.successful(Ok(Json.obj(Strings.available -> false, Strings.valid -> false)))
       }
-
-      def sendChangeMail: Action[AnyContent] =
-        Action.async { implicit request =>
-          withAuthenticatedUser {
-            case (_, _, _) =>
-              val sendMailChangeRequest = SendMailChangeRequestParser.parse(request)
-
-              for {
-                _ <-
-                  mailTokenWriter
-                    .toString(
-                      MailToken(
-                        sendMailChangeRequest.email,
-                        clock.now.plusMillis(configuration.users.changeMailLinkDuration.toMillis.toInt)
-                      ),
-                      configuration.mails.tokenSecretKey
-                    ) map { token =>
-                    // Creamos un token y lo enviamos por email
-                    val messages = MessagesImpl(getLanguage, messagesApi)
-                    val mailAddress = MailAddress(address = sendMailChangeRequest.email, name = None)
-                    // Creamos el link de autenticación, que ira en el correo.
-                    val link = UrlUtil.addQueryParameters(
-                      configuration.users.changeMailUrl,
-                      Map(Strings.email -> sendMailChangeRequest.email, Strings.token -> token)
-                    )
-                    // Creamos el contenido del email de pago usando una plantilla
-                    val mailContent =
-                      dev.pompilius.users.infrastructure.views.html.change_email(link)(messages)
-
-                    val mail = Mail(
-                      to = mailAddress,
-                      subject = Some(MailSubject(messages("mail.change.subject"))),
-                      content = MailContent(
-                        contentType = mailContent.contentType,
-                        content = mailContent.body
-                      )
-                    )
-
-                    // Enviamos el email
-                    sendMailQueue.add(mail = mail, accountId = None, key = None)
-                  }
-
-              } yield {
-                Ok
-              }
-          }
-        }
     }
 
+  def validateEmail: Action[JsValue] =
+    Action.async(parse.json) { implicit request =>
+      (request.body \ Strings.email).as[String] match {
+        case Strings.emailRegex(email) =>
+          userRepository.findByEmail(email).map(_.isEmpty).map { available =>
+            // Si el email es válido, se devuelve su disponibilidad
+            Ok(Json.obj(Strings.available -> available, Strings.valid -> true))
+          }
+        case _ =>
+          // Si el email no es válido, se devuelve un error
+          Future.successful(Ok(Json.obj(Strings.available -> false, Strings.valid -> false)))
+      }
+    }
 }

@@ -21,7 +21,7 @@ import scala.util.Try
 
 @Singleton
 class UserMySqlRepository @Inject() (
-    userRoleMySqlRepository: UserRoleMySqlRepository
+
 )(implicit dbExecutionContext: DbExecutionContext)
     extends UserRepository
     with SQLSyntaxSupport[User] {
