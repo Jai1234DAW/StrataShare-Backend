@@ -5,8 +5,9 @@ import dev.pompilius.Strings
 import dev.pompilius.country.domain.Country
 import dev.pompilius.shared.domain.{Clock, Configuration}
 import dev.pompilius.BuildInfo
+import dev.pompilius.mail.domain.MailAddress
 import org.joda.time.{DateTime, DateTimeZone}
-import play.api.Environment
+import play.api.{ConfigLoader, Environment}
 import play.api.i18n.Lang
 
 import java.net.URI
@@ -29,6 +30,14 @@ class PlayConfiguration @Inject() (
 ) extends Configuration {
 
   private val logger = play.api.Logger(getClass)
+
+  implicit def mailAddressLoader(implicit loader: ConfigLoader[Option[String]]): ConfigLoader[MailAddress] =
+    ConfigLoader(_.getConfig).map { config =>
+      MailAddress(
+        address = config.getString("address"),
+        name = loader.load(config, "name")
+      )
+    }
 
   // Root
   override val environment: String = playConfig.get[String](Strings.environment)
@@ -183,4 +192,19 @@ class PlayConfiguration @Inject() (
       sendEmailQueueInterval = playConfig.get[FiniteDuration]("mails.sendEmailQueue.interval")
     )
   }
+
+  // Mail
+  override val mail: Mail = Mail(
+    host = playConfig.get[String]("mail.host"),
+    smtpPort = playConfig.getOptional[Int]("mail.smtpPort"),
+    sslSmtpPort = playConfig.getOptional[Int]("mail.sslSmtpPort"),
+    username = playConfig.getOptional[String]("mail.username"),
+    password = playConfig.getOptional[String]("mail.password"),
+    setSslOnConnect = playConfig.getOptional[Boolean]("mail.setSslOnConnect"),
+    sslCheckServerIdentity = playConfig.getOptional[Boolean]("mail.sslCheckServerIdentity"),
+    startTlsEnabled = playConfig.getOptional[Boolean]("mail.startTlsEnabled"),
+    startTlsRequired = playConfig.getOptional[Boolean]("mail.startTlsRequired"),
+    from = playConfig.get[MailAddress]("mail.from"),
+    replyTo = playConfig.getOptional[MailAddress]("mail.replyTo")
+  )
 }

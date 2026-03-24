@@ -2,16 +2,16 @@ package dev.pompilius.shared.domain
 
 import com.google.inject.ImplementedBy
 import dev.pompilius.country.domain.Country
+import dev.pompilius.mail.domain.MailAddress
 
 import java.nio.file.Path
 import javax.crypto.spec.SecretKeySpec
-
 import dev.pompilius.shared.infrastructure.PlayConfiguration
 import org.joda.time.DateTime
 import play.api.i18n.Lang
 
 import scala.collection.immutable.HashSet
-import scala.concurrent.duration.{FiniteDuration, Duration}
+import scala.concurrent.duration.{Duration, FiniteDuration}
 
 @ImplementedBy(classOf[PlayConfiguration])
 trait Configuration {
@@ -119,6 +119,7 @@ trait Configuration {
 
   def attachments: Attachments
 
+  //MIRAR ESTA CONFIGURACIÓN AQUÍ
   def mails: Mails
 
   case class Mails(
@@ -129,5 +130,20 @@ trait Configuration {
       sendEmailQueueInitialDelay: FiniteDuration,
       sendEmailQueueInterval: FiniteDuration
   )
+  case class Mail(
+      host: String,
+      username: Option[String],
+      password: Option[String],
+      smtpPort: Option[Int],
+      sslSmtpPort: Option[Int],
+      setSslOnConnect: Option[Boolean],
+      sslCheckServerIdentity: Option[Boolean],
+      startTlsEnabled: Option[Boolean],
+      startTlsRequired: Option[Boolean],
+      from: MailAddress,
+      replyTo: Option[MailAddress]
+  )
+
+  def mail: Mail
 
 }

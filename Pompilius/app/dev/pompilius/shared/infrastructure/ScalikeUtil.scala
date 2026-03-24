@@ -6,6 +6,10 @@ import dev.pompilius.shared.domain.Pagination
 
 object ScalikeUtil {
 
+  def normalizeSearch(s: String): String = {
+    ("%" + s + "%").replaceAll("( |%)+", "%")
+  }
+
   def onDuplicateUpdate(tuples: (SQLSyntax, ParameterBinder)*): SQLSyntax = {
     sqls" ON DUPLICATE KEY UPDATE ${sqls.csv(
       tuples.map(each => sqls"${each._1} = ${each._2}"): _*
