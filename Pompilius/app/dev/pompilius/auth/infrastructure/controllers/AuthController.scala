@@ -13,7 +13,9 @@ import dev.pompilius.Strings
 import dev.pompilius.auth.application.{LoginValidator, SessionCreator}
 import dev.pompilius.auth.infrastructure.parsers.{LoginAsRequestParser, LoginRequestParser, MailTokenParser, PasswordResetRequestParser, SendPasswordResetMailRequestParser}
 import dev.pompilius.mail.domain.{Mail, MailAddress, MailContent, MailSubject}
+import dev.pompilius.mail.infrastructure.repositories.MailSmtpRepository
 import dev.pompilius.shared.domain.exceptions.{BadRequestException, UnauthorizedException}
+import org.apache.pekko.Done
 
 import javax.inject._
 import scala.concurrent.{ExecutionContext, Future}
@@ -29,6 +31,7 @@ class AuthController @Inject() (
     configuration: Configuration,
     requestLogger: RequestLogger,
     mailTokenWriter: MailTokenWriter,
+    mailSmtpRepository: MailSmtpRepository,
     implicit val cacheApi: AsyncCacheApi
 )(implicit ec: ExecutionContext)
     extends BaseController {
@@ -217,7 +220,6 @@ class AuthController @Inject() (
       }
     }
 
-
   def sendPasswordResetMail: Action[AnyContent] =
     Action.async { implicit request =>
       withLimit(
@@ -240,29 +242,27 @@ class AuthController @Inject() (
                 .toString(
                   MailToken(user.email, clock.now.plusMillis(configuration.auth.resetLinkDuration.toMillis.toInt)),
                   configuration.mails.tokenSecretKey
-                ) map { token =>
+                ).flatMap { token =>
+                  // Creamos un token y lo enviamos por email
+                  val messages = MessagesImpl(getLanguage, messagesApi)
+                  val mailAddress = MailAddress(address = user.email, name = None)
+                  // Creamos el link de autenticación, que ira en el correo.
+                  val link = UrlUtil.addQueryParameters(configuration.auth.resetPasswordUrl, Map(Strings.token -> token))
+                  // Creamos el contenido del email usando una plantilla HTML
+                  val mailContent =
+                    dev.pompilius.auth.infrastructure.views.html.reset_password_email(link)(messages)
 
-                // Creamos un token y lo enviamos por email
-                val messages = MessagesImpl(getLanguage, messagesApi)
-                val mailAddress = MailAddress(address = user.email, name = None)
-                // Creamos el link de autenticación, que ira en el correo.
-                val link = UrlUtil.addQueryParameters(configuration.auth.resetPasswordUrl, Map(Strings.token -> token))
-                // Creamos el contenido del email de pago usando una plantilla
-                val mailContent =
-                  dev.pompilius.auth.infrastructure.views.html.reset_password_email(link)(messages)
-
-                val mail = Mail(
-                  to = mailAddress,
-                  subject = Some(MailSubject(messages("mail.reset.subject"))),
-                  content = MailContent(
-                    contentType = mailContent.contentType,
-                    content = mailContent.body
+                  val mail = Mail(
+                    to = mailAddress,
+                    subject = Some(MailSubject(messages("mail.reset.subject"))),
+                    content = MailContent(
+                      text = None,
+                      html = Some(mailContent.body)
+                    )
                   )
-                )
 
-                // Enviamos el email
-                //sendMailQueue.add(mail = mail, accountId = None, key = None)
-              }
+                  mailSmtpRepository.sendMail(mail)
+                }
 
             case _ =>
               // Si no existe o no esta activo, no hacemos nada
@@ -274,7 +274,4 @@ class AuthController @Inject() (
         }
       }
     }
-
-
-
 }
