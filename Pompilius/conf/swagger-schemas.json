@@ -335,5 +335,20 @@
       "required": true
     }
   }
-}
+},
+  "UserList": {
+    "properties": {
+      "items": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/User"
+        }
+      },
+      "moreItems": {
+        "type": "boolean",
+        "default": false,
+        "required": true
+      }
+    }
+  }
 }

@@ -1,5 +1,4 @@
 import com.google.inject.AbstractModule
-import com.google.inject.name.Names
 import dev.pompilius.shared.infrastructure.ScalikejdbcAdapter
 import play.api.{Configuration, Environment}
 

@@ -102,64 +102,16 @@ PUT        /me/delete                     dev.pompilius.users.infrastructure.con
 
 ###
 #  summary: Search users by filter
-#  roles: {"required": "any", "roles": ["ADMIN", "PROFESSIONAL", "AMATEUR", "STUDENT"]}
-#  parameters:
-#    - name: username
-#      in: query
-#      required: false
-#      schema:
-#        type: string
-#    - name: firstName
-#      in: query
-#      required: false
-#      schema:
-#        type: string
-#    - name: lastName
-#      in: query
-#      required: false
-#      schema:
-#        type: string
-#    - name: country
-#      in: query
-#      required: false
-#      schema:
-#        type: string
-#    - name: search
-#      in: query
-#      required: false
-#      schema:
-#        type: string
-#    - name: limit
-#      in: query
-#      required: false
-#      schema:
-#        type: integer
-#    - name: offset
-#      in: query
-#      required: false
-#      schema:
-#        type: integer
-#        default: 0
+#  roles: {"required": "none", "roles": []}
 #  responses:
 #    200:
-#      description: Success with list of users
 #      content:
-#        application/json:
-#          schema:
-#            type: object
-#            properties:
-#              users:
-#                type: array
-#                items:
-#                  $ref: '#/components/schemas/User'
-#              total:
-#                type: integer
-#              offset:
-#                type: integer
-#              limit:
-#                type: integer
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/UserList'
+#      description: List of users matching the search criteria
 ###
-GET         /search                        dev.pompilius.users.infrastructure.controllers.UserController.searchUsers(username: Option[String], firstName: Option[String], lastName: Option[String], country: Option[String], search: Option[String], limit: Option[Int], offset: Int = 0)
+GET         /search                        dev.pompilius.users.infrastructure.controllers.UserController.searchUsers( search : Option[String], username: Option[String], firstName: Option[String], lastName: Option[String], country: Option[String], pag: Pagination)
 
 
 

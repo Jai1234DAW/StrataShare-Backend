@@ -5,46 +5,34 @@ import dev.pompilius.attachment.infrastructure.Attachments
 import dev.pompilius.attachment.infrastructure.parsers.UploadedAttachmentRequestParser
 import dev.pompilius.auth.domain.exceptions.InvalidPasswordOrUsernameException
 import dev.pompilius.shared.domain.exceptions.{BadRequestException, NotFoundException}
-import dev.pompilius.shared.domain.Pagination
+import dev.pompilius.shared.domain.{Paginated, Pagination}
 import dev.pompilius.users.infrastructure.writers.UserWriter
 import dev.pompilius.users.domain._
 import dev.pompilius.attachment.domain.{AttachmentCheck, AttachmentRepository}
 import play.api.libs.Files
-
 import play.api.libs.json.{JsValue, Json}
-import dev.pompilius.users.domain.exceptions.{
-  EmailAlreadyInUseException,
-  UserNotFoundException,
-  UsernameAlreadyInUseException
-}
-import dev.pompilius.users.infrastructure.parsers.{
-  ChangeMailRequestParser,
-  ChangeUserPasswordRequestParser,
-  RegisterUserRequestParser,
-  SendMailChangeRequestParser,
-  UpdateUserRequestParser,
-  SearchUsersRequestParser
-}
+import dev.pompilius.users.domain.exceptions.{EmailAlreadyInUseException, UserNotFoundException, UsernameAlreadyInUseException}
+import dev.pompilius.users.infrastructure.parsers.{ChangeMailRequestParser, ChangeUserPasswordRequestParser, RegisterUserRequestParser, SearchUsersRequestParser, SendMailChangeRequestParser, UpdateUserRequestParser}
 import play.api.mvc._
 
 import javax.inject._
 import scala.concurrent.{ExecutionContext, Future}
 import dev.pompilius.attachment.infrastructure.writers.AttachmentWriter
-
 import dev.pompilius.auth.infrastructure.writers.MailTokenWriter
+import dev.pompilius.country.domain.Country
 import dev.pompilius.mail.domain._
+import dev.pompilius.shared.infrastructure.writers.PaginatedWriter
 
 @Singleton
 class UserController @Inject() (
     attachmentCheck: AttachmentCheck,
     userWriter: UserWriter,
     userRepository: UserRepository,
-    attachmentWriter: AttachmentWriter,
-    mailTokenWriter: MailTokenWriter,
     mailRepository: MailRepository,
     mailSentRepository: MailSentRepository,
     userAttachment: UserAttachmentRepository,
-    attachmentRepository: AttachmentRepository
+    attachmentRepository: AttachmentRepository,
+    paginatedWriter: PaginatedWriter
 )(implicit val ec: ExecutionContext)
     extends BaseController
     with Attachments {
@@ -351,31 +339,23 @@ class UserController @Inject() (
       pag: Pagination
   ): Action[AnyContent] =
     Action.async { implicit request =>
-      withAnyOfThisRoles(Seq(Role.ADMIN, Role.PROFESSIONAL, Role.AMATEUR, Role.STUDENT)) {
-        case (_, _, _, _) =>
-          val searchRequest = SearchUsersRequestParser.parse(request)
-
-          val userFilter = UserFilter(
-            username = username,
-            firstName = firstName,
-            lastName = lastName,
-            country = Country(country.getOrElse("")),
-            search = search,
-            enabled = Some(true)
+      withAuthenticatedUser{
+        case (_, _, _) =>
+  for{
+          users <- userRepository.find(
+            UserFilter(
+              username = username,
+              firstName = firstName,
+              lastName = lastName,
+              country = country.map(Country.withNameInsensitive),
+              search = search,
+              enabled = Some(true)
+            ),
+            pag.oneMore
           )
-
-          for {
-            users <- userRepository.find(userFilter, pag)
-            usersJson <- Future.sequence(users.map(userWriter.toJson))
+        json <- paginatedWriter.toJson(Paginated(users, pag))(user => userWriter.asAnotherUser(user = user))
           } yield {
-            Ok(
-              Json.obj(
-                "users" -> usersJson,
-                "total" -> users.length,
-                "offset" -> searchRequest.offset,
-                "limit" -> searchRequest.limit
-              )
-            )
+            Ok(json)
           }
       }
     }

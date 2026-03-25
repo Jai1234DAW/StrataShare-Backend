@@ -109,3 +109,8 @@ libraryDependencies += "commons-io" % "commons-io" % "2.18.0"
 // Source: https://mvnrepository.com/artifact/org.apache.commons/commons-email
 libraryDependencies += "org.apache.commons" % "commons-email" % "1.6.0"
 libraryDependencies += "com.sun.activation" % "javax.activation" % "1.2.0"
+
+play.sbt.routes.RoutesKeys.routesImport ++= Seq(
+  "dev.pompilius.shared.domain.Pagination",
+  "dev.pompilius.shared.infrastructure.binders.PaginationBinder.paginationBinder"
+)
