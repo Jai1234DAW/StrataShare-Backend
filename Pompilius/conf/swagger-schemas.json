@@ -151,11 +151,9 @@
       "roles": {
         "type": "array",
         "items": {
-          "type": "string"
+          "type": "string",
+          "default": "STUDENT"
         },
-        "default": [
-          "STUDENT"
-        ],
         "required": true
       }
     }
