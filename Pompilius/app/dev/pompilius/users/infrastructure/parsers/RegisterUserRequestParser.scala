@@ -25,8 +25,9 @@ object RegisterUserRequestParser {
       (__ \ Strings.language).readNullable[String](ReadsUtil.language).map(_.map(lang => Lang(lang))) and
       (__ \ Strings.notes).readNullable[String] and
       (__ \ Strings.bio).readNullable[String].map(_.map(StringUtil.stripTags)) and
-      (__ \ Strings.roles).read[String].map(Role.withNameInsensitive)
+      (__ \ Strings.role).read[String].map(Role.withNameInsensitive)
   )(RegisterUserRequest.apply _)
+
 
   def parse[A](request: Request[A]): RegisterUserRequest = {
     request.body match {

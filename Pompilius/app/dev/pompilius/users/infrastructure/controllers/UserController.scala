@@ -7,22 +7,12 @@ import dev.pompilius.auth.domain.exceptions.InvalidPasswordOrUsernameException
 import dev.pompilius.shared.domain.exceptions.{BadRequestException, NotFoundException}
 import dev.pompilius.users.infrastructure.writers.UserWriter
 import dev.pompilius.users.domain._
-import dev.pompilius.attachment.domain.AttachmentCheck
+import dev.pompilius.attachment.domain.{AttachmentCheck, AttachmentRepository}
 import play.api.libs.Files
 import play.api.libs.Files.TemporaryFile
 import play.api.libs.json.{JsValue, Json}
-import dev.pompilius.users.domain.exceptions.{
-  EmailAlreadyInUseException,
-  UserNotFoundException,
-  UsernameAlreadyInUseException
-}
-import dev.pompilius.users.infrastructure.parsers.{
-  ChangeMailRequestParser,
-  ChangeUserPasswordRequestParser,
-  RegisterUserRequestParser,
-  SendMailChangeRequestParser,
-  UpdateUserRequestParser
-}
+import dev.pompilius.users.domain.exceptions.{EmailAlreadyInUseException, UserNotFoundException, UsernameAlreadyInUseException}
+import dev.pompilius.users.infrastructure.parsers.{ChangeMailRequestParser, ChangeUserPasswordRequestParser, RegisterUserRequestParser, SendMailChangeRequestParser, UpdateUserRequestParser}
 import play.api.mvc._
 import dev.pompilius.auth.infrastructure.parsers.MailTokenParser
 
@@ -44,7 +34,9 @@ class UserController @Inject() (
     attachmentWriter: AttachmentWriter,
     mailTokenWriter: MailTokenWriter,
     mailRepository: MailRepository,
-    mailSentRepository: MailSentRepository
+    mailSentRepository: MailSentRepository,
+    userAttachment: UserAttachmentRepository,
+    attachmentRepository: AttachmentRepository
 )(implicit val ec: ExecutionContext)
     extends BaseController
     with Attachments {
@@ -87,7 +79,7 @@ class UserController @Inject() (
         }
 
         _ <- userRepository.save(newUser)
-        _ <- sendWelcomeEmail(newUser)
+       // _ <- sendWelcomeEmail(newUser)
 
         newUserRole = UserRole(newUser.id, createUserRequest.role)
         _ <- userRoleRepository.save(newUserRole)
@@ -227,16 +219,17 @@ class UserController @Inject() (
               maxWidth = configuration.attachments.avatars.maxWidth,
               maxHeight = configuration.attachments.avatars.maxHeight
             )
-            _ <- userRepository.save(
-              user.copy(
-                updated = clock.now,
-                avatar = Some(attachment.id)
-              )
+            updateUser=user.copy(
+              updated = clock.now,
+              avatar = Some(attachment.id)
             )
+            _ <- userRepository.save(updateUser)
 
-            json <- attachmentWriter.asCurrentUser(attachment)
+
+            _ <- userAttachment.save(UserAttachment(user.id, attachment.id))
+            updatedUserJson <- userWriter.toJson(updateUser)
           } yield {
-            Ok(json)
+            Ok(updatedUserJson)
           }
       }
     }
@@ -268,13 +261,23 @@ class UserController @Inject() (
       withAuthenticatedUser {
         case (_, currentUser, _) =>
           val updatedUser = currentUser.copy(
-            avatar = None
+            avatar = None,
+            updated = clock.now
           )
 
           for {
-            _ <- userRepository.save(updatedUser)
+            avatarId <- Future.fromTry(
+              currentUser.avatar.toRight(
+                new NotFoundException("User has no avatar")
+              ).toTry
+            )
 
+            _ <- userAttachment.delete(currentUser.id, avatarId)
+            _ <- attachmentRepository.delete(avatarId)
+
+            _ <- userRepository.save(updatedUser)
             updatedUserJson <- userWriter.toJson(updatedUser)
+
           } yield {
             Ok(updatedUserJson)
           }
