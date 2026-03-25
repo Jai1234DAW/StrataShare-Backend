@@ -310,7 +310,8 @@ trait Attachments extends BaseController {
         )
         .as(attachment.contentType)
         .withHeaders(
-          CACHE_CONTROL -> "private, max-age=2592000, immutable" // 30 días
+          //CACHE_CONTROL -> "private, max-age=2592000, immutable" // 30 días
+          CACHE_CONTROL -> "private, no-cache, must-revalidate"
         )
     }
   }
