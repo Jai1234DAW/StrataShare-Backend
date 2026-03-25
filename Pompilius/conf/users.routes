@@ -54,8 +54,8 @@ PUT        /me                                    dev.pompilius.users.infrastruc
 PUT       /me/password                               dev.pompilius.users.infrastructure.controllers.UserController.changePassword()
 
 ###
-#  summary: Update user avatar
-#  roles: {"required": "none", "roles": []}
+#  summary: Upload user avatar
+#  roles: {"required": "any", "roles": ["ADMIN", "PROFESSIONAL", "AMATEUR", "STUDENT"]}
 #  requestBody:
 #    required: true
 #    content:
@@ -72,27 +72,8 @@ PUT       /me/password                               dev.pompilius.users.infrast
 #      content:
 #        application/json:
 #          schema:
-#            $ref: '#/components/schemas/User'
+#            $ref: '#/components/schemas/Attachment'
 ###
-PUT      /me/avatar                                    dev.pompilius.users.infrastructure.controllers.UserController.changeAvatar()
-
-###
-#  summary: Upload user avatar
-#  roles: {"required": "none", "roles": []}
-#  requestBody:
-#    required: true
-#    content:
-#     application/:
-#      schema:
-#       $ref: '#/components/schemas/UploadedAttachmentRequest'
-#  responses:
-#    200:
-#    description: Success
-#    content:
-#     application/json:
-#      schema:
-#       $ref: '#/components/schemas/User'
-
 POST    /me/avatar                                     dev.pompilius.users.infrastructure.controllers.UserController.uploadMyAvatar()
 
 ###
