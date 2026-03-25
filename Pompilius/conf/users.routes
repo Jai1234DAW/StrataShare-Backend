@@ -100,5 +100,66 @@ DELETE        /me/avatar                   dev.pompilius.users.infrastructure.co
 ###
 PUT        /me/delete                     dev.pompilius.users.infrastructure.controllers.UserController.deleteUser()
 
+###
+#  summary: Search users by filter
+#  roles: {"required": "any", "roles": ["ADMIN", "PROFESSIONAL", "AMATEUR", "STUDENT"]}
+#  parameters:
+#    - name: username
+#      in: query
+#      required: false
+#      schema:
+#        type: string
+#    - name: firstName
+#      in: query
+#      required: false
+#      schema:
+#        type: string
+#    - name: lastName
+#      in: query
+#      required: false
+#      schema:
+#        type: string
+#    - name: country
+#      in: query
+#      required: false
+#      schema:
+#        type: string
+#    - name: search
+#      in: query
+#      required: false
+#      schema:
+#        type: string
+#    - name: limit
+#      in: query
+#      required: false
+#      schema:
+#        type: integer
+#    - name: offset
+#      in: query
+#      required: false
+#      schema:
+#        type: integer
+#        default: 0
+#  responses:
+#    200:
+#      description: Success with list of users
+#      content:
+#        application/json:
+#          schema:
+#            type: object
+#            properties:
+#              users:
+#                type: array
+#                items:
+#                  $ref: '#/components/schemas/User'
+#              total:
+#                type: integer
+#              offset:
+#                type: integer
+#              limit:
+#                type: integer
+###
+GET         /search                        dev.pompilius.users.infrastructure.controllers.UserController.searchUsers(username: Option[String], firstName: Option[String], lastName: Option[String], country: Option[String], search: Option[String], limit: Option[Int], offset: Int = 0)
+
 
 

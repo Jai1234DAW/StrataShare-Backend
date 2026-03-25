@@ -17,6 +17,7 @@ trait UserWriter {
   def toJson(user: User): Future[JsValue]
   def asAdmin(user: User): Future[JsValue]
   def asCurrentUser(user: User): Future[JsValue]
+  def asAnotherUser(user: User): Future[JsValue]
 }
 
 @Singleton
@@ -30,7 +31,7 @@ class UserWriterImpl @Inject() (
       // Obtener el JSON del country
       countryJson <- countryWriter.toJson(user.country)
 
-       // Obtener el JSON del avatar si existe
+      // Obtener el JSON del avatar si existe
       avatarJs = user.avatar.map { avatar =>
         UrlUtil.addQueryParameters(
           dev.pompilius.users.infrastructure.controllers.routes.UserController.downloadAvatar(user.id.toString).url,
@@ -73,10 +74,39 @@ class UserWriterImpl @Inject() (
   }
 
   override def asCurrentUser(user: User): Future[JsValue] = {
-    for{
-        baseJson <- toJson(user)
-        } yield {
-        baseJson
+    for {
+      baseJson <- toJson(user)
+    } yield {
+      baseJson
+    }
+  }
+
+  override def asAnotherUser(user: User): Future[JsValue] = {
+    for {
+      // Obtener el JSON del country
+      countryJson <- countryWriter.toJson(user.country)
+
+      // Obtener el JSON del avatar si existe
+      avatarJs = user.avatar.map { avatar =>
+        UrlUtil.addQueryParameters(
+          dev.pompilius.users.infrastructure.controllers.routes.UserController.downloadAvatar(user.id.toString).url,
+          Map("hash" -> avatar.toString) // Cambiamos la url si cambia el avatar (para evitar la caché)
+        )
+      }
+    } yield {
+      // Construimos el JSON final en una variable antes del yield
+      val finalJson = Json.obj(
+        List(
+          toJsValueWrapper(Strings.username, user.username),
+          toJsValueWrapper(Strings.avatar, avatarJs), // se usa aquí usamos el avatar resuelto
+          toJsValueWrapper(Strings.firstName, user.firstName),
+          toJsValueWrapper(Strings.lastName, user.lastName),
+          toJsValueWrapper(Strings.country, countryJson), // usamos aquí country resuelto
+          toJsValueWrapper(Strings.bio, user.bio)
+        ).flatten: _*
+      )
+
+      finalJson
     }
   }
 }
