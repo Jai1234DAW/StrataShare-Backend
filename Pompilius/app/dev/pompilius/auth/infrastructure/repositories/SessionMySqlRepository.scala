@@ -20,11 +20,12 @@ class SessionMySqlRepository @Inject() (implicit dbExecutionContext: DbExecution
     extends SessionRepository
     with SQLSyntaxSupport[Session] {
 
-  override val tableName = "session"
+  override val tableName = "sessions"
   implicit val overwrittenZoneId: OverwrittenZoneId = OverwrittenZoneId(ZoneId.of("UTC"))
 
   def apply(s: SyntaxProvider[Session])(rs: WrappedResultSet): Session =
     apply(s.resultName)(rs)
+
   def apply(s: ResultName[Session])(rs: WrappedResultSet): Session =
     Session(
       userId = UserId(rs.get[Long](s.userId)),
@@ -76,29 +77,62 @@ class SessionMySqlRepository @Inject() (implicit dbExecutionContext: DbExecution
     if (filters.nonEmpty) Some(sqls.joinWithAnd(filters: _*)) else None
   }
 
-  override def save(
-      session: Session
-  ): Future[Done] =
+  //  override def save(
+  //      session: Session
+  //  ): Future[Done] =
+  //    Future {
+  //      DB.localTx { implicit dBSession =>
+  //        withSQL {
+  //          insert
+  //            .into(this)
+  //            .namedValues(
+  //              column.userId -> session.userId.id,
+  //              column.id -> session.id.id,
+  //              column.deleted -> session.deleted,
+  //              column.created -> session.created,
+  //              column.address -> session.address,
+  //              column.userAgent -> session.userAgent,
+  //              column.country -> session.country.map(_.toString),
+  //                column.updatedAt -> session.updatedAt
+  //            )
+  //      }
+  //      withSQL {
+  //        insert
+  //          .into(this)
+  //          .namedValues(values: _*)
+  //          .append(ScalikeUtil.onDuplicateUpdate(column.id, values: _*))
+  //      }.update()
+  //    }
+  //  Done
+  //
+  //    }
+
+  override def save(session: Session): Future[Done] =
     Future {
-      DB.localTx { implicit dBSession =>
+      DB.localTx { implicit dBsession =>
+        val values = List(
+          column.userId -> session.userId.id,
+          column.id -> session.id.id,
+          column.deleted -> session.deleted,
+          column.created -> session.created,
+          column.address -> session.address,
+          column.userAgent -> session.userAgent,
+          column.country -> session.country.map(_.toString),
+          column.updatedAt -> session.updatedAt
+        )
+
         withSQL {
           insert
             .into(this)
-            .namedValues(
-              column.userId -> session.userId.id,
-              column.id -> session.id.id,
-              column.deleted -> session.deleted,
-              column.created -> session.created,
-              column.address -> session.address,
-              column.userAgent -> session.userAgent,
-              column.country -> session.country.map(_.toString),
-                column.updatedAt -> session.updatedAt
-            )
+            .namedValues(values: _*)
+            .append(ScalikeUtil.onDuplicateUpdate(column.id, values: _*))
         }.update()
       }
-
       Done
+
     }
+
+
 
   override def closeAllSessions(userId: UserId, keep: Option[SessionId]): Future[Done] =
     Future {
