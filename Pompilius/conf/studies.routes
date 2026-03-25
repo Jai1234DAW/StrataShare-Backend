@@ -1,0 +1,165 @@
+###
+#  summary: Create a new study
+#  roles: {"required": "any", "roles": ["ADMIN", "PROFESSIONAL", "STUDENT"]}
+#  requestBody:
+#      required: true
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/CreateStudyRequest'
+#  responses:
+#    200:
+#      description: Success
+###
+POST         /                                            dev.pompilius.studies.infrastructure.controllers.StudyController.createStudy
+
+###
+#  summary: Get study by ID
+#  roles: {"required": "none", "roles": []}
+#  responses:
+#    200:
+#      description: Success
+###
+GET          /:studyId                                    dev.pompilius.studies.infrastructure.controllers.StudyController.getStudyById(studyId: String)
+
+###
+#  summary: Search studies with filters
+#  roles: {"required": "none", "roles": []}
+#  parameters:
+#    - name: name
+#      in: query
+#      schema:
+#        type: string
+#    - name: visibility
+#      in: query
+#      schema:
+#        type: string
+#    - name: localization
+#      in: query
+#      schema:
+#        type: string
+#    - name: area
+#      in: query
+#      schema:
+#        type: string
+#    - name: page
+#      in: query
+#      schema:
+#        type: integer
+#    - name: limit
+#      in: query
+#      schema:
+#        type: integer
+#  responses:
+#    200:
+#      description: Success
+###
+GET          /search                                      dev.pompilius.studies.infrastructure.controllers.StudyController.searchStudies(nameOpt: Option[String], visibilityOpt: Option[String], localizationOpt: Option[String], areaOpt: Option[String], page: Int ?= 0, limit: Int ?= 10)
+
+###
+#  summary: Search studies by name
+#  roles: {"required": "none", "roles": []}
+#  parameters:
+#    - name: name
+#      in: query
+#      required: true
+#      schema:
+#        type: string
+#  responses:
+#    200:
+#      description: Success
+###
+GET          /search/by-name                              dev.pompilius.studies.infrastructure.controllers.StudyController.searchStudiesByName(name: String)
+
+###
+#  summary: Update study information
+#  roles: {"required": "any", "roles": ["ADMIN", "PROFESSIONAL", "STUDENT"]}
+#  requestBody:
+#      required: true
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/UpdateStudyRequest'
+#  responses:
+#    200:
+#      description: Success
+###
+PUT          /:studyId                                    dev.pompilius.studies.infrastructure.controllers.StudyController.updateStudy(studyId: String)
+
+###
+#  summary: Delete study
+#  roles: {"required": "any", "roles": ["ADMIN", "PROFESSIONAL", "STUDENT"]}
+#  responses:
+#    200:
+#      description: Success
+###
+DELETE       /:studyId                                    dev.pompilius.studies.infrastructure.controllers.StudyController.deleteStudy(studyId: String)
+
+###
+#  summary: Add attachment to study
+#  roles: {"required": "any", "roles": ["ADMIN", "PROFESSIONAL", "STUDENT"]}
+#  requestBody:
+#      required: true
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/AddAttachmentRequest'
+#  responses:
+#    200:
+#      description: Success
+###
+POST         /:studyId/attachments                        dev.pompilius.studies.infrastructure.controllers.StudyController.addAttachmentToStudy(studyId: String)
+
+###
+#  summary: Remove attachment from study
+#  roles: {"required": "any", "roles": ["ADMIN", "PROFESSIONAL", "STUDENT"]}
+#  responses:
+#    200:
+#      description: Success
+###
+DELETE       /:studyId/attachments/:attachmentId         dev.pompilius.studies.infrastructure.controllers.StudyController.removeAttachmentFromStudy(studyId: String, attachmentId: String)
+
+###
+#  summary: Get study attachments
+#  roles: {"required": "none", "roles": []}
+#  responses:
+#    200:
+#      description: Success
+###
+GET          /:studyId/attachments                        dev.pompilius.studies.infrastructure.controllers.StudyController.getStudyAttachments(studyId: String)
+
+###
+#  summary: Add sample to study
+#  roles: {"required": "any", "roles": ["ADMIN", "PROFESSIONAL", "STUDENT"]}
+#  requestBody:
+#      required: true
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/AddSampleRequest'
+#  responses:
+#    200:
+#      description: Success
+###
+POST         /:studyId/samples                            dev.pompilius.studies.infrastructure.controllers.StudyController.addSampleToStudy(studyId: String)
+
+###
+#  summary: Remove sample from study
+#  roles: {"required": "any", "roles": ["ADMIN", "PROFESSIONAL", "STUDENT"]}
+#  responses:
+#    200:
+#      description: Success
+###
+DELETE       /:studyId/samples/:sampleId                  dev.pompilius.studies.infrastructure.controllers.StudyController.removeSampleFromStudy(studyId: String, sampleId: String)
+
+###
+#  summary: Get study samples
+#  roles: {"required": "none", "roles": []}
+#  responses:
+#    200:
+#      description: Success
+###
+GET          /:studyId/samples                            dev.pompilius.studies.infrastructure.controllers.StudyController.getStudySamples(studyId: String)
+
+
+
