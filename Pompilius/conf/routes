@@ -27,3 +27,4 @@ GET        /api/assets/*file                           controllers.Assets.versio
 ->         /api/countries                              countries.Routes
 ->         /api/users                                  users.Routes
 ->         /api/studies                                studies.Routes
+->         /api/samples                                samples.Routes
