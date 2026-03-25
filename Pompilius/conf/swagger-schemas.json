@@ -298,7 +298,7 @@
   },
   "ChangeUserPasswordRequest": {
     "properties": {
-      "currentPassword": {
+      "oldPassword": {
         "type": "string",
         "default": "currentPassword",
         "required": true
@@ -323,5 +323,19 @@
         "required": true
       }
     }
+  },
+  "CountryList": {
+  "properties": {
+    "items": {
+      "items": {
+        "$ref": "#/components/schemas/Country"
+      }
+    },
+    "moreItems": {
+      "type": "boolean",
+      "default": false,
+      "required": true
+    }
   }
+}
 }
