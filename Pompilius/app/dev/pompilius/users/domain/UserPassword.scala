@@ -70,5 +70,5 @@ case class UserPassword(password: String) {
     ).mkString(":")
 
   }
-
 }
+
