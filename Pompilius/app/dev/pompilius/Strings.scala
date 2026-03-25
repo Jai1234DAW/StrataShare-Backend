@@ -64,6 +64,7 @@ object Strings {
   val relativePath = "relativePath"
   val role = "role"
   val roles = "roles"
+  val search="search"
   val sentAt = "sentAt"
   val sessionId = "sessionId"
   val size = "size"

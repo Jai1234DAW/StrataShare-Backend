@@ -5,26 +5,34 @@ import dev.pompilius.attachment.infrastructure.Attachments
 import dev.pompilius.attachment.infrastructure.parsers.UploadedAttachmentRequestParser
 import dev.pompilius.auth.domain.exceptions.InvalidPasswordOrUsernameException
 import dev.pompilius.shared.domain.exceptions.{BadRequestException, NotFoundException}
+import dev.pompilius.shared.domain.Pagination
 import dev.pompilius.users.infrastructure.writers.UserWriter
 import dev.pompilius.users.domain._
 import dev.pompilius.attachment.domain.{AttachmentCheck, AttachmentRepository}
 import play.api.libs.Files
-import play.api.libs.Files.TemporaryFile
+
 import play.api.libs.json.{JsValue, Json}
-import dev.pompilius.users.domain.exceptions.{EmailAlreadyInUseException, UserNotFoundException, UsernameAlreadyInUseException}
-import dev.pompilius.users.infrastructure.parsers.{ChangeMailRequestParser, ChangeUserPasswordRequestParser, RegisterUserRequestParser, SendMailChangeRequestParser, UpdateUserRequestParser}
+import dev.pompilius.users.domain.exceptions.{
+  EmailAlreadyInUseException,
+  UserNotFoundException,
+  UsernameAlreadyInUseException
+}
+import dev.pompilius.users.infrastructure.parsers.{
+  ChangeMailRequestParser,
+  ChangeUserPasswordRequestParser,
+  RegisterUserRequestParser,
+  SendMailChangeRequestParser,
+  UpdateUserRequestParser,
+  SearchUsersRequestParser
+}
 import play.api.mvc._
-import dev.pompilius.auth.infrastructure.parsers.MailTokenParser
 
 import javax.inject._
 import scala.concurrent.{ExecutionContext, Future}
 import dev.pompilius.attachment.infrastructure.writers.AttachmentWriter
-import dev.pompilius.auth.domain.MailToken
+
 import dev.pompilius.auth.infrastructure.writers.MailTokenWriter
 import dev.pompilius.mail.domain._
-import dev.pompilius.shared.infrastructure.UrlUtil
-import dev.pompilius.users.domain.Role.{AMATEUR, PROFESSIONAL}
-import play.api.i18n.MessagesImpl
 
 @Singleton
 class UserController @Inject() (
@@ -79,7 +87,7 @@ class UserController @Inject() (
         }
 
         _ <- userRepository.save(newUser)
-       // _ <- sendWelcomeEmail(newUser)
+        // _ <- sendWelcomeEmail(newUser)
 
         newUserRole = UserRole(newUser.id, createUserRequest.role)
         _ <- userRoleRepository.save(newUserRole)
@@ -219,12 +227,11 @@ class UserController @Inject() (
               maxWidth = configuration.attachments.avatars.maxWidth,
               maxHeight = configuration.attachments.avatars.maxHeight
             )
-            updateUser=user.copy(
+            updateUser = user.copy(
               updated = clock.now,
               avatar = Some(attachment.id)
             )
             _ <- userRepository.save(updateUser)
-
 
             _ <- userAttachment.save(UserAttachment(user.id, attachment.id))
             updatedUserJson <- userWriter.toJson(updateUser)
@@ -267,9 +274,11 @@ class UserController @Inject() (
 
           for {
             avatarId <- Future.fromTry(
-              currentUser.avatar.toRight(
-                new NotFoundException("User has no avatar")
-              ).toTry
+              currentUser.avatar
+                .toRight(
+                  new NotFoundException("User has no avatar")
+                )
+                .toTry
             )
 
             _ <- userAttachment.delete(currentUser.id, avatarId)
@@ -299,7 +308,6 @@ class UserController @Inject() (
           }
       }
     }
-
 
   //Otra función generada para enviar emails, vamos a intentar y si no comentamos
 
@@ -331,6 +339,44 @@ class UserController @Inject() (
         case _ =>
           // Si el email no es válido, se devuelve un error
           Future.successful(Ok(Json.obj(Strings.available -> false, Strings.valid -> false)))
+      }
+    }
+
+  def searchUsers(
+      search: Option[String],
+      username: Option[String],
+      firstName: Option[String],
+      lastName: Option[String],
+      country: Option[String],
+      pag: Pagination
+  ): Action[AnyContent] =
+    Action.async { implicit request =>
+      withAnyOfThisRoles(Seq(Role.ADMIN, Role.PROFESSIONAL, Role.AMATEUR, Role.STUDENT)) {
+        case (_, _, _, _) =>
+          val searchRequest = SearchUsersRequestParser.parse(request)
+
+          val userFilter = UserFilter(
+            username = username,
+            firstName = firstName,
+            lastName = lastName,
+            country = Country(country.getOrElse("")),
+            search = search,
+            enabled = Some(true)
+          )
+
+          for {
+            users <- userRepository.find(userFilter, pag)
+            usersJson <- Future.sequence(users.map(userWriter.toJson))
+          } yield {
+            Ok(
+              Json.obj(
+                "users" -> usersJson,
+                "total" -> users.length,
+                "offset" -> searchRequest.offset,
+                "limit" -> searchRequest.limit
+              )
+            )
+          }
       }
     }
 }
