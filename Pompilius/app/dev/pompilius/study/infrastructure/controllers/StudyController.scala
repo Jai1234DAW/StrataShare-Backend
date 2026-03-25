@@ -22,8 +22,6 @@ class StudyController @Inject() (
 
   private val logger = play.api.Logger(getClass)
 
-  // ...existing code...
-
   def createStudy: Action[AnyContent] = {
     Action.async { implicit request =>
       try {

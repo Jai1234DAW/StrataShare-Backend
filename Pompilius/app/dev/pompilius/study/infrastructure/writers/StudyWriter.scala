@@ -21,9 +21,10 @@ object StudyWriter {
       "methods" -> study.methods,
       "authors" -> study.authors,
       "antecedent" -> study.antecedent,
+      "section" -> study.section,
+      "nameSection" -> study.nameSection,
       "created" -> study.created.getMillis,
       "updated" -> study.updated.getMillis,
-      "attachments" -> study.attachments.map(_.toString),
       "samples" -> study.samples
     )
   }
