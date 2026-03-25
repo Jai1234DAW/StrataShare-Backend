@@ -1,12 +1,11 @@
-package dev.pompilius.studies.domain
+package dev.pompilius.study.domain
 
-import dev.pompilius.attachment.domain.AttachmentId
 import org.joda.time.DateTime
 
 case class Study(
     id: StudyId,
     name: String,
-    visibility: String,
+    visibility: Visibility,
     localization: String,
     startDate: DateTime,
     endDate: Option[DateTime],
@@ -16,13 +15,11 @@ case class Study(
     summary: Option[String],
     created: DateTime,
     updated: DateTime,
-    area:String,
-    methods:String,
-    authors:String,
+    area: Area,
+    methods: String,
+    authors: String,
     antecedent: Boolean,
     section: Boolean,
-    NameSection: Option[String] =None,
-attachments: List[AttachmentId] = List(),
-    samples: List[String] = List() // Aquí irán los IDs de las muestras cuando se cree el módulo
+    nameSection: Option[String] = None
 )
 
