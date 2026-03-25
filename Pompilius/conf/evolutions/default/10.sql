@@ -1,61 +1,89 @@
-# Crear tabla de estudios (studies) con relaciones N:M a samples y attachments
+# Crear tabla base de recursos (resource), muestras (sample), estudios (study) y relación N:M con attachments
 
 # --- !Ups
 
-CREATE TABLE `studies` (
-     `id` BIGINT NOT NULL,
-     `name` VARCHAR(256) NOT NULL,
-     `visibility` VARCHAR(32) NOT NULL,
-     `localization` VARCHAR(256) NOT NULL,
-     `start_date` DATETIME NOT NULL,
-     `end_date` DATETIME NULL,
-     `description` TEXT NOT NULL,
-     `coordinates` TEXT NOT NULL,
-     `observations` TEXT NULL,
-     `summary` TEXT NULL,
-     `area` TEXT NOT NULL,
-     `methods` TEXT NOT NULL,
-     `created` DATETIME NOT NULL,
-     `updated` DATETIME NOT NULL,
+# Tabla base de recursos
+CREATE TABLE `resource` (
+    `id` BIGINT NOT NULL,
+    `resource_type` ENUM('SAMPLE', 'STUDY') NOT NULL,
+    `owner_id` BIGINT NOT NULL,
+    `visibility` ENUM('PUBLIC', 'PRIVATE', 'SHARED') NOT NULL DEFAULT 'PRIVATE',
+    `created` DATETIME NOT NULL,
+    `updated` DATETIME NOT NULL,
+    `localization` VARCHAR(256) NULL,
+    `observations` TEXT NULL,
+    `summary` TEXT NULL,
 
-     PRIMARY KEY (`id`),
-     KEY `IDX_STUDY_NAME` (`name`),
-     KEY `IDX_STUDY_VISIBILITY` (`visibility`),
-     KEY `IDX_STUDY_LOCALIZATION` (`localization`),
-     KEY `IDX_STUDY_START_DATE` (`start_date`),
-     KEY `IDX_STUDY_CREATED` (`created`)
+    PRIMARY KEY (`id`),
+    KEY `IDX_RESOURCE_OWNER` (`owner_id`),
+    KEY `IDX_RESOURCE_TYPE` (`resource_type`),
+    KEY `IDX_RESOURCE_VISIBILITY` (`visibility`),
+    KEY `IDX_RESOURCE_CREATED` (`created`),
+    CONSTRAINT `fk_resource_owner`
+        FOREIGN KEY (`owner_id`) REFERENCES `users`(`id`)
+        ON DELETE CASCADE
 ) CHARSET=utf8mb4;
 
--- Tabla intermedia para relación N:M entre estudios y archivos adjuntos
-CREATE TABLE `studies_attachments` (
-     `study_id` BIGINT NOT NULL,
-     `attachment_id` BIGINT NOT NULL,
+# Tabla de muestras (sample)
+CREATE TABLE `sample` (
+    `id` BIGINT NOT NULL,
+    `resource_id` BIGINT NOT NULL,
+    `name` VARCHAR(256) NOT NULL,
+    `minerals` TEXT NULL,
+    `collection_methods` TEXT NULL,
+    `is_fresh` TINYINT(1) NOT NULL,
+    `sample_type` VARCHAR(256) NULL,
+    `materials_used` TEXT NULL,
+    `rock_type` VARCHAR(256) NULL,
+    `geological_processes` TEXT NULL,
 
-     PRIMARY KEY (`study_id`, `attachment_id`),
-     KEY `IDX_ATTACHMENT` (`attachment_id`),
-     CONSTRAINT `fk_studies_attachments_study`
-         FOREIGN KEY (`study_id`)
-             REFERENCES `studies` (`id`)
-             ON DELETE CASCADE
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `unique_resource_id` (`resource_id`),
+    KEY `IDX_SAMPLE_NAME` (`name`),
+    KEY `IDX_SAMPLE_TYPE` (`sample_type`),
+    KEY `IDX_ROCK_TYPE` (`rock_type`),
+    KEY `IDX_IS_FRESH` (`is_fresh`),
+    CONSTRAINT `fk_sample_resource`
+        FOREIGN KEY (`resource_id`) REFERENCES `resource`(`id`)
+        ON DELETE CASCADE
 ) CHARSET=utf8mb4;
 
--- Tabla intermedia para relación N:M entre estudios y muestras
-CREATE TABLE `study_samples` (
-     `study_id` BIGINT NOT NULL,
-     `sample_id` BIGINT NOT NULL,
+# Tabla de estudios (study)
+CREATE TABLE `study` (
+    `id` BIGINT NOT NULL,
+    `resource_id` BIGINT NOT NULL,
+    `name` VARCHAR(256) NOT NULL,
+    `start_date` DATETIME NOT NULL,
+    `end_date` DATETIME NULL,
+    `description` TEXT NOT NULL,
+    `coordinates` TEXT NOT NULL,
+    `area` VARCHAR(100) NOT NULL,
+    `methods` TEXT NOT NULL,
+    `authors` TEXT NOT NULL,
+    `section` TINYINT(1) NOT NULL,
+    `antecedents` TINYINT(1) NULL DEFAULT 1,
+    `name_section` VARCHAR(256) NULL,
 
-     PRIMARY KEY (`study_id`, `sample_id`),
-     KEY `IDX_SAMPLE` (`sample_id`),
-     CONSTRAINT `fk_study_samples_study`
-         FOREIGN KEY (`study_id`)
-             REFERENCES `studies` (`id`)
-             ON DELETE CASCADE
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `unique_resource_id` (`resource_id`),
+    KEY `IDX_STUDY_NAME` (`name`),
+    KEY `IDX_STUDY_START_DATE` (`start_date`),
+    CONSTRAINT `fk_study_resource`
+        FOREIGN KEY (`resource_id`) REFERENCES `resource`(`id`)
+        ON DELETE CASCADE
 ) CHARSET=utf8mb4;
 
-# --- !Downs
+# Tabla de relación N:M entre resource y attachment
+CREATE TABLE `resource_attachment` (
+    `resource_id` BIGINT NOT NULL,
+    `attachment_id` BIGINT NOT NULL,
 
-DROP TABLE IF EXISTS `study_samples`;
-DROP TABLE IF EXISTS `studies_attachments`;
-DROP TABLE IF EXISTS `studies`;
-
-
+    PRIMARY KEY (`resource_id`, `attachment_id`),
+    KEY `IDX_ATTACHMENT` (`attachment_id`),
+    CONSTRAINT `fk_resource_attachment_resource`
+        FOREIGN KEY (`resource_id`) REFERENCES `resource`(`id`)
+        ON DELETE CASCADE,
+    CONSTRAINT `fk_resource_attachment_attachment`
+        FOREIGN KEY (`attachment_id`) REFERENCES `attachment`(`id`)
+        ON DELETE CASCADE
+) CHARSET=utf8mb4;

@@ -7,7 +7,7 @@ import dev.pompilius.shared.domain.Pagination
 object ScalikeUtil {
 
   def normalizeSearch(s: String): String = {
-    ("%" + s + "%").replaceAll("( |%)+", "%")
+    ("%" + s.toLowerCase + "%").replaceAll("( |%)+", "%")
   }
 
   def onDuplicateUpdate(tuples: (SQLSyntax, ParameterBinder)*): SQLSyntax = {

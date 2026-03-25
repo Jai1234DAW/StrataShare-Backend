@@ -5,7 +5,7 @@ case class Pagination(
     limit: Option[Int],
     orderBy: Seq[String] = Seq.empty
 ) {
-  def OneMore: Pagination = this.copy(limit = this.limit.map(_ + 1))
+  def oneMore: Pagination = this.copy(limit = this.limit.map(_ + 1))
   def key: String = s"$offset,${limit.map(_.toString).getOrElse("all")}"
 
 }
