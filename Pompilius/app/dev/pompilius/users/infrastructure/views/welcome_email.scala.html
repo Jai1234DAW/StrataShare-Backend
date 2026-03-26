@@ -4,7 +4,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Bienvenido/a a Strata Share</title>
+        <title>Welcome to Strata Share</title>
         <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #f6f6f6; margin: 0; padding: 0; }
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
@@ -16,31 +16,37 @@
         .small { font-size: 12px; color: #888888; }
         .footer { text-align: center; color: #999999; font-size: 12px; margin-top: 18px; }
         .muted-link { word-break: break-all; color: #007bff; }
+        .button:visited,
+        .button:hover,
+        .button:active {
+        color: #ffffff !important;
+        }
         </style>
     </head>
     <body>
         <div class="container">
             <div class="card">
-                <h1>¡Bienvenido/a a ADA (CITIC)!</h1>
-                <p>Hola @name,</p>
-                <p>Te damos la bienvenida a la Aplicación de Gestión (ADA) del Centro de Investigación en TIC (CITIC) de la Universidade da Coruña (UDC).</p>
-                <h1>¿Qué puedes hacer con ADA?</h1>
+                <h1>¡Welcome to STRATA SHARE!</h1>
+                <p>Hello @name,</p>
+                <p>We welcome you to Strata Share, our file sharing platform developed by FW Institution.</p>
+                <h1>What can you do with our platform?</h1>
                 <ul>
-                    <li><strong>Informe de vinculación al CITIC:</strong> Podrás descargar tu informe de adscripción con el CITIC de la UDC de forma inmediata.</li>
-                    <li><strong>Producción científica:</strong> Accede a información sobre tus proyectos, asistencia a congresos, tesis, patentes, entre otros.</li>
+                    <li><strong>Upload resources:</strong> You can upload resources to the platform, which can be sold or offered for free to other users.</li>
+                    <li><strong>Buy resources:</strong> You can purchase resources uploaded by other users to use them for your projects.</li>
+                    <li><strong>Receive resources as payment:</strong> You can receive studies, samples, or other resources as a form of payment when your resources are sold.</li>
                 </ul>
                 <p>
-                    <a href="@actionUrl" class="button">Acceder a ADA</a>
+                    <a href="@actionUrl" class="button">Access to Strata Share</a>
                 </p>
-                <p class="small">Si el botón anterior no funciona, copie y pegue el siguiente enlace en su navegador:</p>
+                <p class="small">If the button above does not work, copy and paste the following link into your browser:</p>
                 <p class="small muted-link">@actionUrl</p>
 
                 <hr />
-                <p class="small">Saludos cordiales,<br/>El equipo de gestión</p>
+                <p class="small">Best regards,<br/>Management & Support Team</p>
             </div>
 
             <div class="footer">
-                <p class="small">Este es un mensaje automático. No responda a esta dirección.</p>
+                <p class="small">This is an automatic message. Please do not reply to this address.</p>
             </div>
         </div>
     </body>

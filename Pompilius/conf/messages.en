@@ -1,0 +1,33 @@
+sharedFiles.error.fileNotFound.title=File not found
+sharedFiles.error.fileNotFound.message=The file you are trying to access does not exist. Please contact the sender to get a new link.
+sharedFiles.error.expiredLink.title=Expired link
+sharedFiles.error.expiredLink.message=The link you are trying to access has expired. Please contact the sender to get a new link.
+sharedFiles.error.invalidLink.title=Invalid link
+sharedFiles.error.invalidLink.message=The link you are trying to access is invalid. Please contact the sender to get a new link.
+
+secrets.error.secretNotFound.title=Secret not found
+secrets.error.secretNotFound.message=The secret you are trying to access does not exist. Please contact the sender to get a new link.
+secrets.error.expiredLink.title=Expired link
+secrets.error.expiredLink.message=The link you are trying to access has expired. Please contact the sender to get a new link.
+secrets.error.invalidLink.title=Invalid link
+secrets.error.invalidLink.message=The link you are trying to access is invalid. Please contact the sender to get a new link.
+
+mail.reset.subject=Reset password
+mail.reset.title=Reset your password
+mail.reset.logo=https://imagedelivery.net/NgMNTCL_Au9y7G-VFzKBEw/01775c43-9903-4e42-8f6a-487d993fb500/public
+mail.reset.hello=Hello,
+mail.reset.intro=We received a request to reset your password. If you requested it, click the following link to create a new password:
+mail.reset.remainder=This link will be valid for the next 24 hours. If you didn't request a password change, you can ignore this message: your account will remain secure.
+mail.reset.contact.intro=Need help?
+mail.reset.contact=You can contact our support team if you have any questions or issues with your account
+mail.reset.contact.link=
+mail.reset.contact.linkText=Contact support
+mail.reset.thanks=Thank you for using StrataShare
+mail.reset.footer.firstLine=
+mail.reset.footer.secondLine=
+mail.reset.footer.links.first=
+mail.reset.footer.links.first.link=
+mail.reset.footer.links.second.link=
+mail.reset.footer.links.second=
+mail.reset.footer.links.third.link=
+mail.reset.footer.links.third=

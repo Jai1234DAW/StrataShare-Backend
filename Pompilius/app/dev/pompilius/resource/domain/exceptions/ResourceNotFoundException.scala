@@ -5,7 +5,7 @@ import dev.pompilius.resource.domain.ResourceId
 
 class ResourceNotFoundException(message: String = "Resource not found") extends VerboseException(message = message)
 
-object ResourcesNotFoundException {
+object ResourceNotFoundException {
   def apply(resourceId: ResourceId): ResourceNotFoundException = {
     new ResourceNotFoundException(s"Sample with id=${resourceId.toString} not found")
   }

@@ -1,27 +1,33 @@
 package dev.pompilius.users.infrastructure.controllers
 
 import dev.pompilius.Strings
+import dev.pompilius.attachment.domain.{AttachmentCheck, AttachmentRepository}
 import dev.pompilius.attachment.infrastructure.Attachments
 import dev.pompilius.attachment.infrastructure.parsers.UploadedAttachmentRequestParser
 import dev.pompilius.auth.domain.exceptions.InvalidPasswordOrUsernameException
+import dev.pompilius.country.domain.Country
+import dev.pompilius.mail.domain._
 import dev.pompilius.shared.domain.exceptions.{BadRequestException, NotFoundException}
 import dev.pompilius.shared.domain.{Paginated, Pagination}
-import dev.pompilius.users.infrastructure.writers.UserWriter
+import dev.pompilius.shared.infrastructure.writers.PaginatedWriter
 import dev.pompilius.users.domain._
-import dev.pompilius.attachment.domain.{AttachmentCheck, AttachmentRepository}
+import dev.pompilius.users.domain.exceptions.{
+  EmailAlreadyInUseException,
+  UserNotFoundException,
+  UsernameAlreadyInUseException
+}
+import dev.pompilius.users.infrastructure.parsers.{
+  ChangeUserPasswordRequestParser,
+  RegisterUserRequestParser,
+  UpdateUserRequestParser
+}
+import dev.pompilius.users.infrastructure.writers.UserWriter
 import play.api.libs.Files
 import play.api.libs.json.{JsValue, Json}
-import dev.pompilius.users.domain.exceptions.{EmailAlreadyInUseException, UserNotFoundException, UsernameAlreadyInUseException}
-import dev.pompilius.users.infrastructure.parsers.{ChangeMailRequestParser, ChangeUserPasswordRequestParser, RegisterUserRequestParser, SearchUsersRequestParser, SendMailChangeRequestParser, UpdateUserRequestParser}
 import play.api.mvc._
 
 import javax.inject._
 import scala.concurrent.{ExecutionContext, Future}
-import dev.pompilius.attachment.infrastructure.writers.AttachmentWriter
-import dev.pompilius.auth.infrastructure.writers.MailTokenWriter
-import dev.pompilius.country.domain.Country
-import dev.pompilius.mail.domain._
-import dev.pompilius.shared.infrastructure.writers.PaginatedWriter
 
 @Singleton
 class UserController @Inject() (
@@ -42,6 +48,10 @@ class UserController @Inject() (
   def registerUser: Action[AnyContent] = {
     Action.async { implicit request =>
       val createUserRequest = RegisterUserRequestParser.parse(request)
+
+      if (createUserRequest.role == Role.ADMIN) {
+        throw new BadRequestException("Cannot register a user with ADMIN role")
+      }
 
       val newUser = User(
         id = UserId.gen(configuration.nodeId),
@@ -75,7 +85,7 @@ class UserController @Inject() (
         }
 
         _ <- userRepository.save(newUser)
-        // _ <- sendWelcomeEmail(newUser)
+        _ <- sendWelcomeEmail(newUser)
 
         newUserRole = UserRole(newUser.id, createUserRequest.role)
         _ <- userRoleRepository.save(newUserRole)
@@ -339,21 +349,21 @@ class UserController @Inject() (
       pag: Pagination
   ): Action[AnyContent] =
     Action.async { implicit request =>
-      withAuthenticatedUser{
+      withAuthenticatedUser {
         case (_, _, _) =>
-  for{
-          users <- userRepository.find(
-            UserFilter(
-              username = username,
-              firstName = firstName,
-              lastName = lastName,
-              country = country.map(Country.withNameInsensitive),
-              search = search,
-              enabled = Some(true)
-            ),
-            pag.oneMore
-          )
-        json <- paginatedWriter.toJson(Paginated(users, pag))(user => userWriter.asAnotherUser(user = user))
+          for {
+            users <- userRepository.find(
+              UserFilter(
+                username = username,
+                firstName = firstName,
+                lastName = lastName,
+                country = country.map(Country.withNameInsensitive),
+                search = search,
+                enabled = Some(true)
+              ),
+              pag.oneMore
+            )
+            json <- paginatedWriter.toJson(Paginated(users, pag))(user => userWriter.asAnotherUser(user = user))
           } yield {
             Ok(json)
           }

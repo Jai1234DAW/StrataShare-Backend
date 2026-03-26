@@ -11,10 +11,17 @@ import play.api.i18n.MessagesImpl
 import play.api.mvc.{Action, AnyContent}
 import dev.pompilius.Strings
 import dev.pompilius.auth.application.{LoginValidator, SessionCreator}
-import dev.pompilius.auth.infrastructure.parsers.{LoginAsRequestParser, LoginRequestParser, MailTokenParser, PasswordResetRequestParser, SendPasswordResetMailRequestParser}
+import dev.pompilius.auth.infrastructure.parsers.{
+  LoginAsRequestParser,
+  LoginRequestParser,
+  MailTokenParser,
+  PasswordResetRequestParser,
+  SendPasswordResetMailRequestParser
+}
 import dev.pompilius.mail.domain.{Mail, MailAddress, MailContent, MailSubject}
 import dev.pompilius.mail.infrastructure.repositories.MailSmtpRepository
 import dev.pompilius.shared.domain.exceptions.{BadRequestException, UnauthorizedException}
+import controllers.routes
 import org.apache.pekko.Done
 
 import javax.inject._
@@ -32,6 +39,7 @@ class AuthController @Inject() (
     requestLogger: RequestLogger,
     mailTokenWriter: MailTokenWriter,
     mailSmtpRepository: MailSmtpRepository,
+    environment: play.Environment,
     implicit val cacheApi: AsyncCacheApi
 )(implicit ec: ExecutionContext)
     extends BaseController {
@@ -242,13 +250,19 @@ class AuthController @Inject() (
                 .toString(
                   MailToken(user.email, clock.now.plusMillis(configuration.auth.resetLinkDuration.toMillis.toInt)),
                   configuration.mails.tokenSecretKey
-                ).flatMap { token =>
+                )
+                .flatMap { token =>
                   // Creamos un token y lo enviamos por email
                   val messages = MessagesImpl(getLanguage, messagesApi)
+
                   val mailAddress = MailAddress(address = user.email, name = None)
                   // Creamos el link de autenticación, que ira en el correo.
-                  val link = UrlUtil.addQueryParameters(configuration.auth.resetPasswordUrl, Map(Strings.token -> token))
+                  val link =
+                    UrlUtil.addQueryParameters(configuration.auth.resetPasswordUrl, Map(Strings.token -> token))
                   // Creamos el contenido del email usando una plantilla HTML
+
+                  //val logo=configuration.baseUrl+routes.Assets.versioned("images/stratashare02.png").toString
+
                   val mailContent =
                     dev.pompilius.auth.infrastructure.views.html.reset_password_email(link)(messages)
 
