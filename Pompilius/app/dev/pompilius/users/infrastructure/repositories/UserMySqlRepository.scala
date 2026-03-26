@@ -21,7 +21,6 @@ import scala.util.Try
 
 @Singleton
 class UserMySqlRepository @Inject() (
-
 )(implicit dbExecutionContext: DbExecutionContext)
     extends UserRepository
     with SQLSyntaxSupport[User] {
@@ -155,9 +154,6 @@ class UserMySqlRepository @Inject() (
         .like(u.firstName, normalizedSearch)
         .or
         .like(u.lastName, normalizedSearch)
-        .or
-        .like(u.email, normalizedSearch)
-        .or(Try(UserId(search.trim)).toOption.map(id => sqls.eq(u.id, id.id)))
     )
   }
 

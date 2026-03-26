@@ -71,7 +71,7 @@ class PlayConfiguration @Inject() (
   // Default
   override val default: Default = Default(
     timeZone = DateTimeZone.getDefault.toString,
-    lang = Lang("es")
+    lang = Lang("en")
   )
 
   private val contextParameters: Map[String, String] = {

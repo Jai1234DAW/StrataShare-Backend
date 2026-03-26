@@ -72,6 +72,12 @@ libraryDependencies += "io.github.play-swagger" %% "play-swagger" % "2.0.4"
 
 libraryDependencies += "org.webjars" % "swagger-ui" % "5.26.2"
 
+libraryDependencies += "commons-io" % "commons-io" % "2.18.0"
+
+// Source: https://mvnrepository.com/artifact/org.apache.commons/commons-email
+libraryDependencies += "org.apache.commons" % "commons-email" % "1.6.0"
+libraryDependencies += "com.sun.activation" % "javax.activation" % "1.2.0"
+
 // Para solucionar problemas de dependencias con scala-parser-combinators entre Play y ScalikeJDBC
 dependencyOverrides += "org.scala-lang.modules" %% "scala-parser-combinators" % "2.4.0"
 
@@ -103,12 +109,6 @@ scalacOptions ++= Seq(
   //  "-Ywarn-unused:imports",
   //  "-Ywarn-unused:privates"
 )
-
-libraryDependencies += "commons-io" % "commons-io" % "2.18.0"
-
-// Source: https://mvnrepository.com/artifact/org.apache.commons/commons-email
-libraryDependencies += "org.apache.commons" % "commons-email" % "1.6.0"
-libraryDependencies += "com.sun.activation" % "javax.activation" % "1.2.0"
 
 play.sbt.routes.RoutesKeys.routesImport ++= Seq(
   "dev.pompilius.shared.domain.Pagination",

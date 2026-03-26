@@ -1,0 +1,20 @@
+# Rutas para el controlador de Recursos
+
+# Obtener todos los recursos con filtros y paginación
+GET        /                                          dev.pompilius.resource.infrastructure.controllers.ResourceController.listResources
+
+# Crear un nuevo recurso
+POST       /                                          dev.pompilius.resource.infrastructure.controllers.ResourceController.createResource
+
+# Obtener un recurso específico
+GET        /:resourceId                               dev.pompilius.resource.infrastructure.controllers.ResourceController.getResource(resourceId: Long)
+
+# Actualizar un recurso
+PUT        /:resourceId                               dev.pompilius.resource.infrastructure.controllers.ResourceController.updateResource(resourceId: Long)
+
+# Descargar un recurso (validando acceso)
+GET        /:resourceId/download                      dev.pompilius.resource.infrastructure.controllers.ResourceController.downloadResource(resourceId: Long)
+
+# Eliminar un recurso
+DELETE     /:resourceId                               dev.pompilius.resource.infrastructure.controllers.ResourceController.deleteResource(resourceId: Long)
+

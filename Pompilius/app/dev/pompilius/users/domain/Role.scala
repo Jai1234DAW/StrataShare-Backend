@@ -19,19 +19,19 @@ object Role extends Enum[Role] with PlayJsonEnum[Role] {
 
   @SuppressWarnings(Array("ObjectNames"))
   case object PROFESSIONAL extends Role {
-    val description = "Researcher"
+    val description = "Professional"
     val level = 2
   }
 
   @SuppressWarnings(Array("ObjectNames"))
   case object STUDENT extends Role {
-    val description = "Support"
+    val description = "Student"
     val level = 3
   }
 
   @SuppressWarnings(Array("ObjectNames"))
   case object AMATEUR extends Role {
-    val description = "Researcher"
+    val description = "Amateur"
     val level = 4
   }
 

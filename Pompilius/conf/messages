@@ -1,0 +1,34 @@
+sharedFiles.error.fileNotFound.title=File not found
+sharedFiles.error.fileNotFound.message=The file you are trying to access does not exist. Please contact the sender to get a new link.
+sharedFiles.error.expiredLink.title=Link expired
+sharedFiles.error.expiredLink.message=The link you are trying to access has expired. Please contact the sender to get a new link.
+sharedFiles.error.invalidLink.title=Invalid link
+sharedFiles.error.invalidLink.message=The link you are trying to access is invalid. Please contact the sender to get a new link.
+
+secrets.error.secretNotFound.title=Secret not found
+secrets.error.secretNotFound.message=The secret you are trying to access does not exist. Please contact the sender to get a new link.
+secrets.error.expiredLink.title=Link expired
+secrets.error.expiredLink.message=The link you are trying to access has expired. Please contact the sender to get a new link.
+secrets.error.invalidLink.title=Invalid link
+secrets.error.invalidLink.message=The link you are trying to access is invalid. Please contact the sender to get a new
+
+mail.reset.subject=Password Reset
+mail.reset.title=Password Reset
+mail.reset.logo=https://imagedelivery.net/NgMNTCL_Au9y7G-VFzKBEw/01775c43-9903-4e42-8f6a-487d993fb500/public
+mail.reset.hello=Hi,
+mail.reset.intro=We received a request to reset your password. If you made this request, click the link below to create a new password:
+mail.reset.remainder=This link will be valid for the next 24 hours. If you didn’t request a password reset, you can safely ignore this message — your account will remain secure.
+mail.reset.contact.intro=Need help?
+mail.reset.contact=You can contact our support team if you have any questions or issues with your account.
+mail.reset.contact.link=
+mail.reset.contact.linkText=Contact Support
+mail.reset.thanks=Thanks for using StrataShare
+mail.reset.footer.firstLine=
+mail.reset.footer.secondLine=
+mail.reset.footer.links.first=
+mail.reset.footer.links.first.link=
+mail.reset.footer.links.second.link=
+mail.reset.footer.links.second=
+mail.reset.footer.links.third.link=
+mail.reset.footer.links.third=
+
