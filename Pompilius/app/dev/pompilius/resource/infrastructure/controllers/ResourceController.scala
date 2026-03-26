@@ -6,6 +6,7 @@ import dev.pompilius.shared.domain.exceptions.{BadRequestException, ForbiddenExc
 import dev.pompilius.shared.domain.{Paginated, Pagination, Visibility}
 import dev.pompilius.shared.infrastructure.BaseController
 import dev.pompilius.shared.infrastructure.writers.PaginatedWriter
+import dev.pompilius.users.domain.{Role, UserId}
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, AnyContent}
 
@@ -60,7 +61,7 @@ class ResourceController @Inject() (
     Action.async { implicit request =>
       for {
         resourceOpt <- resourceRepository.findById(ResourceId(resourceId))
-        resource <- Future.fromTry(resourceOpt.map(Future.successful).getOrElse(throw NotFoundException(s"Resource with id=$resourceId not found")).value)
+        resource <- Future.successful(resourceOpt.getOrElse(throw NotFoundException(s"Resource with id=$resourceId not found")))
         userId = getCurrentUserId
 
         // Validar que el usuario tenga acceso al recurso
@@ -73,32 +74,23 @@ class ResourceController @Inject() (
     }
   }
 
-  /**
-   * Crea un nuevo recurso
-   * POST /api/resources
-   */
+
   def createResource: Action[AnyContent] = {
     Action.async { implicit request =>
       try {
         val userId = getCurrentUserId
-        val body = request.body.asJson.getOrElse(throw BadRequestException("Invalid JSON"))
-
-        val resourceType = (body \ Strings.resourceType).as[String]
-        val visibility = (body \ Strings.visibility).as[String]
-        val localization = (body \ Strings.localization).as[String]
-        val observations = (body \ Strings.observations).asOpt[String]
-        val summary = (body \ Strings.summary).asOpt[String]
+        val createResourceRequest = CreateResourceRequestParser.parse(request)
 
         val newResource = Resource(
           id = ResourceId.gen(configuration.nodeId),
-          resourceType = ResourceType.withNameInsensitive(resourceType),
-          ownerId = userId,
-          visibility = Visibility.withNameInsensitive(visibility),
+          resourceType = ResourceType.withNameInsensitive(createResourceRequest.resourceType),
+          ownerId = UserId(userId),
+          visibility = Visibility.withNameInsensitive(createResourceRequest.visibility),
           created = clock.now,
           updated = clock.now,
-          observations = observations,
-          summary = summary,
-          localization = localization
+          observations = createResourceRequest.observations,
+          summary = createResourceRequest.summary,
+          localization = createResourceRequest.localization
         )
 
         for {
@@ -127,16 +119,15 @@ class ResourceController @Inject() (
 
         for {
           resourceOpt <- resourceRepository.findById(ResourceId(resourceId))
-          resource <- Future.fromTry(resourceOpt.map(Future.successful).getOrElse(throw NotFoundException(s"Resource with id=$resourceId not found")).value)
+          resource <- Future.successful(resourceOpt.getOrElse(throw NotFoundException(s"Resource with id=$resourceId not found")))
 
           // Validar que el usuario es el propietario
           _ <- Future.successful(
-            if (resource.ownerId != userId) {
+            if (resource.ownerId.id != userId) {
               throw ForbiddenException("Only the resource owner can update this resource")
             }
           )
 
-          // Actualizar los campos
           observations = (body \ Strings.observations).asOpt[String]
           summary = (body \ Strings.summary).asOpt[String]
           visibility = (body \ Strings.visibility).asOpt[String].map(v => Visibility.withNameInsensitive(v))
@@ -169,7 +160,7 @@ class ResourceController @Inject() (
     Action.async { implicit request =>
       for {
         resourceOpt <- resourceRepository.findById(ResourceId(resourceId))
-        resource <- Future.fromTry(resourceOpt.map(Future.successful).getOrElse(throw NotFoundException(s"Resource with id=$resourceId not found")).value)
+        resource <- Future.successful(resourceOpt.getOrElse(throw NotFoundException(s"Resource with id=$resourceId not found")))
         userId = getCurrentUserId
 
         // Validar que el usuario tenga acceso
@@ -193,11 +184,11 @@ class ResourceController @Inject() (
 
         for {
           resourceOpt <- resourceRepository.findById(ResourceId(resourceId))
-          resource <- Future.fromTry(resourceOpt.map(Future.successful).getOrElse(throw NotFoundException(s"Resource with id=$resourceId not found")).value)
+          resource <- Future.successful(resourceOpt.getOrElse(throw NotFoundException(s"Resource with id=$resourceId not found")))
 
           // Validar que el usuario es el propietario
           _ <- Future.successful(
-            if (resource.ownerId != userId) {
+            if (resource.ownerId.id != userId) {
               throw ForbiddenException("Only the resource owner can delete this resource")
             }
           )
@@ -234,7 +225,7 @@ class ResourceController @Inject() (
 
       case _ =>
         // Para otros tipos de visibilidad, verificar en ResourceAccess
-        resourceAccessRepository.findByResourceIdAndUserId(ResourceId(resource.id.id), dev.pompilius.users.domain.UserId(userId)).map {
+        resourceAccessRepository.findByResourceIdAndUserId(ResourceId(resource.id.id), UserId(userId)).map {
           case Some(_) => () // Usuario tiene acceso
           case None => throw ForbiddenException("You don't have access to this resource")
         }
@@ -261,3 +252,4 @@ class ResourceController @Inject() (
     getAuthenticatedUser.id.id
   }
 }
+

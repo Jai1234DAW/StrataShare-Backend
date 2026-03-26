@@ -21,7 +21,6 @@ import dev.pompilius.auth.infrastructure.parsers.{
 import dev.pompilius.mail.domain.{Mail, MailAddress, MailContent, MailSubject}
 import dev.pompilius.mail.infrastructure.repositories.MailSmtpRepository
 import dev.pompilius.shared.domain.exceptions.{BadRequestException, UnauthorizedException}
-import controllers.routes
 import org.apache.pekko.Done
 
 import javax.inject._
