@@ -1,7 +1,6 @@
 # Crear schema inicial
 
 # --- !Ups
-
 CREATE TABLE `users` (
      `id` bigint NOT NULL,
      `username` varchar(32) CHARACTER SET ascii COLLATE ascii_general_ci NOT NULL,
@@ -24,7 +23,6 @@ CREATE TABLE `users` (
      UNIQUE KEY `USER_EMAIL_IDX` (`email`)
 ) CHARSET=utf8mb4;
 
-
 CREATE TABLE `users_role` (
      `user_id` BIGINT NOT NULL,
      `role` ENUM('STUDENT', 'PROFESSIONAL', 'AMATEUR', 'SUPPORT', 'ADMIN') NOT NULL,
@@ -34,5 +32,5 @@ CREATE TABLE `users_role` (
      CONSTRAINT `fk_user_role_user`
          FOREIGN KEY (`user_id`)
              REFERENCES `users` (`id`)
-             ON DELETE CASCADE
+             ON DELETE RESTRICT
 ) CHARSET=utf8mb4;
