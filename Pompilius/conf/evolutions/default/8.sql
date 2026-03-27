@@ -1,7 +1,6 @@
 # Creación de la tabla request_log para almacenar los logs de las peticiones realizadas a la aplicación.
 
 # --- !Ups
-
 CREATE TABLE `request_log` (
     `id` bigint NOT NULL,
     `user_id` bigint NOT NULL,

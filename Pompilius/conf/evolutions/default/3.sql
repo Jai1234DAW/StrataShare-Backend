@@ -1,7 +1,6 @@
 # Creacion de una tabla attachment que gestionará archivos de la aplicacion
 
 # --- !Ups
-
 CREATE TABLE `attachment` (
    `id` BIGINT NOT NULL,
    `node` INT NOT NULL,

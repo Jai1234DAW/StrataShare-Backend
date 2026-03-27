@@ -1,7 +1,6 @@
 # Edicion de la tabla Request-Log para establecer la foreign key y creacion de la tabla mailsent
 
 # --- !Ups
-
 ALTER TABLE `request_log`
     ADD CONSTRAINT `fk_request_log_user`
         FOREIGN KEY (`user_id`) REFERENCES `users`(`id`);
@@ -18,6 +17,5 @@ CREATE TABLE `mail_sent` (
      INDEX `PERSON_IDX` (`user_id` ASC),
      INDEX `ADDRESS_IDX` (`address` ASC),
     CONSTRAINT `fk_mail_sent_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
-      ON DELETE CASCADE
-      ON UPDATE CASCADE
+      ON DELETE RESTRICT
 )CHARSET=utf8mb4;
