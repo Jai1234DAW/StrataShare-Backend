@@ -29,9 +29,7 @@ class UserRoleMySqlRepository @Inject() (implicit dbExecutionContext: DbExecutio
       role = Role.withNameInsensitive(rs.get[String](ur.role))
     )
 
-  val ur: scalikejdbc.QuerySQLSyntaxProvider[scalikejdbc.SQLSyntaxSupport[UserRole], UserRole] = {
-    this.syntax("ur")
-  }
+  private val ur= this.syntax("ur")
 
   override def getAllByUserId(userId: UserId): Future[List[UserRole]] =
     Future {

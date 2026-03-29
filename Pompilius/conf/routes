@@ -26,5 +26,4 @@ GET        /api/assets/*file                           controllers.Assets.versio
 ->         /api/context                                context.Routes
 ->         /api/countries                              countries.Routes
 ->         /api/users                                  users.Routes
-->         /api/resources                              resource.Routes
 

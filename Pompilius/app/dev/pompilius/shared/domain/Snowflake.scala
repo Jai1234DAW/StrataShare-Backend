@@ -17,21 +17,21 @@ trait Snowflake {
 
   //  Preguntar aquí, porque al no tener nodo se le puede colocar un número aleatorio, o un número fijo, o un número basado en la hora, etc. Lo importante es que sea único para cada instancia de la aplicación.
   def genId(node:Int):Long={
-    if(node < 0 || node > 1023)
-      throw new IllegalArgumentException("Node ID must be between 0 and 1023")
+    if(node < 0 || node > 63)
+      throw new IllegalArgumentException("Node ID must be between 0 and 63")
 
     val timestamp= System.currentTimeMillis()
-    val seq= snowflakeSeq.incrementAndGet()
+    val seq= snowflakeSeq.incrementAndGet
 
-    builId(timestamp, node, seq)
+    buildId(timestamp, node, seq)
   }
 
-  def builId(timestamp: Long, node: Int, seq: Long): Long ={
+  def buildId(timestamp: Long, node: Int, seq: Long): Long ={
     // |  1 bit   |  41 bits  | 6 bits |  16 bits |
     // | Fixed 0  | Timestamp |  Node  | Sequence |
-    (((timestamp - epoch) & 0x1FFFFFFFFFFL) << 22) | ((node & 0x3FF) << 12) | (seq & 0xFFF)
+    (((timestamp - epoch) & 0x1ffffffffffL) << 22) | ((node & 0x3f) << 16) | (seq & 0xffff)
   }
 
   def parseId(s: String): Long = java.lang.Long.parseLong(s, 36)
-
 }
+

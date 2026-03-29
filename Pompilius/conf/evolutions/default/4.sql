@@ -12,7 +12,7 @@ CREATE TABLE `users_attachment` (
    CONSTRAINT `fk_users_attachment_attachment`
        FOREIGN KEY (`attachment_id`)
            REFERENCES `attachment` (`id`)
-           ON DELETE RESTRICT
+           ON DELETE RESTRICT,
 
    CONSTRAINT `fk_users_attachment_users`
        FOREIGN KEY (`user_id`)

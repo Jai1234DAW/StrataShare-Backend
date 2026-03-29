@@ -7,7 +7,6 @@ import dev.pompilius.users.domain.Role
 case class RegisterUserRequest(
     username: String,
     password: String,
-    //enabled: Boolean,
     email: String,
     phone: Option[String],
     firstName: Option[String],
