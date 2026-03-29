@@ -4,7 +4,7 @@
 CREATE TABLE `resource_user` (
     `resource_id` BIGINT NOT NULL,
     `user_id` BIGINT NOT NULL,
-    `resource_user_type` ENUM('OWNER', 'PURCHASED', 'ACCEPTED_AS_PAYMENT') NOT NULL DEFAULT 'BOUGHT',
+    `resource_user_type` ENUM('OWNER', 'PURCHASED', 'ACCEPTED_AS_PAYMENT') NOT NULL,
     `granted_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     PRIMARY KEY (`resource_id`, `user_id`),
