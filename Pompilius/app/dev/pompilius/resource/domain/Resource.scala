@@ -7,12 +7,11 @@ import org.joda.time.DateTime
 case class Resource(
     id: ResourceId,
     resourceType: ResourceType,
-    ownerId: UserId,
+    deleted: Boolean= false,
     visibility: Visibility,
     created: DateTime,
     updated: DateTime,
+    localization:String,
     observations: Option[String] = None,
-    summary: Option[String] = None,
-    localization:String
+    summary: Option[String] = None
 )
-

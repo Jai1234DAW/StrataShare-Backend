@@ -28,7 +28,7 @@ class ResourceUserMySqlRepository @Inject()(implicit ec: DbExecutionContext)
       resourceId = ResourceId(rs.get[Long](ru.resourceId)),
       userId = UserId(rs.get[Long](ru.userId)),
       resourceUserType = ResourceUserType.withNameInsensitive(rs.get[String](ru.resourceUserType)),
-      created = rs.get(ru.grantedAt)
+      created = rs.get(ru.created)
     )
 
   private val ru = this.syntax("ru")
@@ -82,8 +82,8 @@ class ResourceUserMySqlRepository @Inject()(implicit ec: DbExecutionContext)
   private def filterToSqlSyntax(filter: ResourceUserFilter): Option[scalikejdbc.SQLSyntax] = {
 
     val filters = List(
-      filter.resourceId.map(id => sqls.eq(ru.patentId, id.id)),
-      filter.userId.map(id => sqls.eq(ru.personId, id.id))
+      filter.resourceId.map(id => sqls.eq(ru.resourceId, id.id)),
+      filter.userId.map(id => sqls.eq(ru.userId, id.id))
     ).flatten
 
     if (filters.nonEmpty) Some(sqls.joinWithAnd(filters: _*)) else None
