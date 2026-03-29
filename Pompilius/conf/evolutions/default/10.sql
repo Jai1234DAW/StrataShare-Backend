@@ -16,7 +16,7 @@ CREATE TABLE `resource` (
     PRIMARY KEY (`id`),
     KEY `IDX_RESOURCE_TYPE` (`resource_type`),
     KEY `IDX_RESOURCE_VISIBILITY` (`visibility`),
-    KEY `IDX_RESOURCE_CREATED` (`created`),
+    KEY `IDX_RESOURCE_CREATED` (`created`)
 ) CHARSET=utf8mb4;
 
 # Tabla de muestras (sample)
