@@ -3,7 +3,7 @@
 #  roles: {"required": "none", "roles": []}
 #  responses:
 #    200:
-#      description: Success
+#      description: User avatar
 ###
 GET           /:userId/avatar                             dev.pompilius.users.infrastructure.controllers.UserController.downloadAvatar(userId: String)
 

@@ -190,4 +190,45 @@ object ReadsUtil {
   // Valida el título de acción de recordatorio de juego: longitud máxima
   def gameRemainderActionTitle(implicit reads: Reads[String]): Reads[String] =
     Reads.maxLength[String](32)
+
+  // Sample fields validations
+  def sampleName(implicit reads: Reads[String]): Reads[String] =
+    Reads.minLength[String](1) keepAnd Reads.maxLength[String](256)
+
+  def minerals(implicit reads: Reads[String]): Reads[String] =
+    Reads.maxLength[String](512)
+
+  def collectionMethods(implicit reads: Reads[String]): Reads[String] =
+    Reads.maxLength[String](512)
+
+  def sampleType(implicit reads: Reads[String]): Reads[String] =
+    Reads.maxLength[String](256)
+
+  def materialsUsed(implicit reads: Reads[String]): Reads[String] =
+    Reads.maxLength[String](512)
+
+  def rockType(implicit reads: Reads[String]): Reads[String] =
+    Reads.maxLength[String](256)
+
+  def geologicalProcesses(implicit reads: Reads[String]): Reads[String] =
+    Reads.maxLength[String](512)
+
+  // Study fields validations
+  def studyName(implicit reads: Reads[String]): Reads[String] =
+    Reads.minLength[String](1) keepAnd Reads.maxLength[String](256)
+
+  def studyDescription(implicit reads: Reads[String]): Reads[String] =
+    Reads.maxLength[String](2000)
+
+  def coordinates(implicit reads: Reads[String]): Reads[String] =
+    Reads.maxLength[String](256)
+
+  def methods(implicit reads: Reads[String]): Reads[String] =
+    Reads.maxLength[String](1000)
+
+  def authors(implicit reads: Reads[String]): Reads[String] =
+    Reads.maxLength[String](512)
+
+  def nameSection(implicit reads: Reads[String]): Reads[String] =
+    Reads.maxLength[String](256)
 }

@@ -129,22 +129,25 @@ class UserController @Inject() (
   }
 
   def downloadAvatar(userId: String): Action[AnyContent] =
-    Action.async {
-      val pid = UserId(userId)
-      for {
-        user <-
-          userRepository
-            .findById(pid)
-            .map(
-              _.getOrElse(throw new UserNotFoundException(s"User with id $userId not found"))
-            )
+    Action.async { implicit request =>
+      withAuthenticatedUser {
+        case (_, _, _) =>
+          val pid = UserId(userId)
+          for {
+            user <-
+              userRepository
+                .findById(pid)
+                .map(
+                  _.getOrElse(throw new UserNotFoundException(s"User with id $userId not found"))
+                )
 
-        attachmentId = user.avatar.getOrElse(throw new NotFoundException(s"Person with id $userId has no avatar"))
+            attachmentId = user.avatar.getOrElse(throw new NotFoundException(s"User with id $userId has no avatar"))
 
-        result <- download(Some(user), attachmentId)
+            result <- download(Some(user), attachmentId)
 
-      } yield {
-        result
+          } yield {
+            result
+          }
       }
     }
 
