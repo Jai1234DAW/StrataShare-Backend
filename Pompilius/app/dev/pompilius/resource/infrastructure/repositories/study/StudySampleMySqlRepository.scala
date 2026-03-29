@@ -82,7 +82,7 @@ class StudySampleMySqlRepository @Inject()(
             .append(
               filterToSqlSyntax(filter).map(sqls.where(_)).getOrElse(sqls.empty)
             )
-            .orderBy(ss.sutdyId, ss.sampleId)
+            .orderBy(ss.studyId, ss.sampleId)
             .desc
             .append(
               ScalikeUtil.pag(pag)
