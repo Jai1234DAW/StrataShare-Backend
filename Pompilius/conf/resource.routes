@@ -1,0 +1,201 @@
+###
+#  summary: List all resources (Samples + Studies)
+#  tags:
+#    - Resource
+#  security:
+#    - bearerAuth: []
+#  roles: {"required": "any", "roles": ["STUDENT", "PROFESSIONAL"]}
+#  parameters:
+#    - name: page
+#      in: query
+#      schema:
+#        type: integer
+#        default: 1
+#    - name: pageSize
+#      in: query
+#      schema:
+#        type: integer
+#        default: 10
+#  responses:
+#    200:
+#      description: List of all resources
+#      content:
+#       application/json:
+#        schema:
+#         type: object
+#         properties:
+#           data:
+#             type: array
+#             items:
+#               type: object
+#           page:
+#             type: integer
+#           pageSize:
+#             type: integer
+#           total:
+#             type: integer
+###
+GET         /                                          dev.pompilius.resource.infrastructure.controllers.ResourceController.list
+
+###
+#  summary: Get my resources (user's own)
+#  tags:
+#    - Resource
+#  security:
+#    - bearerAuth: []
+#  roles: {"required": "any", "roles": ["STUDENT", "PROFESSIONAL"]}
+#  responses:
+#    200:
+#      description: User's resources
+#      content:
+#       application/json:
+#        schema:
+#         type: object
+#         properties:
+#           data:
+#             type: array
+#           total:
+#             type: integer
+###
+GET         /my                                        dev.pompilius.resource.infrastructure.controllers.ResourceController.getMyResources
+
+###
+#  summary: Get a resource by ID (auto-detect type: Sample or Study)
+#  tags:
+#    - Resource
+#  security:
+#    - bearerAuth: []
+#  roles: {"required": "any", "roles": ["STUDENT", "PROFESSIONAL"]}
+#  parameters:
+#    - name: resourceId
+#      in: path
+#      required: true
+#      schema:
+#        type: integer
+#  responses:
+#    200:
+#      description: Resource details
+#    404:
+#      description: Resource not found
+#    403:
+#      description: Forbidden - no access
+###
+GET         /:resourceId                               dev.pompilius.resource.infrastructure.controllers.ResourceController.get(resourceId: Long)
+
+###
+#  summary: Get users with access to a resource (owner only)
+#  tags:
+#    - Resource
+#  security:
+#    - bearerAuth: []
+#  roles: {"required": "any", "roles": ["STUDENT", "PROFESSIONAL"]}
+#  parameters:
+#    - name: resourceId
+#      in: path
+#      required: true
+#      schema:
+#        type: integer
+#  responses:
+#    200:
+#      description: Users with access
+#    403:
+#      description: Only owner can view
+###
+GET         /:resourceId/users                         dev.pompilius.resource.infrastructure.controllers.ResourceController.getResourceUsers(resourceId: Long)
+
+###
+#  summary: Delete a resource (owner only)
+#  tags:
+#    - Resource
+#  security:
+#    - bearerAuth: []
+#  roles: {"required": "any", "roles": ["STUDENT", "PROFESSIONAL"]}
+#  parameters:
+#    - name: resourceId
+#      in: path
+#      required: true
+#      schema:
+#        type: integer
+#  responses:
+#    204:
+#      description: Resource deleted
+#    403:
+#      description: Only owner can delete
+###
+DELETE      /:resourceId                               dev.pompilius.resource.infrastructure.controllers.ResourceController.delete(resourceId: Long)
+
+###
+#  summary: Purchase a resource
+#  tags:
+#    - Resource
+#  security:
+#    - bearerAuth: []
+#  roles: {"required": "any", "roles": ["STUDENT", "PROFESSIONAL"]}
+#  parameters:
+#    - name: resourceId
+#      in: path
+#      required: true
+#      schema:
+#        type: integer
+#  responses:
+#    201:
+#      description: Resource purchased
+#    400:
+#      description: Cannot purchase own resource
+###
+POST        /:resourceId/purchase                      dev.pompilius.resource.infrastructure.controllers.ResourceController.purchase(resourceId: Long)
+
+###
+#  summary: Offer a resource as payment (barter/exchange)
+#  tags:
+#    - Resource
+#  security:
+#    - bearerAuth: []
+#  roles: {"required": "any", "roles": ["STUDENT", "PROFESSIONAL"]}
+#  parameters:
+#    - name: resourceId
+#      in: path
+#      required: true
+#      schema:
+#        type: integer
+#    - name: toUserId
+#      in: path
+#      required: true
+#      schema:
+#        type: integer
+#  responses:
+#    201:
+#      description: Resource offered as payment
+###
+POST        /:resourceId/offer-as-payment/:toUserId    dev.pompilius.resource.infrastructure.controllers.ResourceController.offerResourceAsPayment(resourceId: Long, toUserId: Long)
+
+###
+#  summary: Grant access to a resource (owner only)
+#  tags:
+#    - Resource
+#  security:
+#    - bearerAuth: []
+#  roles: {"required": "any", "roles": ["STUDENT", "PROFESSIONAL"]}
+#  parameters:
+#    - name: resourceId
+#      in: path
+#      required: true
+#      schema:
+#        type: integer
+#  requestBody:
+#      required: true
+#      content:
+#       application/json:
+#        schema:
+#         type: object
+#         properties:
+#           userId:
+#             type: integer
+#           accessType:
+#             type: string
+#             enum: ["BOUGHT", "ACCEPTED_AS_PAYMENT"]
+#  responses:
+#    201:
+#      description: Access granted
+###
+POST        /:resourceId/grant-access                  dev.pompilius.resource.infrastructure.controllers.ResourceController.grantAccess(resourceId: Long)

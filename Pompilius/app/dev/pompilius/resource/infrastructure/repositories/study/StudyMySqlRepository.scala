@@ -6,6 +6,7 @@ import dev.pompilius.resource.domain.study._
 import dev.pompilius.shared.domain.Pagination
 import dev.pompilius.shared.infrastructure.ScalikeUtil
 import dev.pompilius.shared.infrastructure.contexts.DbExecutionContext
+import dev.pompilius.users.domain.UserId
 import org.apache.pekko.Done
 import scalikejdbc._
 import scalikejdbc.jodatime.JodaParameterBinderFactory._
@@ -13,7 +14,6 @@ import scalikejdbc.jodatime.JodaTypeBinder._
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
-
 
 @Singleton
 class StudyMySqlRepository @Inject() (
@@ -54,10 +54,10 @@ class StudyMySqlRepository @Inject() (
       }
     }
 
-  override def find(filter: StudyFilter, pag:Pagination): Future[Seq[Study]] =
+  override def find(filter: StudyFilter, pag: Pagination): Future[Seq[Study]] =
     Future {
 
-      val orderBy:Seq[SQLSyntax] = buildOrderBy(pag)
+      val orderBy: Seq[SQLSyntax] = buildOrderBy(pag)
 
       DB.localTx { implicit session =>
         withSQL {
@@ -100,19 +100,19 @@ class StudyMySqlRepository @Inject() (
 
   private def filterToSqlSyntax(filter: StudyFilter): Option[SQLSyntax] = {
 
-    val searchFilter=filter.search.map{ search=>
-      val normalizedSearch=ScalikeUtil.normalizeSearch(search)
+    val searchFilter = filter.search.map { search =>
+      val normalizedSearch = ScalikeUtil.normalizeSearch(search)
       sqls.roundBracket(
-        sqls.like(st.name,normalizedSearch)
+        sqls
+          .like(st.name, normalizedSearch)
           .or
-          .like(st.authors,normalizedSearch)
+          .like(st.authors, normalizedSearch)
       )
     }
 
     val nameFilter = filter.name.map { name =>
       sqls.like(sqls.lower(st.name), s"%${name.toLowerCase}%")
     }
-
 
     val startToFilter = filter.startDate.map { sd =>
       sqls.ge(st.startDate, sd)
@@ -122,7 +122,7 @@ class StudyMySqlRepository @Inject() (
       sqls.le(st.endDate, ed)
     }
 
-   val areaFilter = filter.area.map { area =>
+    val areaFilter = filter.area.map { area =>
       sqls.eq(sqls.lower(st.area), area.entryName.toLowerCase)
     }
 
@@ -163,5 +163,16 @@ class StudyMySqlRepository @Inject() (
       }
       Done
     }
-}
 
+  //Mirar si necesito esto mas adelante
+//  override def findAllByUser(userId: UserId): Future[List[Study]] =
+//    Future {
+//      DB.localTx { implicit session =>
+//        withSQL {
+//          selectFrom(this as st).where
+//            .eq(st.userId, userId.id)
+//            .orderBy(st.createdAt.desc)
+//        }.map(apply(st.resultName)(_)).list()
+//      }
+//    }
+}

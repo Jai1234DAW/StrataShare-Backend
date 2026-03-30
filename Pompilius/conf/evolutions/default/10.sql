@@ -33,7 +33,7 @@ CREATE TABLE `sample` (
     `rock_type` VARCHAR(256) NULL,
     `geological_processes` TEXT NULL,
 
-    PRIMARY KEY (`id`),
+    PRIMARY KEY (`resource_id,id`),
     UNIQUE KEY `unique_resource_id` (`resource_id`),
     KEY `IDX_SAMPLE_NAME` (`name`),
     KEY `IDX_SAMPLE_TYPE` (`sample_type`),

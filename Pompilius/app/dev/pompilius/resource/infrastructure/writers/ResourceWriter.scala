@@ -6,7 +6,6 @@ import dev.pompilius.resource.domain.sample.Sample
 import dev.pompilius.resource.domain.study.Study
 import dev.pompilius.resource.domain.{Resource, ResourceType}
 import dev.pompilius.shared.infrastructure.JsUtils.{JodaDateTimeFormat, toJsValueWrapper}
-import dev.pompilius.users.infrastructure.writers.UserWriter
 import play.api.libs.json._
 
 import javax.inject.{Inject, Singleton}
@@ -20,41 +19,37 @@ trait ResourceWriter {
 }
 
 @Singleton
-class ResourceWriterImpl @Inject() (
-    userWriter: UserWriter
-)(implicit val ec: ExecutionContext)
-    extends ResourceWriter {
+class ResourceWriterImpl @Inject() ()(implicit val ec: ExecutionContext) extends ResourceWriter {
 
   override def toJson(
       resource: Resource,
       sample: Option[Sample] = None,
       study: Option[Study] = None
-  ): Future[JsObject] = {
+  ): Future[JsValue] = {
     Future.successful {
-      // Construir JSON específico (Sample o Study)
-      val specificData = buildSpecificData(sample, study)
-
-      val finalJson = Json.obj(
+      val baseJson = Json.obj(
         List(
-          toJsValueWrapper(Strings.id, resource.id.toString),
+          toJsValueWrapper(Strings.resourceId, resource.id.toString),
           toJsValueWrapper(Strings.resourceType, resource.resourceType.toString),
           toJsValueWrapper(Strings.visibility, resource.visibility.toString),
           toJsValueWrapper(Strings.localization, resource.localization),
           toJsValueWrapper(Strings.observations, resource.observations),
           toJsValueWrapper(Strings.summary, resource.summary),
           toJsValueWrapper(Strings.created, resource.created),
-          toJsValueWrapper(Strings.updated, resource.updated),
-          toJsValueWrapper(
-            resource.resourceType match {
-              case ResourceType.SAMPLE => Strings.sampleData
-              case ResourceType.STUDY => Strings.studyData
-            },
-            specificData
-          )
+          toJsValueWrapper(Strings.updated, resource.updated)
         ).flatten: _*
       )
 
-      finalJson
+      val specificData = buildSpecificData(sample, study)
+      val fieldName = resource.resourceType match {
+        case ResourceType.SAMPLE => Strings.sampleData
+        case ResourceType.STUDY  => Strings.studyData
+      }
+
+      specificData match {
+        case Some(data) => baseJson ++ Json.obj(fieldName -> data)
+        case None       => baseJson
+      }
     }
   }
 
@@ -66,11 +61,15 @@ class ResourceWriterImpl @Inject() (
     for {
       baseJson <- toJson(resource, sample, study)
     } yield {
-      baseJson ++ Json.obj(
-        List(
-          toJsValueWrapper(Strings.deleted, resource.deleted)
-        ).flatten: _*
-      )
+      baseJson match {
+        case obj: JsObject =>
+          obj ++ Json.obj(
+            List(
+              toJsValueWrapper(Strings.deleted, resource.deleted)
+            ).flatten: _*
+          )
+        case other => other
+      }
     }
   }
 
@@ -79,26 +78,26 @@ class ResourceWriterImpl @Inject() (
       sample: Option[Sample] = None,
       study: Option[Study] = None
   ): Future[JsValue] = {
-    for {
-      baseJson <- toJson(resource, sample, study)
-    } yield {
-      baseJson
-    }
+    toJson(resource, sample, study)
   }
 
   // ===== MÉTODOS PRIVADOS =====
 
-  private def buildSpecificData(sample: Option[Sample], study: Option[Study]): Option[JsObject] = {
+  private def buildSpecificData(
+      sample: Option[Sample],
+      study: Option[Study]
+  ): Option[JsValue] = {
     (sample, study) match {
-      case (Some(s), None) => Some(buildSampleJson(s))
+      case (Some(s), None)  => Some(buildSampleJson(s))
       case (None, Some(st)) => Some(buildStudyJson(st))
-      case _ => None
+      case _                => None
     }
   }
 
-  private def buildSampleJson(sample: Sample): JsObject = {
+  private def buildSampleJson(sample: Sample) = {
     Json.obj(
       List(
+        toJsValueWrapper(Strings.id, sample.id.toString),
         toJsValueWrapper(Strings.name, sample.name),
         toJsValueWrapper(Strings.isFresh, sample.isFresh),
         toJsValueWrapper(Strings.minerals, sample.minerals),
@@ -114,6 +113,7 @@ class ResourceWriterImpl @Inject() (
   private def buildStudyJson(study: Study): JsObject = {
     Json.obj(
       List(
+        toJsValueWrapper(Strings.id, study.id.toString),
         toJsValueWrapper(Strings.name, study.name),
         toJsValueWrapper(Strings.startDate, study.startDate),
         toJsValueWrapper(Strings.endDate, study.endDate),

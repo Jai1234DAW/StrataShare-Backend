@@ -323,19 +323,19 @@
     }
   },
   "CountryList": {
-  "properties": {
-    "items": {
+    "properties": {
       "items": {
-        "$ref": "#/components/schemas/Country"
+        "items": {
+          "$ref": "#/components/schemas/Country"
+        }
+      },
+      "moreItems": {
+        "type": "boolean",
+        "default": false,
+        "required": true
       }
-    },
-    "moreItems": {
-      "type": "boolean",
-      "default": false,
-      "required": true
     }
-  }
-},
+  },
   "UserList": {
     "properties": {
       "items": {
@@ -347,6 +347,329 @@
       "moreItems": {
         "type": "boolean",
         "default": false,
+        "required": true
+      }
+    }
+  },
+  "CreateSampleResourceRequest": {
+    "properties": {
+      "visibility": {
+        "type": "string",
+        "default": "public",
+        "required": true
+      },
+      "localization": {
+        "type": "string",
+        "default": "Sample localization",
+        "required": true
+      },
+      "observations": {
+        "type": "string",
+        "default": "Sample observations",
+        "required": false
+      },
+      "summary": {
+        "type": "string",
+        "default": "Sample summary",
+        "required": false
+      },
+      "name": {
+        "type": "string",
+        "default": "Sample name",
+        "required": true
+      },
+      "minerals": {
+        "type": "string",
+        "default": "Sample minerals",
+        "required": false
+      },
+      "collectionMethods": {
+        "type": "string",
+        "default": "Sample collection methods",
+        "required": false
+      },
+      "isFresh": {
+        "type": "boolean",
+        "default": true,
+        "required": true
+      },
+      "sampleType": {
+        "type": "string",
+        "default": "Sample type",
+        "required": false
+      },
+      "materialsUsed": {
+        "type": "string",
+        "default": "Sample materials used",
+        "required": false
+      },
+      "rockType": {
+        "type": "string",
+        "default": "Sample rock type",
+        "required": false
+      },
+      "geologicalProcesses": {
+        "type": "string",
+        "default": "Sample geological processes",
+        "required": false
+      }
+    }
+  },
+  "SampleResource": {
+    "properties": {
+      "id": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": true,
+        "description": "Resource ID"
+      },
+      "sampleId": {
+        "type": "string",
+        "default": "sample123456",
+        "required": true,
+        "description": "Sample ID"
+      },
+      "resourceType": {
+        "type": "string",
+        "default": "SAMPLE",
+        "required": true
+      },
+      "visibility": {
+        "type": "string",
+        "default": "public",
+        "required": true
+      },
+      "localization": {
+        "type": "string",
+        "default": "Sample localization",
+        "required": true
+      },
+      "observations": {
+        "type": "string",
+        "default": "Sample observations",
+        "required": false
+      },
+      "summary": {
+        "type": "string",
+        "default": "Sample summary",
+        "required": false
+      },
+      "created": {
+        "type": "string",
+        "format": "date-time",
+        "default": "2026-03-30T10:30:00Z",
+        "required": true
+      },
+      "updated": {
+        "type": "string",
+        "format": "date-time",
+        "default": "2026-03-30T10:30:00Z",
+        "required": true
+      },
+      "name": {
+        "type": "string",
+        "default": "Sample name",
+        "required": true
+      },
+      "minerals": {
+        "type": "string",
+        "default": "Sample minerals",
+        "required": false
+      },
+      "collectionMethods": {
+        "type": "string",
+        "default": "Sample collection methods",
+        "required": false
+      },
+      "isFresh": {
+        "type": "boolean",
+        "default": true,
+        "required": true
+      },
+      "sampleType": {
+        "type": "string",
+        "default": "Sample type",
+        "required": false
+      },
+      "materialsUsed": {
+        "type": "string",
+        "default": "Sample materials used",
+        "required": false
+      },
+      "rockType": {
+        "type": "string",
+        "default": "Sample rock type",
+        "required": false
+      },
+      "geologicalProcesses": {
+        "type": "string",
+        "default": "Sample geological processes",
+        "required": false
+      }
+    }
+  },
+  "CreateStudyResourceRequest": {
+    "properties": {
+      "visibility": {
+        "type": "string",
+        "default": "public",
+        "required": true
+      },
+      "localization": {
+        "type": "string",
+        "default": "Study localization",
+        "required": true
+      },
+      "observations": {
+        "type": "string",
+        "default": "Study observations",
+        "required": false
+      },
+      "summary": {
+        "type": "string",
+        "default": "Study summary",
+        "required": false
+      },
+      "name": {
+        "type": "string",
+        "default": "Study name",
+        "required": true
+      },
+      "startDate": {
+        "type": "string",
+        "format": "date-time",
+        "default": "2026-01-15T00:00:00Z",
+        "required": true
+      },
+      "endDate": {
+        "type": "string",
+        "format": "date-time",
+        "default": "2026-03-30T00:00:00Z",
+        "required": false
+      },
+      "description": {
+        "type": "string",
+        "default": "Study description",
+        "required": true
+      },
+      "coordinates": {
+        "type": "string",
+        "default": "-34.6037,-58.3816",
+        "required": true
+      },
+      "area": {
+        "type": "string",
+        "default": "GEOPHYSICS",
+        "required": true
+      },
+      "methods": {
+        "type": "string",
+        "default": "SISMIC, ELECTRICAL",
+        "required": true
+      },
+      "authors": {
+        "type": "string",
+        "default": "\"John Doe, Jane Smith\"",
+        "required": true
+      },
+      "section": {
+        "type": "boolean",
+        "default": true,
+        "required": true
+      },
+      "antecedents": {
+        "type": "boolean",
+        "default": true,
+        "required": false
+      },
+      "nameSection": {
+        "type": "string",
+        "default": "Calculations",
+        "required": false
+      }
+    }
+  },
+  "StudyResource": {
+    "properties": {
+      "id": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": true,
+        "description": "Resource ID"
+      },
+      "studyId": {
+        "type": "string",
+        "default": "study123456",
+        "required": true,
+        "description": "Study ID"
+      },
+      "resourceType": {
+        "type": "string",
+        "default": "STUDY",
+        "required": true
+      },
+      "visibility": {
+        "type": "string",
+        "default": "public",
+        "required": true
+      },
+      "localization": {
+        "type": "string",
+        "default": "Study localization",
+        "required": true
+      },
+      "observations": {
+        "type": "string",
+        "default": "Study observations",
+        "required": false
+      },
+      "summary": {
+        "type": "string",
+        "default": "Study summary",
+        "required": false
+      },
+      "created": {
+        "type": "string",
+        "format": "date-time",
+        "default": "2026-03-30T10:30:00Z",
+        "required": true
+      },
+      "updated": {
+        "type": "string",
+        "format": "date-time",
+        "default": "2026-03-30T10:30:00Z",
+        "required": true
+      },
+      "name": {
+        "type": "string",
+        "default": "Study name",
+        "required": true
+      },
+      "startDate": {
+        "type": "string",
+        "format": "date-time",
+        "default": "2024-01-01T12:30:00Z",
+        "required": true
+      },
+      "endDate": {
+        "type": "string",
+        "format": "date-time",
+        "default": "2024-01-01T12:30:00Z",
+        "required": false
+      },
+      "description": {
+        "type": "string",
+        "default": "Study description",
+        "required": true
+      },
+      "coordinates": {
+        "type": "string",
+        "default": "-34.6037,-58.3816",
+        "required": true
+      },
+      "area": {
+        "type": "string",
+        "default": "GEOPHYSICS",
         "required": true
       }
     }
