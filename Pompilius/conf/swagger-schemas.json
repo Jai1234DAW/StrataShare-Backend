@@ -351,7 +351,7 @@
       }
     }
   },
-  "CreateSampleResourceRequest": {
+  "CreateSampleRequest": {
     "properties": {
       "visibility": {
         "type": "string",
@@ -423,12 +423,6 @@
         "required": true,
         "description": "Resource ID"
       },
-      "sampleId": {
-        "type": "string",
-        "default": "sample123456",
-        "required": true,
-        "description": "Sample ID"
-      },
       "resourceType": {
         "type": "string",
         "default": "SAMPLE",
@@ -465,6 +459,12 @@
         "format": "date-time",
         "default": "2026-03-30T10:30:00Z",
         "required": true
+      },
+      "sampleId": {
+        "type": "string",
+        "default": "sample123456",
+        "required": true,
+        "description": "Sample ID"
       },
       "name": {
         "type": "string",
@@ -508,7 +508,7 @@
       }
     }
   },
-  "CreateStudyResourceRequest": {
+  "CreateStudyRequest": {
     "properties": {
       "visibility": {
         "type": "string",
@@ -597,12 +597,6 @@
         "required": true,
         "description": "Resource ID"
       },
-      "studyId": {
-        "type": "string",
-        "default": "study123456",
-        "required": true,
-        "description": "Study ID"
-      },
       "resourceType": {
         "type": "string",
         "default": "STUDY",
@@ -640,6 +634,12 @@
         "default": "2026-03-30T10:30:00Z",
         "required": true
       },
+      "studyId": {
+        "type": "string",
+        "default": "study123456",
+        "required": true,
+        "description": "Study ID"
+      },
       "name": {
         "type": "string",
         "default": "Study name",
@@ -655,6 +655,62 @@
         "type": "string",
         "format": "date-time",
         "default": "2024-01-01T12:30:00Z",
+        "required": false
+      },
+      "description": {
+        "type": "string",
+        "default": "Study description",
+        "required": true
+      },
+      "coordinates": {
+        "type": "string",
+        "default": "-34.6037,-58.3816",
+        "required": true
+      },
+      "area": {
+        "type": "string",
+        "default": "GEOPHYSICS",
+        "required": true
+      }
+    }
+  },
+  "UpdateStudyRequest": {
+    "properties": {
+      "visibility": {
+        "type": "string",
+        "default": "public",
+        "required": true
+      },
+      "localization": {
+        "type": "string",
+        "default": "Study localization",
+        "required": true
+      },
+      "observations": {
+        "type": "string",
+        "default": "Study observations",
+        "required": false
+      },
+      "summary": {
+        "type": "string",
+        "default": "Study summary",
+        "required": false
+      },
+      "name": {
+        "type": "string",
+        "default": "Study name",
+        "required": true
+      },
+      "startDate": {
+        "type": "string",
+        "format": "date-time",
+        "default": "2026-01-15T00:00:00Z",
+        "required": true
+      },
+      "endDate": {
+        "type": "string",
+        "format": "date-time",
+        "default": "2026-03-30T00:00:00Z",
         "required": false
       },
       "description": {

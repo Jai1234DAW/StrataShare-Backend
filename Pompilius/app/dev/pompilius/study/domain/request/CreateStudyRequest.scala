@@ -1,14 +1,16 @@
-package dev.pompilius.resource.domain.request
+package dev.pompilius.study.domain.request
 
 import dev.pompilius.shared.domain.Visibility
 import dev.pompilius.study.domain.Area
 import org.joda.time.DateTime
 
 case class CreateStudyRequest(
+    // Datos comunes (Resource)
     visibility: Visibility,
     localization: String,
     observations: Option[String],
     summary: Option[String],
+    // Datos específicos (Study)
     name: String,
     startDate: DateTime,
     endDate: Option[DateTime],
@@ -18,7 +20,7 @@ case class CreateStudyRequest(
     methods: String,
     authors: String,
     section: Boolean,
-    antecedents: Boolean = true,
-    nameSection: Option[String] = None
+    antecedents: Boolean,
+    nameSection: Option[String]
 )
 

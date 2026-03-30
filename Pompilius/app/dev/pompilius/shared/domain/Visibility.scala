@@ -19,10 +19,5 @@ object Visibility extends Enum[Visibility] with PlayJsonEnum[Visibility] {
     override def value: String = "PRIVATE"
   }
 
-  @SuppressWarnings(Array("ObjectNames"))
-  case object SHARED extends Visibility {
-    override def value: String = "SHARED WITH SOME USERS"
-  }
-
 }
 

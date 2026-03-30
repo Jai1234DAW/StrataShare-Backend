@@ -1,14 +1,12 @@
-package dev.pompilius.resource.infrastructure.parsers
+package dev.pompilius.sample.infrastructure.parsers
 
 import dev.pompilius.Strings
-import dev.pompilius.resource.domain.request.CreateSampleRequest
-import dev.pompilius.resource.domain.ResourceId
-import dev.pompilius.sample.domain.{Sample, SampleId}
-import dev.pompilius.shared.domain.Visibility
+import dev.pompilius.sample.domain.request.CreateSampleRequest
 import dev.pompilius.shared.domain.exceptions.BadRequestException
+import dev.pompilius.shared.domain.Visibility
 import dev.pompilius.shared.infrastructure.StringUtil
-import play.api.libs.functional.syntax._
 import play.api.libs.json._
+import play.api.libs.functional.syntax._
 import play.api.mvc.{AnyContentAsJson, Request}
 
 object CreateSampleRequestParser {
@@ -37,3 +35,4 @@ object CreateSampleRequestParser {
     }
   }
 }
+

@@ -1,10 +1,6 @@
 ###
-#  summary: Create a new Sample
-#  tags:
-#    - Sample
-#  security:
-#    - bearerAuth: []
-#  roles: {"required": "any", "roles": ["STUDENT", "PROFESSIONAL"]}
+#  summary: Upload a new sample
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL"]}
 #  requestBody:
 #      required: true
 #      content:
@@ -12,113 +8,18 @@
 #        schema:
 #         $ref: '#/components/schemas/CreateSampleRequest'
 #  responses:
-#    201:
-#      description: Sample created successfully
-#      content:
-#       application/json:
-#        schema:
-#         $ref: '#/components/schemas/SampleResponse'
-#    400:
-#      description: Invalid input
-#    401:
-#      description: Unauthorized
-###
-POST        /                                          dev.pompilius.resource.infrastructure.controllers.SampleController.create
-
-###
-#  summary: List all Samples (public and user's own)
-#  tags:
-#    - Sample
-#  security:
-#    - bearerAuth: []
-#  roles: {"required": "any", "roles": ["STUDENT", "PROFESSIONAL"]}
-#  parameters:
-#    - name: localization
-#      in: query
-#      schema:
-#        type: string
-#      description: Filter by localization
-#    - name: minerals
-#      in: query
-#      schema:
-#        type: string
-#      description: Filter by minerals
-#    - name: isFresh
-#      in: query
-#      schema:
-#        type: boolean
-#      description: Filter by freshness
-#    - name: page
-#      in: query
-#      schema:
-#        type: integer
-#        default: 1
-#    - name: pageSize
-#      in: query
-#      schema:
-#        type: integer
-#        default: 10
-#  responses:
 #    200:
-#      description: List of samples
 #      content:
 #       application/json:
 #        schema:
-#         type: object
-#         properties:
-#           data:
-#             type: array
-#             items:
-#               $ref: '#/components/schemas/SampleResponse'
-#           page:
-#             type: integer
-#           pageSize:
-#             type: integer
-#           total:
-#             type: integer
+#         $ref: '#/components/schemas/SampleResource'
+#      description: Success
 ###
-GET         /                                          dev.pompilius.resource.infrastructure.controllers.SampleController.list
+POST         /create                                        dev.pompilius.sample.infrastructure.controllers.SampleController.create
 
 ###
-#  summary: Get a specific Sample by ID
-#  tags:
-#    - Sample
-#  security:
-#    - bearerAuth: []
-#  roles: {"required": "any", "roles": ["STUDENT", "PROFESSIONAL"]}
-#  parameters:
-#    - name: sampleId
-#      in: path
-#      required: true
-#      schema:
-#        type: integer
-#  responses:
-#    200:
-#      description: Sample details
-#      content:
-#       application/json:
-#        schema:
-#         $ref: '#/components/schemas/SampleResponse'
-#    404:
-#      description: Sample not found
-#    403:
-#      description: Forbidden - no access to this resource
-###
-GET         /:sampleId                                 dev.pompilius.resource.infrastructure.controllers.SampleController.get(sampleId: Long)
-
-###
-#  summary: Update a Sample (owner only)
-#  tags:
-#    - Sample
-#  security:
-#    - bearerAuth: []
-#  roles: {"required": "any", "roles": ["STUDENT", "PROFESSIONAL"]}
-#  parameters:
-#    - name: sampleId
-#      in: path
-#      required: true
-#      schema:
-#        type: integer
+#  summary: Update a sample
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL"]}
 #  requestBody:
 #      required: true
 #      content:
@@ -127,38 +28,36 @@ GET         /:sampleId                                 dev.pompilius.resource.in
 #         $ref: '#/components/schemas/UpdateSampleRequest'
 #  responses:
 #    200:
-#      description: Sample updated successfully
 #      content:
 #       application/json:
 #        schema:
-#         $ref: '#/components/schemas/SampleResponse'
-#    404:
-#      description: Sample not found
-#    403:
-#      description: Forbidden - only owner can update
+#         $ref: '#/components/schemas/SampleResource'
+#      description: Success
 ###
-PUT         /:sampleId                                 dev.pompilius.resource.infrastructure.controllers.SampleController.update(sampleId: Long)
+PUT          /:sampleId                                     dev.pompilius.sample.infrastructure.controllers.SampleController.update(sampleId: String)
 
 ###
-#  summary: Delete a Sample (owner only)
-#  tags:
-#    - Sample
-#  security:
-#    - bearerAuth: []
-#  roles: {"required": "any", "roles": ["STUDENT", "PROFESSIONAL"]}
-#  parameters:
-#    - name: sampleId
-#      in: path
-#      required: true
-#      schema:
-#        type: integer
+#  summary: Get a sample by ID
+#  roles: {"required": "any", "roles": ["any"]}
 #  responses:
-#    204:
+#    200:
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/SampleResource'
+#      description: Sample information
+#    404:
+#      description: Sample not found
+###
+GET          /:sampleId                                     dev.pompilius.sample.infrastructure.controllers.SampleController.get(sampleId: String)
+
+###
+#  summary: Delete a sample (soft delete)
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL"]}
+#  responses:
+#    200:
 #      description: Sample deleted successfully
 #    404:
 #      description: Sample not found
-#    403:
-#      description: Forbidden - only owner can delete
 ###
-DELETE      /:sampleId                                 dev.pompilius.resource.infrastructure.controllers.SampleController.delete(sampleId: Long)
-
+DELETE       /:sampleId                                     dev.pompilius.sample.infrastructure.controllers.SampleController.delete(sampleId: String)

@@ -4,6 +4,7 @@ import com.google.inject.ImplementedBy
 import dev.pompilius.Strings
 import dev.pompilius.attachment.domain.exceptions.AttachmentNotFoundException
 import dev.pompilius.auth.domain.exceptions.InvalidPasswordOrUsernameException
+import dev.pompilius.resource.domain.exceptions.ResourceNotFoundException
 import play.mvc.Http.HeaderNames
 //import dev.pompilius.auth.domain.exceptions.InvalidPasswordOrUsernameException
 //Colocar aqui las excepciones que faltan
@@ -63,8 +64,9 @@ class VerboseExceptionWriterImpl @Inject() extends VerboseExceptionWriter {
       //case _: FormNotFoundException              => 3010
       case _: AttachmentNotFoundException          => 3003
       case _: RoleNotFoundException                => 3002
-      //case _: UserNotFoundException              => 3001
+      case _: UserNotFoundException                => 3001
       case _: NotFoundException                    => 3000
+      case _: ResourceNotFoundException            => 3004
       case _: InvalidPasswordOrUsernameException   => 4001
       case _: UnauthorizedException                => 4000
       case _: RoleInUseException                   => 6004
@@ -88,6 +90,7 @@ class VerboseExceptionWriterImpl @Inject() extends VerboseExceptionWriter {
       //case _: PageNotFoundException             => Results.NotFound
       //case _: FormNotFoundException             => Results.NotFound
       case _: AttachmentNotFoundException         => Results.NotFound
+      case _: ResourceNotFoundException           => Results.NotFound
       case _: RoleNotFoundException               => Results.NotFound
       case _: UserNotFoundException               => Results.NotFound
       case _: NotFoundException                   => Results.NotFound

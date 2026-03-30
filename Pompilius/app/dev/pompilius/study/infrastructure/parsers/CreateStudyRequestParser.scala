@@ -1,15 +1,15 @@
-package dev.pompilius.resource.infrastructure.parsers
+package dev.pompilius.study.infrastructure.parsers
 
 import dev.pompilius.Strings
-import dev.pompilius.resource.domain.request.CreateStudyRequest
-import dev.pompilius.shared.domain.Visibility
+import dev.pompilius.study.domain.request.CreateStudyRequest
+import dev.pompilius.study.domain.Area
 import dev.pompilius.shared.domain.exceptions.BadRequestException
+import dev.pompilius.shared.domain.Visibility
 import dev.pompilius.shared.infrastructure.StringUtil
 import dev.pompilius.shared.infrastructure.JsUtils.JodaDateTimeReads
-import dev.pompilius.study.domain.Area
 import org.joda.time.DateTime
-import play.api.libs.functional.syntax._
 import play.api.libs.json._
+import play.api.libs.functional.syntax._
 import play.api.mvc.{AnyContentAsJson, Request}
 
 object CreateStudyRequestParser {
@@ -56,4 +56,6 @@ object CreateStudyRequestParser {
         throw new BadRequestException("Expecting text/json or application/json body")
     }
   }
+
 }
+

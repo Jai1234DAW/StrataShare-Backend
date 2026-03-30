@@ -1,10 +1,6 @@
 ###
-#  summary: Create a new Study
-#  tags:
-#    - Study
-#  security:
-#    - bearerAuth: []
-#  roles: {"required": "any", "roles": ["STUDENT", "PROFESSIONAL"]}
+#  summary: Upload a new study
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL"]}
 #  requestBody:
 #      required: true
 #      content:
@@ -12,103 +8,18 @@
 #        schema:
 #         $ref: '#/components/schemas/CreateStudyRequest'
 #  responses:
-#    201:
-#      description: Study created successfully
-#      content:
-#       application/json:
-#        schema:
-#         $ref: '#/components/schemas/StudyResponse'
-#    400:
-#      description: Invalid input
-#    401:
-#      description: Unauthorized
-###
-POST        /                                          dev.pompilius.resource.infrastructure.controllers.StudyController.create
-
-###
-#  summary: List all Studies (public and user's own)
-#  tags:
-#    - Study
-#  security:
-#    - bearerAuth: []
-#  roles: {"required": "any", "roles": ["STUDENT", "PROFESSIONAL"]}
-#  parameters:
-#    - name: localization
-#      in: query
-#      schema:
-#        type: string
-#      description: Filter by localization
-#    - name: page
-#      in: query
-#      schema:
-#        type: integer
-#        default: 1
-#    - name: pageSize
-#      in: query
-#      schema:
-#        type: integer
-#        default: 10
-#  responses:
 #    200:
-#      description: List of studies
 #      content:
 #       application/json:
 #        schema:
-#         type: object
-#         properties:
-#           data:
-#             type: array
-#             items:
-#               $ref: '#/components/schemas/StudyResponse'
-#           page:
-#             type: integer
-#           pageSize:
-#             type: integer
-#           total:
-#             type: integer
+#         $ref: '#/components/schemas/StudyResource'
+#      description: Success
 ###
-GET         /                                          dev.pompilius.resource.infrastructure.controllers.StudyController.list
+POST         /create                                        dev.pompilius.study.infrastructure.controllers.StudyController.create
 
 ###
-#  summary: Get a specific Study by ID
-#  tags:
-#    - Study
-#  security:
-#    - bearerAuth: []
-#  roles: {"required": "any", "roles": ["STUDENT", "PROFESSIONAL"]}
-#  parameters:
-#    - name: studyId
-#      in: path
-#      required: true
-#      schema:
-#        type: integer
-#  responses:
-#    200:
-#      description: Study details
-#      content:
-#       application/json:
-#        schema:
-#         $ref: '#/components/schemas/StudyResponse'
-#    404:
-#      description: Study not found
-#    403:
-#      description: Forbidden - no access to this resource
-###
-GET         /:studyId                                  dev.pompilius.resource.infrastructure.controllers.StudyController.get(studyId: Long)
-
-###
-#  summary: Update a Study (owner only)
-#  tags:
-#    - Study
-#  security:
-#    - bearerAuth: []
-#  roles: {"required": "any", "roles": ["STUDENT", "PROFESSIONAL"]}
-#  parameters:
-#    - name: studyId
-#      in: path
-#      required: true
-#      schema:
-#        type: integer
+#  summary: Update a study
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL"]}
 #  requestBody:
 #      required: true
 #      content:
@@ -117,38 +28,37 @@ GET         /:studyId                                  dev.pompilius.resource.in
 #         $ref: '#/components/schemas/UpdateStudyRequest'
 #  responses:
 #    200:
-#      description: Study updated successfully
 #      content:
 #       application/json:
 #        schema:
-#         $ref: '#/components/schemas/StudyResponse'
-#    404:
-#      description: Study not found
-#    403:
-#      description: Forbidden - only owner can update
+#         $ref: '#/components/schemas/StudyResource'
+#      description: Success
 ###
-PUT         /:studyId                                  dev.pompilius.resource.infrastructure.controllers.StudyController.update(studyId: Long)
+PUT          /:studyId                                      dev.pompilius.study.infrastructure.controllers.StudyController.update(studyId: String)
 
 ###
-#  summary: Delete a Study (owner only)
-#  tags:
-#    - Study
-#  security:
-#    - bearerAuth: []
-#  roles: {"required": "any", "roles": ["STUDENT", "PROFESSIONAL"]}
-#  parameters:
-#    - name: studyId
-#      in: path
-#      required: true
-#      schema:
-#        type: integer
+#  summary: Get a study by ID
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL","AMATEUR"]}
 #  responses:
-#    204:
+#    200:
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/StudyResource'
+#      description: Study information
+#    404:
+#      description: Study not found
+###
+GET          /:studyId                                      dev.pompilius.study.infrastructure.controllers.StudyController.get(studyId: String)
+
+###
+#  summary: Delete a study (soft delete)
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL"]}
+#  responses:
+#    200:
 #      description: Study deleted successfully
 #    404:
 #      description: Study not found
-#    403:
-#      description: Forbidden - only owner can delete
 ###
-DELETE      /:studyId                                  dev.pompilius.resource.infrastructure.controllers.StudyController.delete(studyId: Long)
+DELETE       /:studyId                                      dev.pompilius.study.infrastructure.controllers.StudyController.delete(studyId: String)
 
