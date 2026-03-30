@@ -33,7 +33,7 @@ CREATE TABLE `sample` (
     `rock_type` VARCHAR(256) NULL,
     `geological_processes` TEXT NULL,
 
-    PRIMARY KEY (`resource_id,id`),
+    PRIMARY KEY (`id`),
     UNIQUE KEY `unique_resource_id` (`resource_id`),
     KEY `IDX_SAMPLE_NAME` (`name`),
     KEY `IDX_SAMPLE_TYPE` (`sample_type`),
@@ -79,8 +79,14 @@ CREATE TABLE `resource_attachment` (
     KEY `IDX_ATTACHMENT` (`attachment_id`),
     CONSTRAINT `fk_resource_attachment_resource`
         FOREIGN KEY (`resource_id`) REFERENCES `resource`(`id`)
-        ON DELETE RESTRICT ,
+        ON DELETE RESTRICT,
     CONSTRAINT `fk_resource_attachment_attachment`
         FOREIGN KEY (`attachment_id`) REFERENCES `attachment`(`id`)
         ON DELETE RESTRICT
 ) CHARSET=utf8mb4;
+
+# --- !Downs
+DROP TABLE IF EXISTS `resource_attachment`;
+DROP TABLE IF EXISTS `study`;
+DROP TABLE IF EXISTS `sample`;
+DROP TABLE IF EXISTS `resource`;

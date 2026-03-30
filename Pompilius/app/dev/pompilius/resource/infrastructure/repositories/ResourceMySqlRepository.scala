@@ -1,17 +1,18 @@
 package dev.pompilius.resource.infrastructure.repositories
 
-import dev.pompilius.resource.domain.{Resource, ResourceFilter, ResourceId, ResourceRepository, ResourceType, Sample, Study}
-import dev.pompilius.resource.domain.study.Area
+import dev.pompilius.resource.domain.{Resource, ResourceFilter, ResourceId, ResourceRepository, ResourceType}
 import dev.pompilius.shared.domain.{Pagination, Visibility}
 import dev.pompilius.shared.infrastructure.ScalikeUtil
 import dev.pompilius.shared.infrastructure.contexts.DbExecutionContext
-import dev.pompilius.users.domain.UserId
 import org.apache.pekko.Done
-import scalikejdbc._
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
+import scalikejdbc._
+import scalikejdbc.jodatime.JodaParameterBinderFactory._
 import scalikejdbc.jodatime.JodaTypeBinder._
+
+import java.time.ZoneId
 
 @Singleton
 class ResourceMySqlRepository @Inject() (
@@ -20,87 +21,22 @@ class ResourceMySqlRepository @Inject() (
     with SQLSyntaxSupport[Resource] {
 
   override val tableName = "resource"
+  implicit val overwrittenZoneId: OverwrittenZoneId = OverwrittenZoneId(ZoneId.of("UTC"))
 
   def apply(r: SyntaxProvider[Resource])(rs: WrappedResultSet): Resource =
     apply(r.resultName)(rs)
 
-  def apply(r: ResultName[Resource])(rs: WrappedResultSet): Resource = {
-    val id = ResourceId(rs.get[Long](r.id))
-    val resourceType = ResourceType.withNameInsensitive(rs.get[String](r.resourceType))
-    val deleted = rs.get[Boolean](r.deleted)
-    val visibility = Visibility.withNameInsensitive(rs.get[String](r.visibility))
-    val created = rs.get(r.created)
-    val updated = rs.get(r.updated)
-    val localization = rs.get[String](r.localization)
-    val observations = rs.get[Option[String]](r.observations)
-    val summary = rs.get[Option[String]](r.summary)
-
-    resourceType match {
-      case ResourceType.SAMPLE =>
-        Sample(
-          id = id,
-          resourceType = ResourceType.SAMPLE,
-          deleted = deleted,
-          visibility = visibility,
-          created = created,
-          updated = updated,
-          localization = localization,
-          observations = observations,
-          summary = summary,
-          name = "",
-          minerals = None,
-          collectionMethods = None,
-          isFresh = false,
-          sampleType = None,
-          materialsUsed = None,
-          rockType = None,
-          geologicalProcesses = None
-        )
-      case ResourceType.STUDY =>
-        Study(
-          id = id,
-          resourceType = ResourceType.STUDY,
-          deleted = deleted,
-          visibility = visibility,
-          created = created,
-          updated = updated,
-          localization = localization,
-          observations = observations,
-          summary = summary,
-          name = "",
-          startDate = created,
-          endDate = None,
-          description = "",
-          coordinates = "",
-          area = Area.OTHER,
-          methods = "",
-          authors = "",
-          section = false,
-          antecedents = true,
-          nameSection = None
-        )
-      case _ =>
-        Sample(
-          id = id,
-          resourceType = ResourceType.SAMPLE,
-          deleted = deleted,
-          visibility = visibility,
-          created = created,
-          updated = updated,
-          localization = localization,
-          observations = observations,
-          summary = summary,
-          name = "",
-          minerals = None,
-          collectionMethods = None,
-          isFresh = false,
-          sampleType = None,
-          materialsUsed = None,
-          rockType = None,
-          geologicalProcesses = None
-        )
-    }
-  }
+  def apply(r: ResultName[Resource])(rs: WrappedResultSet): Resource =
+    Resource(
+      id = ResourceId(rs.get[Long](r.id)),
+      resourceType = ResourceType.withNameInsensitive(rs.get[String](r.resourceType)),
+      visibility = Visibility.withNameInsensitive(rs.get[String](r.visibility)),
+      created = rs.get(r.created),
+      updated = rs.get(r.updated),
+      localization = rs.get[String](r.localization),
+      observations = rs.get[Option[String]](r.observations),
+      summary = rs.get[Option[String]](r.summary)
+    )
 
   private val r = this.syntax("r")
 
@@ -110,7 +46,6 @@ class ResourceMySqlRepository @Inject() (
         val values = List(
           column.id -> resource.id.id,
           column.resourceType -> resource.resourceType.toString,
-          column.deleted -> resource.deleted,
           column.visibility -> resource.visibility.toString,
           column.created -> resource.created,
           column.updated -> resource.updated,
@@ -129,15 +64,6 @@ class ResourceMySqlRepository @Inject() (
     }
 
   override def findById(id: ResourceId): Future[Option[Resource]] =
-    Future {
-      DB.localTx { implicit session =>
-        withSQL {
-          selectFrom(this as r).where.eq(r.id, id.id)
-        }.map(apply(r.resultName)(_)).single()
-      }
-    }
-
-  override def findByIdAndOwner(id: ResourceId, ownerId: UserId): Future[Option[Resource]] =
     Future {
       DB.localTx { implicit session =>
         withSQL {
@@ -196,34 +122,9 @@ class ResourceMySqlRepository @Inject() (
 
   override def delete(id: ResourceId): Future[Done] =
     Future {
-      DB.localTx { implicit session =>
-        withSQL {
-          deleteFrom(this).where.eq(r.id, id.id)
-        }.update()
-      }
+      // La eliminación se realiza marcando el ResourceUser como deleted
+      // No hacemos nada aquí - el recurso no se elimina directamente
       Done
     }
 
-  override def findAll(pag: Pagination): Future[List[Resource]] =
-    Future {
-      DB.localTx { implicit session =>
-        withSQL {
-          selectFrom(this as r)
-            .orderBy(r.created.desc)
-            .append(ScalikeUtil.pag(pag))
-        }.map(apply(r.resultName)(_)).list()
-      }
-    }
-
-  override def findAllByUser(userId: UserId): Future[List[Resource]] =
-    Future {
-      DB.localTx { implicit session =>
-        // Aquí simplemente retorna recursos sin filtrar por usuario
-        // El filtrado por usuario lo debe hacer ResourceRepositoryAggregate
-        withSQL {
-          selectFrom(this as r)
-            .orderBy(r.created.desc)
-        }.map(apply(r.resultName)(_)).list()
-      }
-    }
 }

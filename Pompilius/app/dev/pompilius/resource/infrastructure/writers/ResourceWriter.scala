@@ -2,10 +2,10 @@ package dev.pompilius.resource.infrastructure.writers
 
 import com.google.inject.ImplementedBy
 import dev.pompilius.Strings
-import dev.pompilius.resource.domain.sample.Sample
-import dev.pompilius.resource.domain.study.Study
 import dev.pompilius.resource.domain.{Resource, ResourceType}
+import dev.pompilius.sample.domain.Sample
 import dev.pompilius.shared.infrastructure.JsUtils.{JodaDateTimeFormat, toJsValueWrapper}
+import dev.pompilius.study.domain.Study
 import play.api.libs.json._
 
 import javax.inject.{Inject, Singleton}
@@ -81,7 +81,6 @@ class ResourceWriterImpl @Inject() ()(implicit val ec: ExecutionContext) extends
     toJson(resource, sample, study)
   }
 
-  // ===== MÉTODOS PRIVADOS =====
 
   private def buildSpecificData(
       sample: Option[Sample],

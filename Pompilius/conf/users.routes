@@ -34,7 +34,11 @@ POST         /registerUser                                  dev.pompilius.users.
 #         $ref: '#/components/schemas/UpdateUserRequest'
 #  responses:
 #    200:
-#      description: Success
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/User'
+#      description: Updated user information
 ###
 PUT        /me                                    dev.pompilius.users.infrastructure.controllers.UserController.updateUser()
 

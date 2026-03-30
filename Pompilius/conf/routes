@@ -28,5 +28,4 @@ GET        /api/assets/*file                           controllers.Assets.versio
 ->         /api/users                                  users.Routes
 ->         /api/resources/samples                      sample.Routes
 ->         /api/resources/studies                      study.Routes
-->         /api/resources                              resource.Routes
 

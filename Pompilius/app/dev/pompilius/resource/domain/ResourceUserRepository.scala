@@ -11,14 +11,13 @@ import scala.concurrent.Future
 @ImplementedBy(classOf[ResourceUserMySqlRepository])
 trait ResourceUserRepository {
 
-  def getAllByResourceId(resourceId: ResourceId): Future[List[ResourceUser]]
+  def findBy(resourceUser: ResourceUser): Future[Option[ResourceId]]
 
-  def getAllByUserId(userId: UserId): Future[List[ResourceUser]]
+  def findByUserAndType(userId: UserId, resourceUserType: ResourceUserType, pag: Pagination): Future[List[ResourceId]]
 
-  def findBy(resourceId: ResourceId, userId: UserId): Future[Option[ResourceUser]]
-
-  def find(filter: ResourceUserFilter, pag: Pagination): Future[List[ResourceUser]]
+  def findByResourcedAndUser(resourceId: ResourceId, userId: UserId): Future[Option[ResourceUser]]
 
   def save(resourceUser: ResourceUser): Future[Done]
+
 }
 

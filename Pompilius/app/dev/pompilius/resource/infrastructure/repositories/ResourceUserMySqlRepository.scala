@@ -1,6 +1,6 @@
 package dev.pompilius.resource.infrastructure.repositories
 
-import dev.pompilius.resource.domain.{ResourceId, ResourceUser, ResourceUserFilter, ResourceUserRepository, ResourceUserType}
+import dev.pompilius.resource.domain.{ResourceId, ResourceUser, ResourceUserRepository, ResourceUserType}
 import dev.pompilius.shared.domain.Pagination
 import dev.pompilius.shared.infrastructure.ScalikeUtil
 import dev.pompilius.shared.infrastructure.contexts.DbExecutionContext
@@ -28,66 +28,11 @@ class ResourceUserMySqlRepository @Inject()(implicit ec: DbExecutionContext)
       resourceId = ResourceId(rs.get[Long](ru.resourceId)),
       userId = UserId(rs.get[Long](ru.userId)),
       resourceUserType = ResourceUserType.withNameInsensitive(rs.get[String](ru.resourceUserType)),
-      created = rs.get(ru.created)
+      created = rs.get(ru.created),
+      deleted = rs.get[Boolean](ru.deleted)
     )
 
   private val ru = this.syntax("ru")
-
-  override def getAllByResourceId(resourceId: ResourceId): Future[List[ResourceUser]] =
-    Future {
-      DB.localTx { implicit session =>
-        withSQL {
-          selectFrom(this as ru).where.eq(ru.resourceId, resourceId.id)
-        }.map(apply(ru.resultName)(_)).list()
-      }
-    }
-
-  override def getAllByUserId(userId: UserId): Future[List[ResourceUser]] =
-    Future {
-      DB.localTx { implicit session =>
-        withSQL {
-          selectFrom(this as ru).where.eq(ru.userId, userId.id)
-        }.map(apply(ru.resultName)(_)).list()
-      }
-    }
-
-  override def findBy(resourceId: ResourceId, userId: UserId): Future[Option[ResourceUser]] =
-    Future {
-      DB.localTx { implicit session =>
-        withSQL {
-          selectFrom(this as ru)
-            .where.eq(ru.resourceId, resourceId.id)
-            .and.eq(ru.userId, userId.id)
-        }.map(apply(ru.resultName)(_)).single()
-      }
-    }
-
-  override def find(filter: ResourceUserFilter, pag: Pagination): Future[List[ResourceUser]] =
-    Future {
-      DB.localTx { implicit session =>
-        withSQL {
-          selectFrom(this as ru)
-            .append(
-              filterToSqlSyntax(filter).map(sqls.where(_)).getOrElse(sqls.empty)
-            )
-            .orderBy(ru.resourceId, ru.userId)
-            .desc
-            .append(
-              ScalikeUtil.pag(pag)
-            )
-        }.map(apply(ru.resultName)(_)).list()
-      }
-    }
-
-  private def filterToSqlSyntax(filter: ResourceUserFilter): Option[scalikejdbc.SQLSyntax] = {
-
-    val filters = List(
-      filter.resourceId.map(id => sqls.eq(ru.resourceId, id.id)),
-      filter.userId.map(id => sqls.eq(ru.userId, id.id))
-    ).flatten
-
-    if (filters.nonEmpty) Some(sqls.joinWithAnd(filters: _*)) else None
-  }
 
   override def save(resourceUser: ResourceUser): Future[Done] =
     Future {
@@ -97,14 +42,53 @@ class ResourceUserMySqlRepository @Inject()(implicit ec: DbExecutionContext)
           column.userId -> resourceUser.userId.id,
           column.resourceUserType -> resourceUser.resourceUserType.toString,
           column.created -> resourceUser.created,
+          column.deleted -> resourceUser.deleted
         )
         withSQL {
           insert
             .into(this)
             .namedValues(values: _*)
+            .append(ScalikeUtil.onDuplicateUpdate(values: _*))
         }.update()
       }
       Done
     }
-}
 
+
+  override def findBy(resourceUser: ResourceUser): Future[Option[ResourceId]] =
+    Future {
+      DB.localTx { implicit session =>
+        withSQL {
+          selectFrom(this as ru)
+            .where.eq(ru.resourceId, resourceUser.resourceId.id)
+            .and.eq(ru.userId, resourceUser.userId.id)
+        }.map(rs => ResourceId(rs.get[Long](ru.resultName.resourceId))).single()
+      }
+    }
+
+
+  override def findByUserAndType(userId: UserId, resourceUserType: ResourceUserType, pag: Pagination): Future[List[ResourceId]] =
+    Future {
+      DB.localTx { implicit session =>
+        withSQL {
+          selectFrom(this as ru)
+            .where.eq(ru.userId, userId.id)
+            .and.eq(ru.resourceUserType, resourceUserType.toString)
+            .orderBy(ru.created)
+            .desc
+            .append(ScalikeUtil.pag(pag))
+        }.map(rs => ResourceId(rs.get[Long](ru.resultName.resourceId))).list()
+      }
+    }
+
+  override def findByResourceAndUser(resourceId: ResourceId, userId: UserId): Future[Option[ResourceUser]] =
+    Future {
+      DB.localTx { implicit session =>
+        withSQL {
+          selectFrom(this as ru)
+            .where.eq(ru.resourceId, resourceId.id)
+            .and.eq(ru.userId, userId.id)
+        }.map(apply(ru.resultName)(_)).single()
+      }
+    }
+}
