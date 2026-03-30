@@ -224,7 +224,7 @@ object ReadsUtil {
     Reads.maxLength[String](256)
 
   def methods(implicit reads: Reads[String]): Reads[String] =
-    Reads.maxLength[String](1000)
+    Reads.maxLength[String](512)
 
   def authors(implicit reads: Reads[String]): Reads[String] =
     Reads.maxLength[String](512)

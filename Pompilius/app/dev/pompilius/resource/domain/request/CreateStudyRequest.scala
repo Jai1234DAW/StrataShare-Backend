@@ -1,12 +1,14 @@
-package dev.pompilius.resource.domain.study
+package dev.pompilius.resource.domain.request
 
-import dev.pompilius.resource.domain.ResourceId
+import dev.pompilius.resource.domain.study.Area
+import dev.pompilius.shared.domain.Visibility
 import org.joda.time.DateTime
 
-
-case class Study(
-    id: StudyId,
-    resourceId: ResourceId,
+case class CreateStudyRequest(
+    visibility: Visibility,
+    localization: String,
+    observations: Option[String],
+    summary: Option[String],
     name: String,
     startDate: DateTime,
     endDate: Option[DateTime],
@@ -20,4 +22,3 @@ case class Study(
     nameSection: Option[String] = None
 )
 
-//MIRAR ESTO AQUÍ

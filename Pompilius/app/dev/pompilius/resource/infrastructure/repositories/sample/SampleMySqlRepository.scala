@@ -12,7 +12,6 @@ import scalikejdbc._
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
 
-
 @Singleton
 class SampleMySqlRepository @Inject() (
 )(implicit dbExecutionContext: DbExecutionContext)
@@ -23,6 +22,7 @@ class SampleMySqlRepository @Inject() (
 
   def apply(s: SyntaxProvider[Sample])(rs: WrappedResultSet): Sample =
     apply(s.resultName)(rs)
+
   def apply(s: ResultName[Sample])(rs: WrappedResultSet): Sample =
     Sample(
       id = SampleId(rs.get[Long](s.id)),
@@ -51,7 +51,7 @@ class SampleMySqlRepository @Inject() (
   override def find(filter: SampleFilter, pag: Pagination): Future[List[Sample]] =
     Future {
 
-      val orderBy:Seq[SQLSyntax] = buildOrderBy(pag)
+      val orderBy: Seq[SQLSyntax] = buildOrderBy(pag)
 
       DB.localTx { implicit session =>
         withSQL {
@@ -84,12 +84,11 @@ class SampleMySqlRepository @Inject() (
       sqls.eq(s.isFresh, isFresh)
     }
 
-
     val filters = List(
       nameFilter,
       sampleTypeFilter,
       rockTypeFilter,
-      isFreshFilter,
+      isFreshFilter
     ).flatten
 
     if (filters.nonEmpty) Some(sqls.joinWithAnd(filters: _*)) else None
@@ -143,6 +142,5 @@ class SampleMySqlRepository @Inject() (
       }
       Done
     }
+
 }
-
-
