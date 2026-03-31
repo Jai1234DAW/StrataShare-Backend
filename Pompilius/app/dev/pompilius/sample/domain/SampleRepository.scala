@@ -21,5 +21,4 @@ trait SampleRepository {
   def save(sample: Sample): Future[Done]
 
   def delete(id: SampleId): Future[Done]
-
 }

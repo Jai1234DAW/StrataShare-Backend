@@ -2,19 +2,21 @@ package dev.pompilius.sample.infrastructure.repositories
 
 import dev.pompilius.Strings
 import dev.pompilius.resource.domain.ResourceId
+import dev.pompilius.resource.infrastructure.repositories.ResourceUserMySqlRepository
 import dev.pompilius.sample.domain.{Sample, SampleFilter, SampleId, SampleRepository}
 import dev.pompilius.shared.domain.Pagination
 import dev.pompilius.shared.infrastructure.ScalikeUtil
 import dev.pompilius.shared.infrastructure.contexts.DbExecutionContext
+import dev.pompilius.users.domain.UserId
 import org.apache.pekko.Done
 import scalikejdbc._
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
 
-
 @Singleton
 class SampleMySqlRepository @Inject() (
+    resourceUserMySqlRepository: ResourceUserMySqlRepository
 )(implicit dbExecutionContext: DbExecutionContext)
     extends SampleRepository
     with SQLSyntaxSupport[Sample] {
@@ -27,7 +29,7 @@ class SampleMySqlRepository @Inject() (
   def apply(s: ResultName[Sample])(rs: WrappedResultSet): Sample =
     Sample(
       id = SampleId(rs.get[Long](s.id)),
-      resourceId=ResourceId(rs.get[Long](s.resourceId)),
+      resourceId = ResourceId(rs.get[Long](s.resourceId)),
       name = rs.get(s.name),
       minerals = rs.get(s.minerals),
       collectionMethods = rs.get(s.collectionMethods),
@@ -104,11 +106,27 @@ class SampleMySqlRepository @Inject() (
       sqls.eq(s.isFresh, isFresh)
     }
 
+    val userFilter = filter.userId.map { userId =>
+      val ru = resourceUserMySqlRepository.syntax("ru")
+      sqls.exists(
+        select(sqls"1")
+          .from(resourceUserMySqlRepository as ru)
+          .where
+          .eq(ru.resourceId, s.resourceId)
+          .and
+          .eq(ru.userId, userId.id)
+          .and
+          .eq(ru.deleted, false)
+          .toSQLSyntax
+      )
+    }
+
     val filters = List(
       nameFilter,
       sampleTypeFilter,
       rockTypeFilter,
-      isFreshFilter
+      isFreshFilter,
+      userFilter
     ).flatten
 
     if (filters.nonEmpty) Some(sqls.joinWithAnd(filters: _*)) else None

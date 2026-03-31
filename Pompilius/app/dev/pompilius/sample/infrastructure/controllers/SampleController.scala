@@ -1,29 +1,38 @@
 package dev.pompilius.sample.infrastructure.controllers
 
+import dev.pompilius.resource.ResourceAccessValidator
 import dev.pompilius.resource.domain.exceptions.ResourceNotFoundException
-import dev.pompilius.resource.domain.{Resource, ResourceId, ResourceRepository, ResourceType, ResourceUser, ResourceUserRepository, ResourceUserType}
-import dev.pompilius.sample.domain.{Sample, SampleId, SampleRepository}
+import dev.pompilius.resource.domain.{
+  Resource,
+  ResourceId,
+  ResourceRepository,
+  ResourceType,
+  ResourceUser,
+  ResourceUserRepository,
+  ResourceUserType
+}
+import dev.pompilius.sample.domain.{Sample, SampleFilter, SampleId, SampleRepository}
 import dev.pompilius.sample.infrastructure.parsers.{CreateSampleRequestParser, UpdateSampleRequestParser}
 import dev.pompilius.resource.infrastructure.writers.ResourceWriter
+import dev.pompilius.shared.domain.Pagination
 import dev.pompilius.users.domain.{Role, UserId}
 import dev.pompilius.shared.infrastructure.BaseController
-import dev.pompilius.shared.domain.{Pagination, Visibility}
 import play.api.mvc.{Action, AnyContent}
 import play.api.libs.json.Json
 
 import javax.inject._
 import scala.concurrent.{ExecutionContext, Future}
-
+import scala.util.control.NonFatal
 
 @Singleton
 class SampleController @Inject() (
     sampleRepository: SampleRepository,
     resourceRepository: ResourceRepository,
     userResourceRepository: ResourceUserRepository,
+    resourceAccessValidator: ResourceAccessValidator,
     resourceWriter: ResourceWriter
 )(implicit val ec: ExecutionContext)
     extends BaseController {
-
 
   def create: Action[AnyContent] =
     Action.async { implicit request =>
@@ -31,11 +40,11 @@ class SampleController @Inject() (
         case (_, user, _, _) =>
           val createSampleRequest = CreateSampleRequestParser.parse(request)
 
-          // Generar IDs
+          // Generar IDs para Resource y Sample
           val resourceId = ResourceId.gen(configuration.nodeId)
           val sampleId = SampleId.gen(configuration.nodeId)
 
-          // 1. Crear el Resource (datos comunes)
+          // Crear el Resource (datos comunes)
           val newResource = Resource(
             id = resourceId,
             resourceType = ResourceType.SAMPLE,
@@ -47,7 +56,7 @@ class SampleController @Inject() (
             summary = createSampleRequest.summary
           )
 
-          // 2. Crear el Sample (datos específicos)
+          // Crear el Sample (datos específicos)
           val newSample = Sample(
             id = sampleId,
             resourceId = resourceId,
@@ -62,13 +71,20 @@ class SampleController @Inject() (
           )
 
           for {
-            // 1. Guardar Resource
+            // Guarda un Resource
             _ <- resourceRepository.save(newResource)
 
-            // 2. Guardar Sample
-            _ <- sampleRepository.save(newSample)
+            // Guardar en Sample
+            _ <-
+              sampleRepository
+                .save(newSample)
+                .recoverWith {
+                  case NonFatal(e) =>
+                    // Si falla guardar el Sample, eliminar el Resource para no dejar datos huérfanos
+                    resourceRepository.delete(resourceId).map(_ => throw e)
+                }
 
-            // 3. Vincular a usuario
+            // Vincular a usuario
             _ <- userResourceRepository.save(
               ResourceUser(
                 resourceId = resourceId,
@@ -92,18 +108,11 @@ class SampleController @Inject() (
           val updateSampleRequest = UpdateSampleRequestParser.parse(request)
 
           for {
-            // Obtener el Sample
-            sample <- sampleRepository.findById(SampleId(sampleId)).map(
-              _.getOrElse(throw new ResourceNotFoundException(s"Sample with id $sampleId not found"))
-            )
+            //método simplificado está más abajo para reutilizarlo en get y delete
+            (sample, resource) <- getSampleWithResource(sampleId)
 
-            // Obtener el Resource asociado
-            resource <- resourceRepository.findById(sample.resourceId).map(
-              _.getOrElse(throw new ResourceNotFoundException(s"Resource not found for sample $sampleId"))
-            )
-
-            // Verificar que es propietario del resource
-            _ <- verifyOwnership(resource.id, user.id)
+            // Verificar que es propietario del resource y que no está borrado lógicamente
+            _ <- resourceAccessValidator.verifyOwnership(resource.id, user.id)
 
             // Actualizar el Resource (datos comunes)
             updatedResource = resource.copy(
@@ -138,24 +147,15 @@ class SampleController @Inject() (
       }
     }
 
-
   def get(sampleId: String): Action[AnyContent] =
     Action.async { implicit request =>
       withAuthenticatedUser {
         case (_, user, _) =>
           for {
-            // Obtener el Sample
-            sample <- sampleRepository.findById(SampleId(sampleId)).map(
-              _.getOrElse(throw new ResourceNotFoundException(s"Sample with id $sampleId not found"))
-            )
-
-            // Obtener el Resource asociado
-            resource <- resourceRepository.findById(sample.resourceId).map(
-              _.getOrElse(throw new ResourceNotFoundException(s"Resource not found for sample $sampleId"))
-            )
+            (sample, resource) <- getSampleWithResource(sampleId)
 
             // Validar acceso según visibilidad
-            _ <- validateAccess(resource, user.id)
+            _ <- resourceAccessValidator.validateAccess(resource, user.id)
 
             // Retornar JSON del sample completo
             json <- resourceWriter.asPublic(resource, Some(sample), None)
@@ -170,18 +170,10 @@ class SampleController @Inject() (
       withAnyOfThisRoles(Seq(Role.STUDENT, Role.PROFESSIONAL)) {
         case (_, user, _, _) =>
           for {
-            // Obtener el Sample
-            sample <- sampleRepository.findById(SampleId(sampleId)).map(
-              _.getOrElse(throw new ResourceNotFoundException(s"Sample with id $sampleId not found"))
-            )
-
-            // Obtener el Resource asociado
-            resource <- resourceRepository.findById(sample.resourceId).map(
-              _.getOrElse(throw new ResourceNotFoundException(s"Resource not found for sample $sampleId"))
-            )
+            (_, resource) <- getSampleWithResource(sampleId)
 
             // Verificar que es propietario
-            _ <- verifyOwnership(resource.id, user.id)
+            _ <- resourceAccessValidator.verifyOwnership(resource.id, user.id)
 
             // Marcar ResourceUser como eliminado (soft delete)
             _ <- userResourceRepository.save(
@@ -194,38 +186,63 @@ class SampleController @Inject() (
               )
             )
 
-            // Retornar confirmación
           } yield {
-            Ok(Json.obj("message" -> "Sample deleted successfully"))
+            Ok
           }
       }
     }
 
-  private def verifyOwnership(resourceId: ResourceId, userId: UserId): Future[Unit] = {
-    userResourceRepository.findByUserAndType(userId, ResourceUserType.OWNER, Pagination.all).map { resourceIds =>
-      if (resourceIds.contains(resourceId)) ()
-      else throw new Exception("You don't have permission to update this resource")
-    }
-  }
+  def getAll(userId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      withAnyOfThisRoles(Seq(Role.STUDENT, Role.PROFESSIONAL)) {
+        case (_, user, _, _) =>
+          for {
+            samples <- sampleRepository.find(
+              SampleFilter(
+                name = None,
+                sampleType = None,
+                rockType = None,
+                isFresh = None,
+                userId = Some(UserId(userId))
+              ),
+              Pagination.all
+            )
 
-  private def validateAccess(resource: Resource, userId: UserId): Future[Unit] = {
-    import dev.pompilius.shared.domain.Visibility
+            // Para cada study, obtener su resource asociado y convertir a JSON
+            samplesWithResources <- Future.sequence(samples.map { sample =>
+              resourceRepository.findById(sample.resourceId).map { resourceOpt =>
+                resourceOpt.map(resource => (sample, resource))
+              }
+            })
 
-    resource.visibility match {
-      case Visibility.PUBLIC =>
-        Future.successful(())
-
-      case Visibility.PRIVATE =>
-        // Privado: solo el propietario puede acceder
-        userResourceRepository.findByUserAndType(userId, ResourceUserType.OWNER, Pagination.all).map { resourceIds =>
-          if (resourceIds.contains(resource.id)) {
-            // Verificar que el ResourceUser no esté marcado como deleted
-            // Para esto, necesitamos buscar el ResourceUser específico
-            ()
-          } else {
-            throw new Exception("You don't have permission to access this private resource")
+            // Parsear cada uno con resourceWriter.asPublic()
+            jsonList <- Future.sequence(
+              samplesWithResources.flatten.map {
+                case (sample, resource) =>
+                  resourceWriter.asPublic(resource, Some(sample), None)
+              }
+            )
+          } yield {
+            Ok(Json.toJson(jsonList))
           }
-        }
+      }
     }
+
+  private def getSampleWithResource(sampleId: String): Future[(Sample, Resource)] = {
+    for {
+      sample <-
+        sampleRepository
+          .findById(SampleId(sampleId))
+          .map(
+            _.getOrElse(throw new ResourceNotFoundException(s"Sample with id $sampleId not found"))
+          )
+
+      resource <-
+        resourceRepository
+          .findById(sample.resourceId)
+          .map(
+            _.getOrElse(throw new ResourceNotFoundException(s"Resource not found for sample $sampleId"))
+          )
+    } yield (sample, resource)
   }
 }
