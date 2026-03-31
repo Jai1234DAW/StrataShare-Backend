@@ -729,5 +729,99 @@
         "required": true
       }
     }
+  },
+  "UpdateSampleRequest": {
+    "properties": {
+      "visibility": {
+        "type": "string",
+        "default": "public",
+        "required": true
+      },
+      "localization": {
+        "type": "string",
+        "default": "Sample localization",
+        "required": true
+      },
+      "observations": {
+        "type": "string",
+        "default": "Sample observations",
+        "required": false
+      },
+      "summary": {
+        "type": "string",
+        "default": "Sample summary",
+        "required": false
+      },
+      "name": {
+        "type": "string",
+        "default": "Sample name",
+        "required": true
+      },
+      "minerals": {
+        "type": "string",
+        "default": "Sample minerals",
+        "required": false
+      },
+      "collectionMethods": {
+        "type": "string",
+        "default": "Sample collection methods",
+        "required": false
+      },
+      "isFresh": {
+        "type": "boolean",
+        "default": true,
+        "required": true
+      },
+      "sampleType": {
+        "type": "string",
+        "default": "Sample type",
+        "required": false
+      },
+      "materialsUsed": {
+        "type": "string",
+        "default": "Sample materials used",
+        "required": false
+      },
+      "rockType": {
+        "type": "string",
+        "default": "Sample rock type",
+        "required": false
+      },
+      "geologicalProcesses": {
+        "type": "string",
+        "default": "Sample geological processes",
+        "required": false
+      }
+    }
+  },
+  "SampleList": {
+    "properties": {
+      "items": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/SampleResource"
+        }
+      },
+      "moreItems": {
+        "type": "boolean",
+        "default": false,
+        "required": true
+      }
+    }
+  },
+  "StudyList": {
+    "properties": {
+      "items": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/StudyResource"
+        }
+      }
+    },
+    "moreItems": {
+      "type": "boolean",
+      "default": false,
+      "required": true
+    }
   }
 }
