@@ -37,8 +37,28 @@ POST         /create                                        dev.pompilius.sample
 PUT          /:sampleId                                     dev.pompilius.sample.infrastructure.controllers.SampleController.update(sampleId: String)
 
 ###
+#  summary: Get all studies by user ID
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL","AMATEUR"]}
+#  parameters:
+#    - name: userId
+#      in: query
+#      description: ID of the user to retrieve studies for
+#      required: true
+#      schema:
+#        type: string
+#  responses:
+#    200:
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/SampleList'
+#      description: List of studies for the user
+###
+GET        /                                              dev.pompilius.sample.infrastructure.controllers.SampleController.getAll(userId: String)
+
+###
 #  summary: Get a sample by ID
-#  roles: {"required": "any", "roles": ["any"]}
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL","AMATEUR"]}
 #  responses:
 #    200:
 #      content:

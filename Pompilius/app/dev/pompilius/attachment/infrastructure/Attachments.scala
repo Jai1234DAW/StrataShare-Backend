@@ -317,7 +317,6 @@ trait Attachments extends BaseController {
   }
 
   // Se puede implementar una función de descarga el attachment, redirigiendo a otro nodo si es necesario
-
   def download[T](user: Option[User], attachmentId: AttachmentId)(implicit
       ec: ExecutionContext
   ): Future[Result] = {
