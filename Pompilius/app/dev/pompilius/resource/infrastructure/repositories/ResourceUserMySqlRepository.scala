@@ -14,7 +14,7 @@ import scalikejdbc.jodatime.JodaParameterBinderFactory._
 import scalikejdbc.jodatime.JodaTypeBinder._
 
 @Singleton
-class ResourceUserMySqlRepository @Inject()(implicit ec: DbExecutionContext)
+class ResourceUserMySqlRepository @Inject() (implicit ec: DbExecutionContext)
     extends ResourceUserRepository
     with SQLSyntaxSupport[ResourceUser] {
 
@@ -33,6 +33,16 @@ class ResourceUserMySqlRepository @Inject()(implicit ec: DbExecutionContext)
     )
 
   private val ru = this.syntax("ru")
+
+  override def findByUserId(userId: UserId): Future[List[ResourceUser]] = {
+    Future {
+      DB.localTx { implicit session =>
+        withSQL {
+          selectFrom(this as ru).where.eq(ru.userId, userId.id)
+        }.map(apply(ru.resultName)(_)).list()
+      }
+    }
+  }
 
   override def save(resourceUser: ResourceUser): Future[Done] =
     Future {
@@ -54,26 +64,30 @@ class ResourceUserMySqlRepository @Inject()(implicit ec: DbExecutionContext)
       Done
     }
 
-
   override def findBy(resourceUser: ResourceUser): Future[Option[ResourceId]] =
     Future {
       DB.localTx { implicit session =>
         withSQL {
-          selectFrom(this as ru)
-            .where.eq(ru.resourceId, resourceUser.resourceId.id)
-            .and.eq(ru.userId, resourceUser.userId.id)
+          selectFrom(this as ru).where
+            .eq(ru.resourceId, resourceUser.resourceId.id)
+            .and
+            .eq(ru.userId, resourceUser.userId.id)
         }.map(rs => ResourceId(rs.get[Long](ru.resultName.resourceId))).single()
       }
     }
 
-
-  override def findByUserAndType(userId: UserId, resourceUserType: ResourceUserType, pag: Pagination): Future[List[ResourceId]] =
+  override def findByUserAndType(
+      userId: UserId,
+      resourceUserType: ResourceUserType,
+      pag: Pagination
+  ): Future[List[ResourceId]] =
     Future {
       DB.localTx { implicit session =>
         withSQL {
-          selectFrom(this as ru)
-            .where.eq(ru.userId, userId.id)
-            .and.eq(ru.resourceUserType, resourceUserType.toString)
+          selectFrom(this as ru).where
+            .eq(ru.userId, userId.id)
+            .and
+            .eq(ru.resourceUserType, resourceUserType.toString)
             .orderBy(ru.created)
             .desc
             .append(ScalikeUtil.pag(pag))
@@ -85,9 +99,7 @@ class ResourceUserMySqlRepository @Inject()(implicit ec: DbExecutionContext)
     Future {
       DB.localTx { implicit session =>
         withSQL {
-          selectFrom(this as ru)
-            .where.eq(ru.resourceId, resourceId.id)
-            .and.eq(ru.userId, userId.id)
+          selectFrom(this as ru).where.eq(ru.resourceId, resourceId.id).and.eq(ru.userId, userId.id)
         }.map(apply(ru.resultName)(_)).single()
       }
     }

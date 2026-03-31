@@ -15,85 +15,144 @@ import scala.concurrent.{ExecutionContext, Future}
 trait ResourceWriter {
   def toJson(resource: Resource, sample: Option[Sample] = None, study: Option[Study] = None): Future[JsValue]
   def asOwner(resource: Resource, sample: Option[Sample] = None, study: Option[Study] = None): Future[JsValue]
+  def asPrivate(resource: Resource, sample: Option[Sample] = None, study: Option[Study] = None): Future[JsValue]
   def asPublic(resource: Resource, sample: Option[Sample] = None, study: Option[Study] = None): Future[JsValue]
 }
 
 @Singleton
 class ResourceWriterImpl @Inject() ()(implicit val ec: ExecutionContext) extends ResourceWriter {
 
+  // Método privado: Construir JSON base del recurso (sin datos específicos)
+  private def buildBaseResourceJson(resource: Resource, includeObservations: Boolean = false): JsValue = {
+    Json.obj(
+      List(
+        toJsValueWrapper(Strings.resourceId, resource.id.toString),
+        toJsValueWrapper(Strings.resourceType, resource.resourceType.toString),
+        toJsValueWrapper(Strings.visibility, resource.visibility.toString),
+        toJsValueWrapper(Strings.localization, resource.localization),
+        if (includeObservations) toJsValueWrapper(Strings.observations, resource.observations) else None,
+        toJsValueWrapper(Strings.summary, resource.summary),
+        toJsValueWrapper(Strings.created, resource.created),
+        if (includeObservations) toJsValueWrapper(Strings.updated, resource.updated) else None
+      ).flatten: _*
+    )
+  }
+
+  // Método privado: Agregar datos específicos (sample o study) al JSON base
+  private def withSpecificData(baseJson: JsValue, sample: Option[Sample], study: Option[Study], fullAccess: Boolean): JsValue = {
+    val specificData = if (fullAccess) {
+      buildSpecificDataFull(sample, study)
+    } else {
+      buildSpecificDataPreview(sample, study)
+    }
+
+    val fieldName = (sample, study) match {
+      case (Some(_), None) => Strings.sampleData
+      case (None, Some(_)) => Strings.studyData
+      case _               => return baseJson
+    }
+
+    specificData match {
+      case Some(data) => baseJson.as[JsObject] ++ Json.obj(fieldName -> data)
+      case None       => baseJson
+    }
+  }
+
+  // BASE: Preview/metadata básica - Lo que TODOS ven sin acceso
   override def toJson(
       resource: Resource,
       sample: Option[Sample] = None,
       study: Option[Study] = None
   ): Future[JsValue] = {
     Future.successful {
-      val baseJson = Json.obj(
-        List(
-          toJsValueWrapper(Strings.resourceId, resource.id.toString),
-          toJsValueWrapper(Strings.resourceType, resource.resourceType.toString),
-          toJsValueWrapper(Strings.visibility, resource.visibility.toString),
-          toJsValueWrapper(Strings.localization, resource.localization),
-          toJsValueWrapper(Strings.observations, resource.observations),
-          toJsValueWrapper(Strings.summary, resource.summary),
-          toJsValueWrapper(Strings.created, resource.created),
-          toJsValueWrapper(Strings.updated, resource.updated)
-        ).flatten: _*
-      )
-
-      val specificData = buildSpecificData(sample, study)
-      val fieldName = resource.resourceType match {
-        case ResourceType.SAMPLE => Strings.sampleData
-        case ResourceType.STUDY  => Strings.studyData
-      }
-
-      specificData match {
-        case Some(data) => baseJson ++ Json.obj(fieldName -> data)
-        case None       => baseJson
-      }
+      val baseJson = buildBaseResourceJson(resource, includeObservations = false)
+      withSpecificData(baseJson, sample, study, fullAccess = false)
     }
   }
 
+  // OWNER: Datos completos + permisos de edición (propietario)
   override def asOwner(
       resource: Resource,
       sample: Option[Sample] = None,
       study: Option[Study] = None
   ): Future[JsValue] = {
-    for {
-      baseJson <- toJson(resource, sample, study)
-    } yield {
-      baseJson match {
-        case obj: JsObject =>
-          obj ++ Json.obj(
-            List(
-              toJsValueWrapper(Strings.deleted, resource.deleted)
-            ).flatten: _*
-          )
-        case other => other
-      }
+    Future.successful {
+      val baseJson = buildBaseResourceJson(resource, includeObservations = true)
+      withSpecificData(baseJson, sample, study, fullAccess = true)
     }
   }
 
+  // PRIVATE: Solo preview/teaser para recursos privados sin acceso
+  override def asPrivate(
+      resource: Resource,
+      sample: Option[Sample] = None,
+      study: Option[Study] = None
+  ): Future[JsValue] = {
+    Future.successful {
+      val baseJson = buildBaseResourceJson(resource, includeObservations = false)
+      withSpecificData(baseJson, sample, study, fullAccess = false)
+    }
+  }
+
+  // PUBLIC: Datos completos SIN permisos de edición (comprador o recurso público)
   override def asPublic(
       resource: Resource,
       sample: Option[Sample] = None,
       study: Option[Study] = None
   ): Future[JsValue] = {
-    toJson(resource, sample, study)
+    Future.successful {
+      val baseJson = buildBaseResourceJson(resource, includeObservations = true)
+      withSpecificData(baseJson, sample, study, fullAccess = true)
+    }
   }
 
-
-  private def buildSpecificData(
+  // Datos específicos en modo PREVIEW (solo lo básico)
+  private def buildSpecificDataPreview(
       sample: Option[Sample],
       study: Option[Study]
   ): Option[JsValue] = {
     (sample, study) match {
-      case (Some(s), None)  => Some(buildSampleJson(s))
-      case (None, Some(st)) => Some(buildStudyJson(st))
-      case _                => None
+      case (Some(s), None)  => Some(buildSampleJsonPreview(s))
+      case (None, Some(st)) => Some(buildStudyJsonPreview(st))
+      case (None, None)     => None
+      case _ =>
+        throw new IllegalArgumentException(
+          "Invalid resource: cannot have both sample and study data"
+        )
     }
   }
 
-  private def buildSampleJson(sample: Sample) = {
+  // Datos específicos COMPLETOS
+  private def buildSpecificDataFull(
+      sample: Option[Sample],
+      study: Option[Study]
+  ): Option[JsValue] = {
+    (sample, study) match {
+      case (Some(s), None)  => Some(buildSampleJsonFull(s))
+      case (None, Some(st)) => Some(buildStudyJsonFull(st))
+      case (None, None)     => None
+      case _ =>
+        throw new IllegalArgumentException(
+          "Invalid resource: cannot have both sample and study data"
+        )
+    }
+  }
+
+  // Sample: PREVIEW (lo básico para usuarios sin acceso)
+  private def buildSampleJsonPreview(sample: Sample): JsValue = {
+    Json.obj(
+      List(
+        toJsValueWrapper(Strings.id, sample.id.toString),
+        toJsValueWrapper(Strings.name, sample.name),
+        toJsValueWrapper(Strings.isFresh, sample.isFresh),
+        toJsValueWrapper(Strings.sampleType, sample.sampleType),
+        toJsValueWrapper(Strings.rockType, sample.rockType)
+      ).flatten: _*
+    )
+  }
+
+  // Sample: COMPLETO (para owner/comprador/público en caso de estarlo)
+  private def buildSampleJsonFull(sample: Sample): JsValue = {
     Json.obj(
       List(
         toJsValueWrapper(Strings.id, sample.id.toString),
@@ -109,7 +168,22 @@ class ResourceWriterImpl @Inject() ()(implicit val ec: ExecutionContext) extends
     )
   }
 
-  private def buildStudyJson(study: Study): JsObject = {
+  // Study: PREVIEW (lo básico para usuarios sin acceso)
+  private def buildStudyJsonPreview(study: Study): JsObject = {
+    Json.obj(
+      List(
+        toJsValueWrapper(Strings.id, study.id.toString),
+        toJsValueWrapper(Strings.name, study.name),
+        toJsValueWrapper(Strings.startDate, study.startDate),
+        toJsValueWrapper(Strings.endDate, study.endDate),
+        toJsValueWrapper(Strings.area, study.area.toString),
+        toJsValueWrapper(Strings.authors, study.authors)
+      ).flatten: _*
+    )
+  }
+
+  // Study: COMPLETO (para owner/comprador/público)
+  private def buildStudyJsonFull(study: Study): JsObject = {
     Json.obj(
       List(
         toJsValueWrapper(Strings.id, study.id.toString),

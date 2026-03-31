@@ -4,6 +4,7 @@ import dev.pompilius.resource.domain.{Resource, ResourceFilter, ResourceId, Reso
 import dev.pompilius.shared.domain.{Pagination, Visibility}
 import dev.pompilius.shared.infrastructure.ScalikeUtil
 import dev.pompilius.shared.infrastructure.contexts.DbExecutionContext
+import dev.pompilius.users.domain.UserId
 import org.apache.pekko.Done
 
 import javax.inject.{Inject, Singleton}
@@ -108,7 +109,7 @@ class ResourceMySqlRepository @Inject() (
     Future {
       DB.localTx { implicit session =>
         withSQL {
-          selectFrom(this as r)
+          selectFrom(this as r).where
             .append(
               filterToSqlSyntax(filter).map(sqls.where(_)).getOrElse(sqls.empty)
             )
@@ -126,5 +127,4 @@ class ResourceMySqlRepository @Inject() (
       // No hacemos nada aquí - el recurso no se elimina directamente
       Done
     }
-
 }
