@@ -6,24 +6,29 @@ import dev.pompilius.study.infrastructure.parsers.{CreateStudyRequestParser, Upd
 import dev.pompilius.resource.infrastructure.writers.ResourceWriter
 import dev.pompilius.users.domain.{Role, UserId}
 import dev.pompilius.shared.infrastructure.BaseController
-import dev.pompilius.study.domain.{Study, StudyId, StudyRepository}
-import dev.pompilius.shared.domain.Pagination
+import dev.pompilius.study.domain.{Area, Study, StudyFilter, StudyId, StudyRepository}
+import dev.pompilius.resource.ResourceAccessValidator
+import dev.pompilius.shared.domain.{Pagination, Visibility}
+import dev.pompilius.shared.infrastructure.writers.PaginatedWriter
 import play.api.mvc.{Action, AnyContent}
 import play.api.libs.json.Json
+import org.joda.time.DateTime
 
 import javax.inject._
 import scala.concurrent.{ExecutionContext, Future}
-
+import scala.util.Try
 
 @Singleton
 class StudyController @Inject() (
     studyRepository: StudyRepository,
     resourceRepository: ResourceRepository,
     resourceUserRepository: ResourceUserRepository,
-    resourceWriter: ResourceWriter
-)(implicit val ec: ExecutionContext)
-  extends BaseController {
+    resourceWriter: ResourceWriter,
+    resourceAccessValidator: ResourceAccessValidator,
+    paginatedWriter:PaginatedWriter
 
+)(implicit val ec: ExecutionContext)
+    extends BaseController {
 
   def create: Action[AnyContent] =
     Action.async { implicit request =>
@@ -34,9 +39,9 @@ class StudyController @Inject() (
           val resourceId = ResourceId.gen(configuration.nodeId)
           val studyId = StudyId.gen(configuration.nodeId)
 
-          // 1. Crear el Resource (datos comunes)
+          // Crear el Resource (datos comunes)
           val newResource = Resource(
-           id = resourceId,
+            id = resourceId,
             resourceType = ResourceType.STUDY,
             visibility = createStudyRequest.visibility,
             created = clock.now,
@@ -46,7 +51,7 @@ class StudyController @Inject() (
             summary = createStudyRequest.summary
           )
 
-          // 2. Crear el Study (datos específicos)
+          // Crear el Study (datos específicos)
           val newStudy = Study(
             id = studyId,
             resourceId = resourceId,
@@ -64,13 +69,12 @@ class StudyController @Inject() (
           )
 
           for {
-            // 1. Guardar Resource
+
             _ <- resourceRepository.save(newResource)
 
-            // 2. Guardar Study
             _ <- studyRepository.save(newStudy)
 
-            // 3. Vincular a usuario
+            // Vincular a usuario
             _ <- resourceUserRepository.save(
               ResourceUser(
                 resourceId = resourceId,
@@ -80,7 +84,6 @@ class StudyController @Inject() (
               )
             )
 
-            // 4. Retornar JSON
             json <- resourceWriter.asOwner(newResource, None, Some(newStudy))
           } yield {
             Ok(json)
@@ -95,25 +98,11 @@ class StudyController @Inject() (
           val updateStudyRequest = UpdateStudyRequestParser.parse(request)
 
           for {
-            // Obtener el Study
-            study <- studyRepository.findById(StudyId(studyId)).map(
-              _.getOrElse(throw new ResourceNotFoundException(s"Study with id $studyId not found"))
-            )
+            //método simplificado está más abajo para reutilizarlo en get y delete
+            (study, resource) <- getStudyWithResource(studyId)
 
-            // Obtener el Resource asociado
-            resource <- resourceRepository.findById(study.resourceId).map(
-              _.getOrElse(throw new ResourceNotFoundException(s"Resource not found for study $studyId"))
-            )
-
-            // Obtener ResourceUser y validar permisos
-            resourceUser <- resourceUserRepository.findByResourceAndUser(resource.id, user.id).map(
-              _.getOrElse(throw new Exception("You don't have permission to update this resource"))
-            )
-
-            _ <- Future.successful(
-              if (resourceUser.resourceUserType != ResourceUserType.OWNER)
-                throw new Exception("Only the resource owner can update this resource")
-            )
+            // Verificar que es propietario del resource y que no está borrado lógicamente
+            _ <- resourceAccessValidator.verifyOwnership(resource.id, user.id)
 
             updatedResource = resource.copy(
               visibility = updateStudyRequest.visibility.getOrElse(resource.visibility),
@@ -138,7 +127,6 @@ class StudyController @Inject() (
               nameSection = updateStudyRequest.nameSection.orElse(study.nameSection)
             )
 
-            // ...existing code...
             _ <- resourceRepository.save(updatedResource)
             _ <- studyRepository.save(updatedStudy)
 
@@ -155,20 +143,11 @@ class StudyController @Inject() (
       withAuthenticatedUser {
         case (_, user, _) =>
           for {
-            // Obtener el Study
-            study <- studyRepository.findById(StudyId(studyId)).map(
-              _.getOrElse(throw new ResourceNotFoundException(s"Study with id $studyId not found"))
-            )
-
-            // Obtener el Resource asociado
-            resource <- resourceRepository.findById(study.resourceId).map(
-              _.getOrElse(throw new ResourceNotFoundException(s"Resource not found for study $studyId"))
-            )
+            (study, resource) <- getStudyWithResource(studyId)
 
             // Validar acceso según visibilidad
-            _ <- validateAccess(resource, user.id)
+            _ <- resourceAccessValidator.validateAccess(resource, user.id)
 
-            // Retornar JSON del estudio completo
             json <- resourceWriter.asPublic(resource, None, Some(study))
           } yield {
             Ok(json)
@@ -181,57 +160,87 @@ class StudyController @Inject() (
       withAnyOfThisRoles(Seq(Role.STUDENT, Role.PROFESSIONAL)) {
         case (_, user, _, _) =>
           for {
-            // Obtener el Study
-            study <- studyRepository.findById(StudyId(studyId)).map(
-              _.getOrElse(throw new ResourceNotFoundException(s"Study with id $studyId not found"))
-            )
+            (_, resource) <- getStudyWithResource(studyId)
 
-            // Obtener el Resource asociado
-            resource <- resourceRepository.findById(study.resourceId).map(
-              _.getOrElse(throw new ResourceNotFoundException(s"Resource not found for study $studyId"))
-            )
-
-            // Obtener ResourceUser con todas sus validaciones
-            resourceUser <- resourceUserRepository.findByResourceAndUser(resource.id, user.id).map(
-              _.getOrElse(throw new Exception("You don't have permission to delete this resource"))
-            )
-
-            // Validar que sea propietario y no esté eliminado
-            _ <- Future.successful(
-              if (resourceUser.resourceUserType != ResourceUserType.OWNER)
-                throw new Exception("Only the resource owner can delete this resource")
-            )
-
-            _ <- Future.successful(
-              if (resourceUser.deleted)
-                throw new Exception("This resource has already been deleted")
-            )
+            // Verificar que es propietario
+            _ <- resourceAccessValidator.verifyOwnership(resource.id, user.id)
 
             // Marcar ResourceUser como eliminado (soft delete)
             _ <- resourceUserRepository.save(
-              resourceUser.copy(deleted = true)
+              ResourceUser(
+                resourceId = resource.id,
+                userId = user.id,
+                resourceUserType = ResourceUserType.OWNER,
+                created = clock.now,
+                deleted = true
+              )
             )
 
             // Retornar confirmación
           } yield {
-            Ok(Json.obj("message" -> "Study deleted successfully"))
+            Ok
           }
       }
     }
 
-  private def validateAccess(resource: Resource, userId: UserId): Future[Unit] = {
-    import dev.pompilius.shared.domain.Visibility
+  def getAll(
+      name: Option[String],
+      area: Option[String],
+      startDate: Option[DateTime],
+      endDate: Option[DateTime],
+      authors: Option[String],
+      search: Option[String],
+      userId: Option[String],
+      pag: Pagination
+  ): Action[AnyContent] =
+    Action.async { implicit request =>
+      withAuthenticatedUser {
+        case (_, currentUser, _) =>
 
-    resource.visibility match {
-      case Visibility.PUBLIC =>
-        Future.successful(())
+          for {
+            // 1. Buscar studies con todos los filtros
+            studies <- studyRepository.find(
+              StudyFilter(
+                name = name,
+                startDate = startDate,
+                endDate = endDate,
+                area = area.map(Area.withNameInsensitive),
+                authors = authors,
+                search = search,
+                userId = userId.map(UserId(_))  // ← Opcional: si es None, busca en todos
+              ),
+              pag=pag.oneMore
+            )
 
-      case Visibility.PRIVATE =>
-        // Privado: solo el propietario puede acceder
-        resourceUserRepository.findByResourceAndUser(resource.id, userId).map {
-          case Some(ru) if ru.resourceUserType == ResourceUserType.OWNER && !ru.deleted => ()
-          case _ => throw new Exception("You don't have permission to access this private resource")
-        }
+            // 2. Para cada study, obtener su resource asociado
+            studiesWithResources <- Future.sequence(studies.map { study =>
+              resourceRepository.findById(study.resourceId)
+              }
+            })
+
+           jsonList<-resourceWriter.asPublic(studiesWithResources)
+          } yield {
+            Ok(Json.toJson(jsonList))
+          }
+      }
     }
+
+  private def getStudyWithResource(studyId: String): Future[(Study, Resource)] = {
+    for {
+      study <-
+        studyRepository
+          .findById(StudyId(studyId))
+          .map(
+            _.getOrElse(throw new ResourceNotFoundException(s"Sample with id $studyId not found"))
+          )
+
+      resource <-
+        resourceRepository
+          .findById(study.resourceId)
+          .map(
+            _.getOrElse(throw new ResourceNotFoundException(s"Resource not found for sample $studyId"))
+          )
+    } yield (study, resource)
   }
+
 }

@@ -2,20 +2,23 @@ package dev.pompilius.study.infrastructure.repositories
 
 import dev.pompilius.Strings
 import dev.pompilius.resource.domain.ResourceId
+import dev.pompilius.resource.infrastructure.repositories.ResourceUserMySqlRepository
 import dev.pompilius.shared.domain.Pagination
 import dev.pompilius.shared.infrastructure.ScalikeUtil
 import dev.pompilius.shared.infrastructure.contexts.DbExecutionContext
 import dev.pompilius.study.domain.{Area, Study, StudyFilter, StudyId, StudyRepository}
+import dev.pompilius.users.domain.UserId
 import org.apache.pekko.Done
 import scalikejdbc._
 import scalikejdbc.jodatime.JodaParameterBinderFactory._
 import scalikejdbc.jodatime.JodaTypeBinder._
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class StudyMySqlRepository @Inject() (
+    resourceUserMySqlRepository: ResourceUserMySqlRepository
 )(implicit dbExecutionContext: DbExecutionContext)
     extends StudyRepository
     with SQLSyntaxSupport[Study] {
@@ -71,7 +74,6 @@ class StudyMySqlRepository @Inject() (
       }
     }
 
-
   private def buildOrderBy(pag: Pagination): Seq[SQLSyntax] = {
     val defaultOrderBy = Seq(st.name, st.id.desc)
 
@@ -124,12 +126,38 @@ class StudyMySqlRepository @Inject() (
       sqls.eq(sqls.lower(st.area), area.entryName.toLowerCase)
     }
 
+    val userFilter = filter.userId.map { userId =>
+      val ru = resourceUserMySqlRepository.syntax("ru")
+      sqls.exists(
+        select(sqls"1")
+          .from(resourceUserMySqlRepository as ru)
+          .where
+          .eq(ru.resourceId, st.resourceId)
+          .and
+          .eq(ru.userId, userId.id)
+          .and
+          .eq(ru.deleted, false)
+          .toSQLSyntax
+      )
+//      sqls.in(
+//        st.resourceId,
+//        select(ru.resourceId)
+//          .from(resourceUserMySqlRepository as ru)
+//          .where
+//          .eq(ru.userId, userId.id)
+//          .and
+//          .eq(ru.deleted, false)
+//          .toSQLSyntax
+//      )
+    }
+
     val filters = List(
       nameFilter,
       startToFilter,
       endToFilter,
       areaFilter,
-      searchFilter
+      searchFilter,
+      userFilter
     ).flatten
 
     if (filters.nonEmpty) Some(sqls.joinWithAnd(filters: _*)) else None
@@ -182,4 +210,23 @@ class StudyMySqlRepository @Inject() (
       Done
     }
 
+  //Funciona pero trabajaremos con el de arriba
+//  override def findAllByUser(userId: UserId): Future[List[Study]] =
+//    Future {
+//      DB.localTx { implicit session =>
+//        val ru = resourceUserMySqlRepository.syntax("ru")
+//
+//        withSQL {
+//          select(st.result.*)
+//            .from(this as st)
+//            .innerJoin(resourceUserMySqlRepository as ru)
+//            .on(st.resourceId, ru.resourceId)
+//            .where
+//            .eq(ru.userId, userId.id)
+//            .and
+//            .eq(ru.deleted, false)
+//            .orderBy(st.name.desc)
+//        }.map(apply(st.resultName)(_)).list()
+//      }
+//    }
 }
