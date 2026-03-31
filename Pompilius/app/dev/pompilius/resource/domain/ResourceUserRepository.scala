@@ -15,7 +15,9 @@ trait ResourceUserRepository {
 
   def findByUserAndType(userId: UserId, resourceUserType: ResourceUserType, pag: Pagination): Future[List[ResourceId]]
 
-  def findByResourcedAndUser(resourceId: ResourceId, userId: UserId): Future[Option[ResourceUser]]
+  def findByResourceAndUser(resourceId: ResourceId, userId: UserId): Future[Option[ResourceUser]]
+
+  def findByUserId(userId: UserId): Future[List[ResourceUser]]
 
   def save(resourceUser: ResourceUser): Future[Done]
 

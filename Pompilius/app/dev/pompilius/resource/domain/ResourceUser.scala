@@ -9,4 +9,4 @@ case class ResourceUser(
     resourceUserType: ResourceUserType,
     created: DateTime,
     deleted: Boolean = false
-  )
+)
