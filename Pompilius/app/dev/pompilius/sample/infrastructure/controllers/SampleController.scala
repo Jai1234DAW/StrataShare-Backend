@@ -1,6 +1,5 @@
 package dev.pompilius.sample.infrastructure.controllers
 
-import dev.pompilius.resource.ResourceAccessValidator
 import dev.pompilius.resource.domain.exceptions.ResourceNotFoundException
 import dev.pompilius.resource.domain.{
   Resource,
@@ -11,12 +10,15 @@ import dev.pompilius.resource.domain.{
   ResourceUserRepository,
   ResourceUserType
 }
+import dev.pompilius.resource.infrastructure.ResourceAccessValidator
 import dev.pompilius.sample.domain.{Sample, SampleFilter, SampleId, SampleRepository}
 import dev.pompilius.sample.infrastructure.parsers.{CreateSampleRequestParser, UpdateSampleRequestParser}
 import dev.pompilius.resource.infrastructure.writers.ResourceWriter
-import dev.pompilius.shared.domain.Pagination
+import dev.pompilius.shared.domain.{Paginated, Pagination, Visibility}
 import dev.pompilius.users.domain.{Role, UserId}
 import dev.pompilius.shared.infrastructure.BaseController
+import dev.pompilius.shared.infrastructure.writers.PaginatedWriter
+import org.joda.time.DateTime
 import play.api.mvc.{Action, AnyContent}
 import play.api.libs.json.Json
 
@@ -28,9 +30,10 @@ import scala.util.control.NonFatal
 class SampleController @Inject() (
     sampleRepository: SampleRepository,
     resourceRepository: ResourceRepository,
-    userResourceRepository: ResourceUserRepository,
+    resourceUserRepository: ResourceUserRepository,
     resourceAccessValidator: ResourceAccessValidator,
-    resourceWriter: ResourceWriter
+    resourceWriter: ResourceWriter,
+    paginatedWriter: PaginatedWriter
 )(implicit val ec: ExecutionContext)
     extends BaseController {
 
@@ -85,7 +88,7 @@ class SampleController @Inject() (
                 }
 
             // Vincular a usuario
-            _ <- userResourceRepository.save(
+            _ <- resourceUserRepository.save(
               ResourceUser(
                 resourceId = resourceId,
                 userId = user.id,
@@ -108,7 +111,6 @@ class SampleController @Inject() (
           val updateSampleRequest = UpdateSampleRequestParser.parse(request)
 
           for {
-            //método simplificado está más abajo para reutilizarlo en get y delete
             (sample, resource) <- getSampleWithResource(sampleId)
 
             // Verificar que es propietario del resource y que no está borrado lógicamente
@@ -154,11 +156,31 @@ class SampleController @Inject() (
           for {
             (sample, resource) <- getSampleWithResource(sampleId)
 
-            // Validar acceso según visibilidad
-            _ <- resourceAccessValidator.validateAccess(resource, user.id)
+            json <- resource.visibility match {
+              // Si es PÚBLICO → Todos ven datos completos
+              case Visibility.PUBLIC =>
+                resourceWriter.asPublic(resource, Some(sample), None)
 
-            // Retornar JSON del sample completo
-            json <- resourceWriter.asPublic(resource, Some(sample), None)
+              // Si es PRIVADO → Verificar tipo de acceso del usuario
+              case Visibility.PRIVATE =>
+                resourceUserRepository.findByResourceAndUser(resource.id, user.id).flatMap {
+                  case Some(ru) if !ru.deleted && ru.resourceUserType == ResourceUserType.OWNER =>
+                    // Es el propietario → Vista completa con permisos
+                    resourceWriter.asOwner(resource, Some(sample), None)
+
+                  case Some(ru)
+                      if !ru.deleted &&
+                        (ru.resourceUserType == ResourceUserType.PURCHASED ||
+                          ru.resourceUserType == ResourceUserType.ACCEPTED_AS_PAYMENT) =>
+                    // Lo compró o recibió como pago → Vista completa sin permisos
+                    resourceWriter.asPublic(resource, Some(sample), None)
+
+                  case _ =>
+                    // NO tiene acceso → Solo preview/teaser
+                    resourceWriter.asPrivate(resource, Some(sample), None)
+                }
+            }
+
           } yield {
             Ok(json)
           }
@@ -176,7 +198,7 @@ class SampleController @Inject() (
             _ <- resourceAccessValidator.verifyOwnership(resource.id, user.id)
 
             // Marcar ResourceUser como eliminado (soft delete)
-            _ <- userResourceRepository.save(
+            _ <- resourceUserRepository.save(
               ResourceUser(
                 resourceId = resource.id,
                 userId = user.id,
@@ -192,42 +214,52 @@ class SampleController @Inject() (
       }
     }
 
-  def getAll(userId: String): Action[AnyContent] =
+  def getAll(
+      name: Option[String],
+      sampleType: Option[String],
+      rockType: Option[String],
+      isFresh: Option[Boolean],
+      visibility: Option[String],
+      localization: Option[String],
+      userId: Option[String],
+      pag: Pagination
+  ): Action[AnyContent] =
     Action.async { implicit request =>
-      withAnyOfThisRoles(Seq(Role.STUDENT, Role.PROFESSIONAL)) {
-        case (_, user, _, _) =>
+      withAuthenticatedUser {
+        case (_, user, _) =>
           for {
             samples <- sampleRepository.find(
               SampleFilter(
-                name = None,
-                sampleType = None,
-                rockType = None,
-                isFresh = None,
-                userId = Some(UserId(userId))
+                name = name,
+                sampleType = sampleType,
+                rockType = rockType,
+                isFresh = isFresh,
+                visibility = visibility.map(Visibility.withNameInsensitive),
+                localization = localization,
+                userId = userId.map(UserId(_))
               ),
-              Pagination.all
+              pag.oneMore
             )
+            // 2. Para cada study, obtener resource y generar preview JSON usando paginatedWriter
+            json <- paginatedWriter.toJson(Paginated(samples, pag)) { sample =>
+              for {
+                resource <-
+                  resourceRepository
+                    .findById(sample.resourceId)
+                    .map(
+                      _.getOrElse(throw new ResourceNotFoundException(s"Resource not found for study ${sample.id}"))
+                    )
+                // Siempre devolver preview (datos básicos para el listado)
+                //Luego se pordrá acceder con más datos a cada uno de ellos.
+                json <- resourceWriter.asPrivate(resource, Some(sample), None)
+              } yield json
+            }
 
-            // Para cada study, obtener su resource asociado y convertir a JSON
-            samplesWithResources <- Future.sequence(samples.map { sample =>
-              resourceRepository.findById(sample.resourceId).map { resourceOpt =>
-                resourceOpt.map(resource => (sample, resource))
-              }
-            })
-
-            // Parsear cada uno con resourceWriter.asPublic()
-            jsonList <- Future.sequence(
-              samplesWithResources.flatten.map {
-                case (sample, resource) =>
-                  resourceWriter.asPublic(resource, Some(sample), None)
-              }
-            )
           } yield {
-            Ok(Json.toJson(jsonList))
+            Ok(json)
           }
       }
     }
-
   private def getSampleWithResource(sampleId: String): Future[(Sample, Resource)] = {
     for {
       sample <-

@@ -14,6 +14,7 @@ import scala.concurrent.{ExecutionContext, Future}
 trait AttachmentWriter {
   def asCurrentUser(attachment: Attachment): Future[JsValue]
   def asAdmin(attachment: Attachment): Future[JsValue]
+  def asList(attachments: List[Attachment]): Future[JsValue]
 }
 
 //Aqui puedo tener más cosas, por ejemplo el de admin puede tener la fingerprint y todo eso
@@ -39,7 +40,12 @@ class AttachmentWriterImpl @Inject() (implicit ex: ExecutionContext) extends Att
     for {
       baseJson <- base(attachment)
     } yield {
-      baseJson
+      attachment.resourceId match {
+        case Some(id) =>
+          baseJson ++ Json.obj(Strings.resourceId -> id.toString)
+        case None =>
+          baseJson
+      }
     }
   }
 
@@ -54,6 +60,23 @@ class AttachmentWriterImpl @Inject() (implicit ex: ExecutionContext) extends Att
           toJsValueWrapper(Strings.deleted, attachment.deleted),
           toJsValueWrapper(Strings.metadata, attachment.metadata)
         ).flatten: _*
+      )
+    }
+  }
+
+  override def asList(attachments: List[Attachment]): Future[JsValue] = {
+    // Extrae el resourceId del primer attachment (todos deberían tener el mismo)
+    val resourceIdStr = attachments.headOption
+      .flatMap(_.resourceId)
+      .map(_.toString)
+
+    for {
+      attachmentsJson <- Future.sequence(attachments.map(asCurrentUser))
+    } yield {
+      Json.obj(
+        "resourceId" -> resourceIdStr,
+        "uploadedFiles" -> attachmentsJson.length,
+        "files" -> attachmentsJson
       )
     }
   }

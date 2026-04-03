@@ -39,7 +39,7 @@ object PaginationBinder {
           case _ =>
             Seq.empty[String]
         }
-        Some(Right(Pagination(offset, limit)))
+        Some(Right(Pagination(offset, limit, orderBy)))
 
       }
 

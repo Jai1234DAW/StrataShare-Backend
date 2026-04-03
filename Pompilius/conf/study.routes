@@ -1,5 +1,5 @@
 ###
-#  summary: Upload a new study
+#  summary: Create a new study
 #  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL"]}
 #  requestBody:
 #      required: true
@@ -37,12 +37,12 @@ POST         /create                                        dev.pompilius.study.
 PUT          /:studyId                                      dev.pompilius.study.infrastructure.controllers.StudyController.update(studyId: String)
 
 ###
-#  summary: Get all studies by user ID
+#  summary: Get all studies by filters
 #  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL","AMATEUR"]}
 #  parameters:
 #    - name: userId
 #      in: query
-#      required: true
+#      required: false
 #      schema:
 #        type: string
 #  responses:
@@ -53,7 +53,7 @@ PUT          /:studyId                                      dev.pompilius.study.
 #         $ref: '#/components/schemas/StudyList'
 #      description: List of studies for the user
 ###
-GET          /                                               dev.pompilius.study.infrastructure.controllers.StudyController.getAll(userId: String)
+GET          /                                               dev.pompilius.study.infrastructure.controllers.StudyController.getAll(name:Option[String], year: Option[Int], area: Option[String], authors: Option[String], search: Option[String], visibility: Option[String], localization: Option[String], userId: Option[String], pag:Pagination)
 
 ###
 #  summary: Get a study by ID

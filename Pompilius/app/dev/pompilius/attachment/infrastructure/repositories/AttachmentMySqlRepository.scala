@@ -1,6 +1,7 @@
 package dev.pompilius.attachment.infrastructure.repositories
 
 import dev.pompilius.attachment.domain.{Attachment, AttachmentId, AttachmentRepository}
+import dev.pompilius.resource.domain.ResourceId
 import dev.pompilius.shared.infrastructure.contexts.DbExecutionContext
 import org.apache.pekko.Done
 import scalikejdbc._
@@ -35,7 +36,8 @@ class AttachmentMySqlRepository @Inject() (implicit ec: DbExecutionContext)
       createdAt = rs.get(att.createdAt),
       isPublic = rs.get(att.isPublic),
       deleted = rs.get(att.deleted),
-      metadata = rs.get(att.metadata)
+      metadata = rs.get(att.metadata),
+      resourceId = rs.getOpt[Long](att.resourceId).map(ResourceId(_))
     )
 
   private val att = this.syntax("att")
@@ -63,7 +65,8 @@ class AttachmentMySqlRepository @Inject() (implicit ec: DbExecutionContext)
           column.createdAt -> attachment.createdAt,
           column.isPublic -> attachment.isPublic,
           column.deleted -> attachment.deleted,
-          column.metadata -> attachment.metadata
+          column.metadata -> attachment.metadata,
+          column.resourceId -> attachment.resourceId.map(_.id)
         )
 
         withSQL {
@@ -84,6 +87,15 @@ class AttachmentMySqlRepository @Inject() (implicit ec: DbExecutionContext)
         }.update()
       }
       Done
+    }
+
+  override def findByResourceId(resourceId: ResourceId): Future[List[Attachment]] =
+    Future {
+      DB.localTx { implicit session =>
+        withSQL {
+          selectFrom(this as att).where.eq(att.resourceId, resourceId.id).and.eq(att.deleted, false)
+        }.map(apply(att.resultName)(_)).list()
+      }
     }
 
 }

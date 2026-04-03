@@ -23,7 +23,7 @@ object RegisterUserRequestParser {
       (__ \ Strings.lastName).readNullable[String](ReadsUtil.lastName) and
       (__ \ Strings.country).read[String](ReadsUtil.countryCode).map(Country.withNameInsensitive) and
       (__ \ Strings.language).readNullable[String](ReadsUtil.language).map(_.map(lang => Lang(lang))) and
-      (__ \ Strings.notes).readNullable[String] and
+      (__ \ Strings.notes).readNullable[String].map(_.map(StringUtil.stripTags)) and
       (__ \ Strings.bio).readNullable[String].map(_.map(StringUtil.stripTags)) and
       (__ \ Strings.role).read[String].map(Role.withNameInsensitive)
   )(RegisterUserRequest.apply _)

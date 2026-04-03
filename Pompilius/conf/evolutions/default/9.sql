@@ -16,6 +16,6 @@ CREATE TABLE `mail_sent` (
      INDEX `MAIL_TYPE_IDX` (`mail_type` ASC),
      INDEX `PERSON_IDX` (`user_id` ASC),
      INDEX `ADDRESS_IDX` (`address` ASC),
-    CONSTRAINT `fk_mail_sent_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+    CONSTRAINT `fk_mail_sent_users` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
       ON DELETE RESTRICT
 )CHARSET=utf8mb4;

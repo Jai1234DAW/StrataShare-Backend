@@ -7,7 +7,7 @@ CREATE TABLE `users_attachment` (
 
    PRIMARY KEY (`user_id`, `attachment_id`),
 
-   INDEX `user_attachment_idx` (`attachment_id`),
+   INDEX `USER_ATTACHMENT_IDX` (`attachment_id`),
 
    CONSTRAINT `fk_users_attachment_attachment`
        FOREIGN KEY (`attachment_id`)

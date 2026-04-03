@@ -1,5 +1,5 @@
 ###
-#  summary: Upload a new sample
+#  summary: Create a new sample
 #  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL"]}
 #  requestBody:
 #      required: true
@@ -37,15 +37,39 @@ POST         /create                                        dev.pompilius.sample
 PUT          /:sampleId                                     dev.pompilius.sample.infrastructure.controllers.SampleController.update(sampleId: String)
 
 ###
-#  summary: Get all studies by user ID
+#  summary: Get all sample by search criteria (name, type, rock type, freshness) and/or user ID
 #  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL","AMATEUR"]}
 #  parameters:
+#    - name: name
+#      in: query
+#      description: Name of the sample to search for (partial match)
+#      required: false
+#      schema:
+#        type: string
 #    - name: userId
 #      in: query
 #      description: ID of the user to retrieve studies for
-#      required: true
+#      required: false
 #      schema:
 #        type: string
+#    - name: sampleType
+#      in: query
+#      description: Type of the sample (e.g., "sedimentary", "igneous", "metamorphic")
+#      required: false
+#      schema:
+#        type: string
+#    - name: rockType
+#      in: query
+#      description: Rock type of the sample (e.g., "granite", "limestone", "shale")
+#      required: false
+#      schema:
+#        type: string
+#    - name: isFresh
+#      in: query
+#      description: Whether the sample is fresh (true) or not (false)
+#      required: false
+#      schema:
+#        type: boolean
 #  responses:
 #    200:
 #      content:
@@ -54,7 +78,7 @@ PUT          /:sampleId                                     dev.pompilius.sample
 #         $ref: '#/components/schemas/SampleList'
 #      description: List of studies for the user
 ###
-GET        /                                              dev.pompilius.sample.infrastructure.controllers.SampleController.getAll(userId: String)
+GET        /                                              dev.pompilius.sample.infrastructure.controllers.SampleController.getAll(name: Option[String], sampleType:Option[String], rockType: Option[String], isFresh:Option[Boolean], visibility: Option[String], localization: Option[String], userId: Option[String], pag: Pagination)
 
 ###
 #  summary: Get a sample by ID

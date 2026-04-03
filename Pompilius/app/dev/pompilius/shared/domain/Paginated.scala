@@ -1,7 +1,7 @@
 package dev.pompilius.shared.domain
 
 
-case class Paginated[T](items: List[T], moreItems: Boolean)
+case class Paginated[T](items: List[T], moreItems: Boolean, count: Option[Int]=None)
 
 object Paginated {
 

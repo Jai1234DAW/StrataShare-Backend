@@ -14,9 +14,9 @@ CREATE TABLE `resource` (
     `summary` TEXT NULL,
 
     PRIMARY KEY (`id`),
-    KEY `IDX_RESOURCE_TYPE` (`resource_type`),
-    KEY `IDX_RESOURCE_VISIBILITY` (`visibility`),
-    KEY `IDX_RESOURCE_CREATED` (`created`)
+    KEY `RESOURCE_TYPE_IDX` (`resource_type`),
+    KEY `RESOURCE_VISIBILITY_IDX` (`visibility`),
+    KEY `RESOURCE_CREATED_IDX` (`created`)
 ) CHARSET=utf8mb4;
 
 # Tabla de muestras (sample)
@@ -35,10 +35,10 @@ CREATE TABLE `sample` (
 
     PRIMARY KEY (`id`),
     UNIQUE KEY `unique_resource_id` (`resource_id`),
-    KEY `IDX_SAMPLE_NAME` (`name`),
-    KEY `IDX_SAMPLE_TYPE` (`sample_type`),
-    KEY `IDX_ROCK_TYPE` (`rock_type`),
-    KEY `IDX_IS_FRESH` (`is_fresh`),
+    KEY `SAMPLE_NAME_IDX` (`name`),
+    KEY `SAMPLE_TYPE_IDX` (`sample_type`),
+    KEY `ROCK_TYPE_IDX` (`rock_type`),
+    KEY `IS_FRESH_IDX` (`is_fresh`),
     CONSTRAINT `fk_sample_resource`
         FOREIGN KEY (`resource_id`) REFERENCES `resource`(`id`)
         ON DELETE RESTRICT
@@ -63,8 +63,8 @@ CREATE TABLE `study` (
 
     PRIMARY KEY (`id`),
     UNIQUE KEY `unique_resource_id` (`resource_id`),
-    KEY `IDX_STUDY_NAME` (`name`),
-    KEY `IDX_STUDY_START_DATE` (`start_date`),
+    KEY `STUDY_NAME_IDX` (`name`),
+    KEY `STUDY_START_DATE_IDX` (`start_date`),
     CONSTRAINT `fk_study_resource`
         FOREIGN KEY (`resource_id`) REFERENCES `resource`(`id`)
         ON DELETE RESTRICT
@@ -76,7 +76,7 @@ CREATE TABLE `resource_attachment` (
     `attachment_id` BIGINT NOT NULL,
 
     PRIMARY KEY (`resource_id`, `attachment_id`),
-    KEY `IDX_ATTACHMENT` (`attachment_id`),
+    KEY `ATTACHMENT_IDX` (`attachment_id`),
     CONSTRAINT `fk_resource_attachment_resource`
         FOREIGN KEY (`resource_id`) REFERENCES `resource`(`id`)
         ON DELETE RESTRICT,
@@ -84,9 +84,3 @@ CREATE TABLE `resource_attachment` (
         FOREIGN KEY (`attachment_id`) REFERENCES `attachment`(`id`)
         ON DELETE RESTRICT
 ) CHARSET=utf8mb4;
-
-# --- !Downs
-DROP TABLE IF EXISTS `resource_attachment`;
-DROP TABLE IF EXISTS `study`;
-DROP TABLE IF EXISTS `sample`;
-DROP TABLE IF EXISTS `resource`;
