@@ -14,6 +14,3 @@ CREATE TABLE `study_sample` (
         FOREIGN KEY (`sample_id`) REFERENCES `sample`(`id`)
             ON DELETE RESTRICT
 ) CHARSET=utf8mb4;
-
-# --- !Downs
-DROP TABLE IF EXISTS `study_sample`;

@@ -1,14 +1,22 @@
 package dev.pompilius.study.infrastructure.controllers
 
 import dev.pompilius.resource.domain.exceptions.ResourceNotFoundException
-import dev.pompilius.resource.domain.{Resource, ResourceId, ResourceRepository, ResourceType, ResourceUser, ResourceUserRepository, ResourceUserType}
+import dev.pompilius.resource.domain.{
+  Resource,
+  ResourceId,
+  ResourceRepository,
+  ResourceType,
+  ResourceUser,
+  ResourceUserRepository,
+  ResourceUserType
+}
+import dev.pompilius.resource.infrastructure.ResourceAccessValidator
 import dev.pompilius.study.infrastructure.parsers.{CreateStudyRequestParser, UpdateStudyRequestParser}
 import dev.pompilius.resource.infrastructure.writers.ResourceWriter
 import dev.pompilius.users.domain.{Role, UserId}
 import dev.pompilius.shared.infrastructure.BaseController
 import dev.pompilius.study.domain.{Area, Study, StudyFilter, StudyId, StudyRepository}
-import dev.pompilius.resource.ResourceAccessValidator
-import dev.pompilius.shared.domain.{Pagination, Visibility}
+import dev.pompilius.shared.domain.{Paginated, Pagination, Visibility}
 import dev.pompilius.shared.infrastructure.writers.PaginatedWriter
 import play.api.mvc.{Action, AnyContent}
 import play.api.libs.json.Json
@@ -17,6 +25,7 @@ import org.joda.time.DateTime
 import javax.inject._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
+import scala.util.control.NonFatal
 
 @Singleton
 class StudyController @Inject() (
@@ -25,8 +34,7 @@ class StudyController @Inject() (
     resourceUserRepository: ResourceUserRepository,
     resourceWriter: ResourceWriter,
     resourceAccessValidator: ResourceAccessValidator,
-    paginatedWriter:PaginatedWriter
-
+    paginatedWriter: PaginatedWriter
 )(implicit val ec: ExecutionContext)
     extends BaseController {
 
@@ -72,7 +80,11 @@ class StudyController @Inject() (
 
             _ <- resourceRepository.save(newResource)
 
-            _ <- studyRepository.save(newStudy)
+            _ <- studyRepository.save(newStudy).recoverWith {
+              case NonFatal(e) =>
+                // Si falla guardar el Study, eliminar el Resource para no dejar datos huérfanos
+                resourceRepository.delete(resourceId).map(_ => throw e)
+            }
 
             // Vincular a usuario
             _ <- resourceUserRepository.save(
@@ -145,10 +157,31 @@ class StudyController @Inject() (
           for {
             (study, resource) <- getStudyWithResource(studyId)
 
-            // Validar acceso según visibilidad
-            _ <- resourceAccessValidator.validateAccess(resource, user.id)
+            json <- resource.visibility match {
+              // Si es PÚBLICO → Todos ven datos completos
+              case Visibility.PUBLIC =>
+                resourceWriter.asPublic(resource, None, Some(study))
 
-            json <- resourceWriter.asPublic(resource, None, Some(study))
+              // Si es PRIVADO → Verificar tipo de acceso del usuario
+              case Visibility.PRIVATE =>
+                resourceUserRepository.findByResourceAndUser(resource.id, user.id).flatMap {
+                  case Some(ru) if !ru.deleted && ru.resourceUserType == ResourceUserType.OWNER =>
+                    // Es el propietario → Vista completa con permisos
+                    resourceWriter.asOwner(resource, None, Some(study))
+
+                  case Some(ru)
+                      if !ru.deleted &&
+                        (ru.resourceUserType == ResourceUserType.PURCHASED ||
+                          ru.resourceUserType == ResourceUserType.ACCEPTED_AS_PAYMENT) =>
+                    // Lo compró o recibió como pago → Vista completa sin permisos
+                    resourceWriter.asPublic(resource, None, Some(study))
+
+                  case _ =>
+                    // NO tiene acceso → Solo preview/teaser
+                    resourceWriter.asPrivate(resource, None, Some(study))
+                }
+            }
+
           } yield {
             Ok(json)
           }
@@ -176,7 +209,6 @@ class StudyController @Inject() (
               )
             )
 
-            // Retornar confirmación
           } yield {
             Ok
           }
@@ -185,42 +217,50 @@ class StudyController @Inject() (
 
   def getAll(
       name: Option[String],
+      year: Option[Int],
       area: Option[String],
-      startDate: Option[DateTime],
-      endDate: Option[DateTime],
       authors: Option[String],
       search: Option[String],
       userId: Option[String],
+      visibility: Option[String],
+      localization: Option[String],
       pag: Pagination
   ): Action[AnyContent] =
     Action.async { implicit request =>
       withAuthenticatedUser {
         case (_, currentUser, _) =>
-
           for {
             // 1. Buscar studies con todos los filtros
             studies <- studyRepository.find(
               StudyFilter(
                 name = name,
-                startDate = startDate,
-                endDate = endDate,
+                year = year,
                 area = area.map(Area.withNameInsensitive),
                 authors = authors,
                 search = search,
-                userId = userId.map(UserId(_))  // ← Opcional: si es None, busca en todos
+                visibility= visibility.map(Visibility.withNameInsensitive),
+                localization = localization,
+                userId = userId.map(UserId(_)) // ← Opcional: si es None, busca en todos
               ),
-              pag=pag.oneMore
+              pag.oneMore
             )
+            // 2. Para cada study, obtener resource y generar preview JSON usando paginatedWriter
+            json <- paginatedWriter.toJson(Paginated(studies, pag)) { study =>
+              for {
+                resource <-
+                  resourceRepository
+                    .findById(study.resourceId)
+                    .map(
+                      _.getOrElse(throw new ResourceNotFoundException(s"Resource not found for study ${study.id}"))
+                    )
+                // Siempre devolver preview (datos básicos para el listado)
+                //Luego se pordrá acceder con más datos a cada uno de ellos.
+                json <- resourceWriter.asPrivate(resource, None, Some(study))
+              } yield json
+            }
 
-            // 2. Para cada study, obtener su resource asociado
-            studiesWithResources <- Future.sequence(studies.map { study =>
-              resourceRepository.findById(study.resourceId)
-              }
-            })
-
-           jsonList<-resourceWriter.asPublic(studiesWithResources)
           } yield {
-            Ok(Json.toJson(jsonList))
+            Ok(json)
           }
       }
     }

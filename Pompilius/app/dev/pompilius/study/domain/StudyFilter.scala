@@ -1,15 +1,15 @@
 package dev.pompilius.study.domain
 
 import dev.pompilius.users.domain.UserId
-import org.joda.time.DateTime
+import dev.pompilius.shared.domain.Visibility
 
 case class StudyFilter(
     name: Option[String] = None,
-    startDate: Option[DateTime] = None,
-    endDate: Option[DateTime] = None,
+    year: Option[Int] = None,
     area: Option[Area] = None,
     authors: Option[String] = None,
     search: Option[String] = None,
+    visibility: Option[Visibility] = None,
+    localization: Option[String] = None,
     userId: Option[UserId] = None
 )
-

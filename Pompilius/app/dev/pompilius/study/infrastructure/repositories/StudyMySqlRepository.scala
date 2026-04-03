@@ -2,23 +2,25 @@ package dev.pompilius.study.infrastructure.repositories
 
 import dev.pompilius.Strings
 import dev.pompilius.resource.domain.ResourceId
-import dev.pompilius.resource.infrastructure.repositories.ResourceUserMySqlRepository
+import dev.pompilius.resource.infrastructure.repositories.{ResourceMySqlRepository, ResourceUserMySqlRepository}
 import dev.pompilius.shared.domain.Pagination
 import dev.pompilius.shared.infrastructure.ScalikeUtil
 import dev.pompilius.shared.infrastructure.contexts.DbExecutionContext
 import dev.pompilius.study.domain.{Area, Study, StudyFilter, StudyId, StudyRepository}
 import dev.pompilius.users.domain.UserId
 import org.apache.pekko.Done
+import org.joda.time.DateTime
 import scalikejdbc._
 import scalikejdbc.jodatime.JodaParameterBinderFactory._
 import scalikejdbc.jodatime.JodaTypeBinder._
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 @Singleton
 class StudyMySqlRepository @Inject() (
-    resourceUserMySqlRepository: ResourceUserMySqlRepository
+    resourceUserMySqlRepository: ResourceUserMySqlRepository,
+    resourceMySqlRepository: ResourceMySqlRepository
 )(implicit dbExecutionContext: DbExecutionContext)
     extends StudyRepository
     with SQLSyntaxSupport[Study] {
@@ -114,12 +116,17 @@ class StudyMySqlRepository @Inject() (
       sqls.like(sqls.lower(st.name), s"%${name.toLowerCase}%")
     }
 
-    val startToFilter = filter.startDate.map { sd =>
-      sqls.ge(st.startDate, sd)
-    }
+    val yearFilter = filter.year.map { year =>
+      val startOfYear = new DateTime(year, 1, 1, 0, 0)
+      val endOfYear = startOfYear.plusYears(1).minusMillis(1)
 
-    val endToFilter = filter.endDate.map { ed =>
-      sqls.le(st.endDate, ed)
+      // Filtra proyectos que comiencen o terminen en ese año
+      sqls.roundBracket(
+        sqls
+          .between(st.startDate, startOfYear, endOfYear)
+          .or
+          .between(st.endDate, startOfYear, endOfYear)
+      )
     }
 
     val areaFilter = filter.area.map { area =>
@@ -139,6 +146,34 @@ class StudyMySqlRepository @Inject() (
           .eq(ru.deleted, false)
           .toSQLSyntax
       )
+    }
+
+    val visibilityFilter = filter.visibility.map { visibility =>
+      val r = resourceMySqlRepository.syntax("r")
+      sqls.exists(
+        select(sqls"1")
+          .from(resourceMySqlRepository as r)
+          .where
+          .eq(r.id, st.resourceId)
+          .and
+          .eq(r.visibility, visibility.entryName)
+          .toSQLSyntax
+      )
+    }
+
+    val localizationFilter = filter.localization.map { localization =>
+      val r = resourceMySqlRepository.syntax("r")
+      sqls.exists(
+        select(sqls"1")
+          .from(resourceMySqlRepository as r)
+          .where
+          .eq(r.id, st.resourceId)
+          .and
+          .eq(sqls.lower(r.localization), localization.toLowerCase)
+          .toSQLSyntax
+      )
+    }
+
 //      sqls.in(
 //        st.resourceId,
 //        select(ru.resourceId)
@@ -149,15 +184,15 @@ class StudyMySqlRepository @Inject() (
 //          .eq(ru.deleted, false)
 //          .toSQLSyntax
 //      )
-    }
 
     val filters = List(
       nameFilter,
-      startToFilter,
-      endToFilter,
+      yearFilter,
       areaFilter,
       searchFilter,
-      userFilter
+      userFilter,
+      visibilityFilter,
+      localizationFilter
     ).flatten
 
     if (filters.nonEmpty) Some(sqls.joinWithAnd(filters: _*)) else None

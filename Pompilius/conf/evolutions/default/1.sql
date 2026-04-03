@@ -20,7 +20,7 @@ CREATE TABLE `users` (
 
      PRIMARY KEY (`id`),
      UNIQUE KEY `USERS_USERNAME_IDX` (`username`),
-     UNIQUE KEY `USER_EMAIL_IDX` (`email`)
+     UNIQUE KEY `USERS_EMAIL_IDX` (`email`)
 ) CHARSET=utf8mb4;
 
 CREATE TABLE `users_role` (
@@ -28,8 +28,8 @@ CREATE TABLE `users_role` (
      `role` ENUM('STUDENT', 'PROFESSIONAL', 'AMATEUR', 'SUPPORT', 'ADMIN') NOT NULL,
 
      PRIMARY KEY (`user_id`, `role`),
-     KEY `IDX_USER_ROLE_ROLE` (`role`),
-     CONSTRAINT `fk_user_role_user`
+     KEY `USER_ROLE_ROLE_IDX` (`role`),
+     CONSTRAINT `fk_users_role_users`
          FOREIGN KEY (`user_id`)
              REFERENCES `users` (`id`)
              ON DELETE RESTRICT

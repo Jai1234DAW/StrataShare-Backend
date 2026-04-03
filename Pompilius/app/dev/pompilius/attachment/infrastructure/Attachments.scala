@@ -2,6 +2,7 @@ package dev.pompilius.attachment.infrastructure
 
 import dev.pompilius.Strings
 import dev.pompilius.attachment.domain.{Attachment, AttachmentId, AttachmentRepository}
+import dev.pompilius.resource.domain.ResourceId
 import dev.pompilius.shared.domain.exceptions.{BadRequestException, InternalServerException, NotFoundException}
 import dev.pompilius.shared.infrastructure.BaseController
 import dev.pompilius.shared.infrastructure.JsUtils.toJsValueWrapper
@@ -249,6 +250,7 @@ trait Attachments extends BaseController {
   def saveAsAttachment[A](
       user: User,
       id: Option[AttachmentId],
+      resourceId: Option[ResourceId],
       file: File,
       originalFilename: String,
       description: Option[String],
@@ -291,7 +293,8 @@ trait Attachments extends BaseController {
       contentType = contentType.getOrElse("application/octet-stream"),
       size = file.length(),
       createdAt = clock.now,
-      metadata = metadata
+      metadata = metadata,
+      resourceId = resourceId
     )
 
     for {

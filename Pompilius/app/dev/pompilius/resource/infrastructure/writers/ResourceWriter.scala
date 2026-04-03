@@ -23,17 +23,17 @@ trait ResourceWriter {
 class ResourceWriterImpl @Inject() ()(implicit val ec: ExecutionContext) extends ResourceWriter {
 
   // Método privado: Construir JSON base del recurso (sin datos específicos)
-  private def buildBaseResourceJson(resource: Resource, includeObservations: Boolean = false): JsValue = {
+  private def buildBaseResourceJson(resource: Resource): JsValue = {
     Json.obj(
       List(
         toJsValueWrapper(Strings.resourceId, resource.id.toString),
         toJsValueWrapper(Strings.resourceType, resource.resourceType.toString),
         toJsValueWrapper(Strings.visibility, resource.visibility.toString),
         toJsValueWrapper(Strings.localization, resource.localization),
-        if (includeObservations) toJsValueWrapper(Strings.observations, resource.observations) else None,
+        toJsValueWrapper(Strings.observations, resource.observations),
         toJsValueWrapper(Strings.summary, resource.summary),
         toJsValueWrapper(Strings.created, resource.created),
-        if (includeObservations) toJsValueWrapper(Strings.updated, resource.updated) else None
+        toJsValueWrapper(Strings.updated, resource.updated)
       ).flatten: _*
     )
   }
@@ -65,7 +65,7 @@ class ResourceWriterImpl @Inject() ()(implicit val ec: ExecutionContext) extends
       study: Option[Study] = None
   ): Future[JsValue] = {
     Future.successful {
-      val baseJson = buildBaseResourceJson(resource, includeObservations = false)
+      val baseJson = buildBaseResourceJson(resource)
       withSpecificData(baseJson, sample, study, fullAccess = false)
     }
   }
@@ -77,7 +77,7 @@ class ResourceWriterImpl @Inject() ()(implicit val ec: ExecutionContext) extends
       study: Option[Study] = None
   ): Future[JsValue] = {
     Future.successful {
-      val baseJson = buildBaseResourceJson(resource, includeObservations = true)
+      val baseJson = buildBaseResourceJson(resource)
       withSpecificData(baseJson, sample, study, fullAccess = true)
     }
   }
@@ -89,7 +89,7 @@ class ResourceWriterImpl @Inject() ()(implicit val ec: ExecutionContext) extends
       study: Option[Study] = None
   ): Future[JsValue] = {
     Future.successful {
-      val baseJson = buildBaseResourceJson(resource, includeObservations = false)
+      val baseJson = buildBaseResourceJson(resource)
       withSpecificData(baseJson, sample, study, fullAccess = false)
     }
   }
@@ -101,7 +101,7 @@ class ResourceWriterImpl @Inject() ()(implicit val ec: ExecutionContext) extends
       study: Option[Study] = None
   ): Future[JsValue] = {
     Future.successful {
-      val baseJson = buildBaseResourceJson(resource, includeObservations = true)
+      val baseJson = buildBaseResourceJson(resource)
       withSpecificData(baseJson, sample, study, fullAccess = true)
     }
   }

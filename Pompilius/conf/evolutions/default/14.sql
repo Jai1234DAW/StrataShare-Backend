@@ -1,14 +1,11 @@
-# Agregar campo deleted a resource_user y remover de resource, sample, study
+# Refactorización: Attachments 1:N con Resource
 
 # --- !Ups
-ALTER TABLE `resource_user` ADD COLUMN `deleted` TINYINT(1) NOT NULL DEFAULT 0 AFTER `created`;
+DROP TABLE IF EXISTS `resource_attachment`;
 
-ALTER TABLE `resource` DROP COLUMN `deleted`;
-
-ALTER TABLE `sample` DROP COLUMN `deleted`;
-
-
-ALTER TABLE `study` DROP COLUMN `deleted`;
-
-ALTER TABLE `study_sample` DROP COLUMN `deleted`;
-
+ALTER TABLE `attachment`
+    ADD COLUMN `resource_id` BIGINT NULL AFTER `id`,
+    ADD INDEX `RESOURCE_ID_IDX` (`resource_id`),
+    ADD CONSTRAINT `fk_attachment_resource`
+        FOREIGN KEY (`resource_id`) REFERENCES `resource`(`id`)
+        ON DELETE RESTRICT;
