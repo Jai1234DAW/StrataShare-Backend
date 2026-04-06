@@ -1,0 +1,130 @@
+###
+#  summary: Upload multiple files to a resource
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL"]}
+#  requestBody:
+#      required: true
+#      content:
+#       multipart/form-data:
+#        schema:
+#         type: object
+#         properties:
+#          files:
+#           type: array
+#           items:
+#            type: string
+#            format: binary
+#  responses:
+#    200:
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/AttachmentList'
+#      description: Files uploaded successfully
+###
+POST         /:resourceId/attachments/files                             dev.pompilius.resource.infrastructure.controllers.ResourceController.uploadFiles(resourceId: String)
+
+###
+#  summary: Upload multiple images to a resource
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL"]}
+#  requestBody:
+#      required: true
+#      content:
+#       multipart/form-data:
+#        schema:
+#         type: object
+#         properties:
+#          images:
+#           type: array
+#           items:
+#            type: string
+#            format: binary
+#  responses:
+#    200:
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/AttachmentList'
+#      description: Images uploaded successfully
+###
+POST         /:resourceId/attachments/images                      dev.pompilius.resource.infrastructure.controllers.ResourceController.uploadImages(resourceId: String)
+
+###
+#  summary: List all files of a resource
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL","AMATEUR"]}
+#  parameters:
+#    - name: page
+#      in: query
+#      description: Page number for pagination
+#      required: false
+#      schema:
+#        type: integer
+#        default: 0
+#    - name: size
+#      in: query
+#      description: Number of results per page
+#      required: false
+#      schema:
+#        type: integer
+#        default: 10
+#  responses:
+#    200:
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/AttachmentList'
+#      description: List of files for the resource
+#    404:
+#      description: Resource not found
+###
+GET          /:resourceId/attachments                             dev.pompilius.resource.infrastructure.controllers.ResourceController.listFiles(resourceId: String, pag: Pagination)
+
+###
+#  summary: Download a file
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL","AMATEUR"]}
+#  responses:
+#    200:
+#      description: File downloaded successfully
+#    404:
+#      description: File or resource not found
+###
+GET          /:resourceId/attachment/:attachmentId               dev.pompilius.resource.infrastructure.controllers.ResourceController.downloadFile(resourceId: String, attachmentId: String)
+
+###
+#  summary: Update file metadata (name and description)
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL"]}
+#  requestBody:
+#      required: true
+#      content:
+#       application/json:
+#        schema:
+#         type: object
+#         properties:
+#          filename:
+#           type: string
+#           description: New filename
+#          description:
+#           type: string
+#           description: New file description
+#  responses:
+#    200:
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/Attachment'
+#      description: Metadata updated successfully
+#    404:
+#      description: File not found
+###
+PUT          /:resourceId/attachment/:attachmentId/metadata      dev.pompilius.resource.infrastructure.controllers.ResourceController.updateFileMetadata(resourceId: String, attachmentId: String)
+
+###
+#  summary: Delete a file
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL"]}
+#  responses:
+#    200:
+#      description: File deleted successfully
+#    404:
+#      description: File not found
+###
+DELETE       /:resourceId/attachment/:attachmentId               dev.pompilius.resource.infrastructure.controllers.ResourceController.deleteFile(resourceId: String, attachmentId: String)
+

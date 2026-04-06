@@ -2,6 +2,7 @@ package dev.pompilius.attachment.infrastructure.repositories
 
 import dev.pompilius.attachment.domain.{Attachment, AttachmentId, AttachmentRepository}
 import dev.pompilius.resource.domain.ResourceId
+import dev.pompilius.shared.domain.Pagination
 import dev.pompilius.shared.infrastructure.contexts.DbExecutionContext
 import org.apache.pekko.Done
 import scalikejdbc._
@@ -89,11 +90,16 @@ class AttachmentMySqlRepository @Inject() (implicit ec: DbExecutionContext)
       Done
     }
 
-  override def findByResourceId(resourceId: ResourceId): Future[List[Attachment]] =
+  override def findByResourceId(resourceId: ResourceId, pag:Pagination): Future[List[Attachment]] =
     Future {
       DB.localTx { implicit session =>
         withSQL {
           selectFrom(this as att).where.eq(att.resourceId, resourceId.id).and.eq(att.deleted, false)
+            .orderBy(att.id)
+            .desc
+            .append(
+              ScalikeUtil.pag(pag)
+            )
         }.map(apply(att.resultName)(_)).list()
       }
     }

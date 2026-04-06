@@ -10,7 +10,7 @@ CREATE TABLE `resource_user` (
     PRIMARY KEY (`resource_id`, `user_id`),
 
     KEY `RESOURCE_USER_TYPE_IDX` (`resource_user_type`),
-    KEY `RESOURCE_USER_CREATED_IDX` (`granted_at`),
+    KEY `RESOURCE_USER_CREATED_IDX` (`created`),
 
     CONSTRAINT `fk_resource_user_resource`
         FOREIGN KEY (`resource_id`) REFERENCES `resource`(`id`)
