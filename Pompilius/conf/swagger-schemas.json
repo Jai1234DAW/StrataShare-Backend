@@ -93,6 +93,11 @@
         "default": "3gqbdpbym4ua",
         "required": true
       },
+      "resourceId": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": true
+      },
       "filename": {
         "type": "string",
         "default": "document.pdf",
@@ -317,7 +322,7 @@
     "properties": {
       "id": {
         "type": "string",
-        "default": "3gqbdpbym4ua",
+        "example": "3gqbdpbym4ua",
         "required": true
       }
     }
@@ -823,5 +828,21 @@
       "default": false,
       "required": true
     }
+  },
+  "AttachmentList": {
+    "properties": {
+      "items": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Attachment"
+        }
+      },
+      "moreItems": {
+        "type": "boolean",
+        "default": false,
+        "required": true
+      }
+    }
   }
+
 }

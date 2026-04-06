@@ -76,7 +76,7 @@ class AttachmentWriterImpl @Inject() (implicit ex: ExecutionContext) extends Att
       Json.obj(
         "resourceId" -> resourceIdStr,
         "uploadedFiles" -> attachmentsJson.length,
-        "files" -> attachmentsJson
+        "attachments" -> attachmentsJson
       )
     }
   }

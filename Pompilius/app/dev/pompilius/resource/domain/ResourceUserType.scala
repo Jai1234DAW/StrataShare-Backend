@@ -23,5 +23,6 @@ object ResourceUserType extends Enum[ResourceUserType] with PlayJsonEnum[Resourc
   case object ACCEPTED_AS_PAYMENT extends ResourceUserType {
     override def value: String = "ACCEPTED_AS_PAYMENT"
   }
+
 }
 
