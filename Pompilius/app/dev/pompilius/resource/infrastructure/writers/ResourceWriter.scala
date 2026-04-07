@@ -14,7 +14,6 @@ import scala.concurrent.{ExecutionContext, Future}
 @ImplementedBy(classOf[ResourceWriterImpl])
 trait ResourceWriter {
   def toJson(resource: Resource, sample: Option[Sample] = None, study: Option[Study] = None): Future[JsValue]
-  def asOwner(resource: Resource, sample: Option[Sample] = None, study: Option[Study] = None): Future[JsValue]
   def asPrivate(resource: Resource, sample: Option[Sample] = None, study: Option[Study] = None): Future[JsValue]
   def asPublic(resource: Resource, sample: Option[Sample] = None, study: Option[Study] = None): Future[JsValue]
 }
@@ -70,18 +69,6 @@ class ResourceWriterImpl @Inject() ()(implicit val ec: ExecutionContext) extends
     }
   }
 
-  // OWNER: Datos completos + permisos de edición (propietario)
-  override def asOwner(
-      resource: Resource,
-      sample: Option[Sample] = None,
-      study: Option[Study] = None
-  ): Future[JsValue] = {
-    Future.successful {
-      val baseJson = buildBaseResourceJson(resource)
-      withSpecificData(baseJson, sample, study, fullAccess = true)
-    }
-  }
-
   // PRIVATE: Solo preview/teaser para recursos privados sin acceso
   override def asPrivate(
       resource: Resource,
@@ -94,7 +81,7 @@ class ResourceWriterImpl @Inject() ()(implicit val ec: ExecutionContext) extends
     }
   }
 
-  // PUBLIC: Datos completos SIN permisos de edición (comprador o recurso público)
+  // PUBLIC: Datos completos (para todos con acceso completo: owner, comprador, o público)
   override def asPublic(
       resource: Resource,
       sample: Option[Sample] = None,
