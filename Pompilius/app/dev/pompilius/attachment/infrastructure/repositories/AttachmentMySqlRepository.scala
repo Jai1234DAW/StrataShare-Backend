@@ -2,7 +2,7 @@ package dev.pompilius.attachment.infrastructure.repositories
 
 import dev.pompilius.attachment.domain.{Attachment, AttachmentId, AttachmentRepository}
 import dev.pompilius.resource.domain.ResourceId
-import dev.pompilius.shared.domain.Pagination
+import dev.pompilius.shared.domain.{Pagination, Visibility}
 import dev.pompilius.shared.infrastructure.contexts.DbExecutionContext
 import org.apache.pekko.Done
 import scalikejdbc._
@@ -35,7 +35,6 @@ class AttachmentMySqlRepository @Inject() (implicit ec: DbExecutionContext)
       contentType = rs.get(att.contentType),
       size = rs.get(att.size),
       createdAt = rs.get(att.createdAt),
-      isPublic = rs.get(att.isPublic),
       deleted = rs.get(att.deleted),
       metadata = rs.get(att.metadata),
       resourceId = rs.getOpt[Long](att.resourceId).map(ResourceId(_))
@@ -64,7 +63,6 @@ class AttachmentMySqlRepository @Inject() (implicit ec: DbExecutionContext)
           column.contentType -> attachment.contentType,
           column.size -> attachment.size,
           column.createdAt -> attachment.createdAt,
-          column.isPublic -> attachment.isPublic,
           column.deleted -> attachment.deleted,
           column.metadata -> attachment.metadata,
           column.resourceId -> attachment.resourceId.map(_.id)
@@ -90,11 +88,14 @@ class AttachmentMySqlRepository @Inject() (implicit ec: DbExecutionContext)
       Done
     }
 
-  override def findByResourceId(resourceId: ResourceId, pag:Pagination): Future[List[Attachment]] =
+  override def findByResourceId(resourceId: ResourceId, pag: Pagination): Future[List[Attachment]] =
     Future {
       DB.localTx { implicit session =>
         withSQL {
-          selectFrom(this as att).where.eq(att.resourceId, resourceId.id).and.eq(att.deleted, false)
+          selectFrom(this as att).where
+            .eq(att.resourceId, resourceId.id)
+            .and
+            .eq(att.deleted, false)
             .orderBy(att.id)
             .desc
             .append(
