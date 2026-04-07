@@ -30,8 +30,7 @@ class AttachmentWriterImpl @Inject() (implicit ex: ExecutionContext) extends Att
           toJsValueWrapper(Strings.description, attachment.description),
           toJsValueWrapper(Strings.contentType, attachment.contentType),
           toJsValueWrapper(Strings.size, attachment.size),
-          toJsValueWrapper(Strings.createdAt, attachment.createdAt),
-          toJsValueWrapper(Strings.isPublic, attachment.isPublic)
+          toJsValueWrapper(Strings.createdAt, attachment.createdAt)
         ).flatten: _*
       )
     }

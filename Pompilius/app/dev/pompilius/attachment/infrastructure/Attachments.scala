@@ -107,7 +107,6 @@ trait Attachments extends BaseController {
       contentType = file.contentType.getOrElse("application/octet-stream"),
       size = file.fileSize,
       createdAt = clock.now,
-      isPublic = isPublic,
       metadata = metadata
     )
 
@@ -219,8 +218,6 @@ trait Attachments extends BaseController {
     val outputFile = configuration.attachments.path.resolve(relativePath).toFile
     outputFile.getParentFile.mkdirs()
 
-    val isPublic = body.dataParts.get("public").exists(_.headOption.contains("true"))
-
     // Guardar archivo en disco
     jpgFile.copyTo(outputFile, replace = true)
     //Para borrar el temporal
@@ -234,9 +231,8 @@ trait Attachments extends BaseController {
       filename = file.filename.take(256),
       description = description.map(_.take(256)),
       contentType = file.contentType.getOrElse("application/octet-stream"),
-      size = file.fileSize,
+      size = jpgFile.length(),
       createdAt = clock.now,
-      isPublic = isPublic,
       metadata = metadata
     )
 
