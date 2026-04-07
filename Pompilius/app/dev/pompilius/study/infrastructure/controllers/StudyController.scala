@@ -1,8 +1,10 @@
 package dev.pompilius.study.infrastructure.controllers
 
 import dev.pompilius.resource.domain.exceptions.ResourceNotFoundException
+import dev.pompilius.shared.domain.exceptions.ForbiddenException
 import dev.pompilius.resource.domain.{
   Resource,
+  ResourceAccessLevel,
   ResourceId,
   ResourceRepository,
   ResourceType,
@@ -11,32 +13,49 @@ import dev.pompilius.resource.domain.{
   ResourceUserType
 }
 import dev.pompilius.resource.infrastructure.ResourceAccessValidator
-import dev.pompilius.study.infrastructure.parsers.{CreateStudyRequestParser, UpdateStudyRequestParser}
+import dev.pompilius.sample.domain.{SampleId, SampleRepository}
+import dev.pompilius.study.infrastructure.parsers.{
+  AddSamplesToStudyRequestParser,
+  CreateStudyRequestParser,
+  UpdateStudyRequestParser
+}
 import dev.pompilius.resource.infrastructure.writers.ResourceWriter
+import dev.pompilius.study.infrastructure.writers.StudySampleWriter
 import dev.pompilius.users.domain.{Role, UserId}
 import dev.pompilius.shared.infrastructure.BaseController
-import dev.pompilius.study.domain.{Area, Study, StudyFilter, StudyId, StudyRepository}
+import dev.pompilius.shared.infrastructure.IdValidator
+import dev.pompilius.study.domain.{
+  Area,
+  Study,
+  StudyFilter,
+  StudyId,
+  StudyRepository,
+  StudySample,
+  StudySampleRepository
+}
 import dev.pompilius.shared.domain.{Paginated, Pagination, Visibility}
 import dev.pompilius.shared.infrastructure.writers.PaginatedWriter
 import play.api.mvc.{Action, AnyContent}
 import play.api.libs.json.Json
-import org.joda.time.DateTime
 
 import javax.inject._
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.Try
 import scala.util.control.NonFatal
 
 @Singleton
 class StudyController @Inject() (
     studyRepository: StudyRepository,
+    studySampleRepository: StudySampleRepository,
+    sampleRepository: SampleRepository,
     resourceRepository: ResourceRepository,
     resourceUserRepository: ResourceUserRepository,
     resourceWriter: ResourceWriter,
     resourceAccessValidator: ResourceAccessValidator,
-    paginatedWriter: PaginatedWriter
+    paginatedWriter: PaginatedWriter,
+    studySampleWriter: StudySampleWriter
 )(implicit val ec: ExecutionContext)
-    extends BaseController {
+    extends BaseController
+    with IdValidator {
 
   def create: Action[AnyContent] =
     Action.async { implicit request =>
@@ -96,7 +115,7 @@ class StudyController @Inject() (
               )
             )
 
-            json <- resourceWriter.asOwner(newResource, None, Some(newStudy))
+            json <- resourceWriter.asPublic(newResource, None, Some(newStudy))
           } yield {
             Ok(json)
           }
@@ -143,7 +162,7 @@ class StudyController @Inject() (
             _ <- studyRepository.save(updatedStudy)
 
             // Retornar JSON actualizado
-            json <- resourceWriter.asOwner(updatedResource, None, Some(updatedStudy))
+            json <- resourceWriter.asPublic(updatedResource, None, Some(updatedStudy))
           } yield {
             Ok(json)
           }
@@ -157,29 +176,17 @@ class StudyController @Inject() (
           for {
             (study, resource) <- getStudyWithResource(studyId)
 
-            json <- resource.visibility match {
-              // Si es PÚBLICO → Todos ven datos completos
-              case Visibility.PUBLIC =>
+            // Obtener el nivel de acceso del usuario
+            accessLevel <- resourceAccessValidator.getAccessLevel(resource.id, user.id)
+
+            json <- accessLevel match {
+              case ResourceAccessLevel.FULL_ACCESS =>
+                // Tiene acceso completo → Muestra todo
                 resourceWriter.asPublic(resource, None, Some(study))
 
-              // Si es PRIVADO → Verificar tipo de acceso del usuario
-              case Visibility.PRIVATE =>
-                resourceUserRepository.findByResourceAndUser(resource.id, user.id).flatMap {
-                  case Some(ru) if !ru.deleted && ru.resourceUserType == ResourceUserType.OWNER =>
-                    // Es el propietario → Vista completa con permisos
-                    resourceWriter.asOwner(resource, None, Some(study))
-
-                  case Some(ru)
-                      if !ru.deleted &&
-                        (ru.resourceUserType == ResourceUserType.PURCHASED ||
-                          ru.resourceUserType == ResourceUserType.ACCEPTED_AS_PAYMENT) =>
-                    // Lo compró o recibió como pago → Vista completa sin permisos
-                    resourceWriter.asPublic(resource, None, Some(study))
-
-                  case _ =>
-                    // NO tiene acceso → Solo preview/teaser
-                    resourceWriter.asPrivate(resource, None, Some(study))
-                }
+              case _ =>
+                // PREVIEW_ONLY → Solo preview
+                resourceWriter.asPrivate(resource, None, Some(study))
             }
 
           } yield {
@@ -208,7 +215,6 @@ class StudyController @Inject() (
                 deleted = true
               )
             )
-
           } yield {
             Ok
           }
@@ -238,7 +244,7 @@ class StudyController @Inject() (
                 area = area.map(Area.withNameInsensitive),
                 authors = authors,
                 search = search,
-                visibility= visibility.map(Visibility.withNameInsensitive),
+                visibility = visibility.map(Visibility.withNameInsensitive),
                 localization = localization,
                 userId = userId.map(UserId(_)) // ← Opcional: si es None, busca en todos
               ),
@@ -265,20 +271,130 @@ class StudyController @Inject() (
       }
     }
 
+  //Para añadir muestras a un estudio
+  def addSamples(studyId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      withAnyOfThisRoles(Seq(Role.STUDENT, Role.PROFESSIONAL)) {
+        case (_, user, _, _) =>
+          val sid = checkStudyId(studyId)
+
+          for {
+            // Verificar que el estudio existe
+            (_, resource) <- getStudyWithResource(studyId)
+
+            // Verificar que es propietario del estudio
+            _ <- resourceAccessValidator.verifyOwnership(resource.id, user.id)
+
+            // Parsear el request
+            addSamplesRequest = AddSamplesToStudyRequestParser.parse(request)
+
+            // Verificar que todas las muestras existen Y son del usuario
+            _ <- Future.sequence(addSamplesRequest.sampleIds.map { sampleId =>
+              for {
+                // Verificar que la muestra existe
+                sample <- sampleRepository
+                  .findById(sampleId)
+                  .map(_.getOrElse(throw new ResourceNotFoundException(s"Sample $sampleId not found")))
+
+                // Obtener el recurso asociado a la muestra
+                sampleResource <- resourceRepository
+                  .findById(sample.resourceId)
+                  .map(_.getOrElse(throw new ResourceNotFoundException(s"Resource not found for sample $sampleId")))
+
+                // Verificar que el usuario es propietario de la muestra
+                _ <- resourceAccessValidator.verifyOwnership(sampleResource.id, user.id)
+              } yield ()
+            })
+
+            // Crear las relaciones
+            studySamples = addSamplesRequest.sampleIds.map(sampleId => StudySample(sid, sampleId))
+            _ <- studySampleRepository.saveMultiple(studySamples)
+
+          } yield {
+            Ok
+          }
+      }
+    }
+
+  def removeSample(studyId: String, sampleId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      withAnyOfThisRoles(Seq(Role.STUDENT, Role.PROFESSIONAL)) {
+        case (_, user, _, _) =>
+          val sid = checkStudyId(studyId)
+          val sampId = checkSampleId(sampleId)
+
+          for {
+            // Verificar que el estudio existe
+            (_, resource) <- getStudyWithResource(studyId)
+
+            // Verificar que es propietario
+            _ <- resourceAccessValidator.verifyOwnership(resource.id, user.id)
+
+            // Verificar que la muestra existe
+            _ <-
+              sampleRepository
+                .findById(sampId)
+                .map(_.getOrElse(throw new ResourceNotFoundException(s"Sample $sampleId not found")))
+
+            // Eliminar la relación
+            _ <- studySampleRepository.delete(sid, sampId)
+
+          } yield {
+            Ok
+          }
+      }
+    }
+
+  def getSamples(studyId: String, pag: Pagination): Action[AnyContent] =
+    Action.async { implicit request =>
+      withAuthenticatedUser {
+        case (_, user, _) =>
+          val sid = checkStudyId(studyId)
+
+          for {
+            // Verificar que el estudio existe
+            (study, resource) <- getStudyWithResource(studyId)
+
+            // Validar acceso - solo pueden ver muestras si tienen acceso completo
+            accessLevel <- resourceAccessValidator.getAccessLevel(resource.id, user.id)
+            _ <- accessLevel match {
+              case ResourceAccessLevel.FULL_ACCESS =>
+                Future.successful(())
+              case _ =>
+                // Solo tiene preview, no puede ver las muestras asociadas
+                Future.failed(
+                  new ForbiddenException("You need to purchase this study to view associated samples")
+                )
+            }
+
+            // Obtener relaciones study-sample
+            studySamples <- studySampleRepository.getAllByStudyId(sid)
+
+            // Usar paginatedWriter para generar JSON paginado
+            json <- paginatedWriter.toJson(Paginated(studySamples, pag)) { studySample =>
+              studySampleWriter.asJson(studySample)
+            }
+          } yield {
+            Ok(json)
+          }
+      }
+    }
+
   private def getStudyWithResource(studyId: String): Future[(Study, Resource)] = {
+    val sid = checkStudyId(studyId)
     for {
       study <-
         studyRepository
-          .findById(StudyId(studyId))
+          .findById(sid)
           .map(
-            _.getOrElse(throw new ResourceNotFoundException(s"Sample with id $studyId not found"))
+            _.getOrElse(throw new ResourceNotFoundException(s"Study with id $studyId not found"))
           )
 
       resource <-
         resourceRepository
           .findById(study.resourceId)
           .map(
-            _.getOrElse(throw new ResourceNotFoundException(s"Resource not found for sample $studyId"))
+            _.getOrElse(throw new ResourceNotFoundException(s"Resource not found for study $studyId"))
           )
     } yield (study, resource)
   }

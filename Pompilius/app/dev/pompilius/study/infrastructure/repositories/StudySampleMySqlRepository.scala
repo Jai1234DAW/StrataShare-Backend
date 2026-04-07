@@ -11,9 +11,8 @@ import scalikejdbc._
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
 
-
 @Singleton
-class StudySampleMySqlRepository @Inject()(
+class StudySampleMySqlRepository @Inject() (
 )(implicit dbExecutionContext: DbExecutionContext)
     extends StudySampleRepository
     with SQLSyntaxSupport[StudySample] {
@@ -40,7 +39,6 @@ class StudySampleMySqlRepository @Inject()(
       }
     }
 
-
   override def saveMultiple(studySamples: List[StudySample]): Future[Done] =
     Future {
       DB.localTx { implicit session =>
@@ -53,12 +51,12 @@ class StudySampleMySqlRepository @Inject()(
             insert
               .into(this)
               .namedValues(values: _*)
+              .append(ScalikeUtil.onDuplicateUpdate(column.studyId, column.sampleId, values: _*))
           }.update()
         }
       }
       Done
     }
-
 
   override def delete(studyId: StudyId, sampleId: SampleId): Future[Done] =
     Future {
@@ -97,6 +95,3 @@ class StudySampleMySqlRepository @Inject()(
     if (filters.nonEmpty) Some(sqls.joinWithAnd(filters: _*)) else None
   }
 }
-
-
-
