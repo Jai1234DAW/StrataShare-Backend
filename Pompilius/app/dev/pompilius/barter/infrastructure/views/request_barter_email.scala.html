@@ -1,0 +1,62 @@
+@(sellerName: String, buyerName: String, requestedResourceTitle: String, offeredResourceTitle: String, link: String)(implicit messages: Messages)
+
+@block(text: String, link: String, linkText: Option[String]) = {
+    <tr>
+        <td class="block" align="left">
+            @if(text.nonEmpty) { <p class="content">@text</p> } else { <p class="content">&nbsp;</p> }
+            @if(link.nonEmpty) { <p class="content"><a href="@link">@linkText.getOrElse(link)</a></p> }
+        </td>
+    </tr>
+}
+
+<!DOCTYPE html>
+<html style="font-family:arial, helvetica, sans-serif">
+
+    <head>
+        <title>@messages("mail.barter.title")</title>
+        <meta charset="UTF-8">
+    </head>
+
+    <body>
+        <div style="background-color:#FAFAFA">
+            <table class="wrapper" width="100%" cellspacing="0" cellpadding="0">
+
+                    <!-- HEADER -->
+                <tr>
+                    <td align="center" style="padding:20px;">
+                        <img src="@messages("mail.barter.logo")" width="200" height="100">
+                    </td>
+                </tr>
+
+                    <!-- CONTENT -->
+                <tr>
+                    <td>
+                        <table bgcolor="#ffffff" align="center" style="width:600px; padding:20px">
+
+                            @block(messages("mail.barter.hello", sellerName), "", None)
+                            @block(messages("mail.barter.intro", buyerName), "", None)
+                            @block(messages("mail.barter.requestedResource", requestedResourceTitle), "", None)
+                            @block(messages("mail.barter.offeredResource", offeredResourceTitle), "", None)
+                            @block(messages("mail.barter.cta"), link, Some(messages("mail.barter.linkText")))
+                            @block(messages("mail.barter.expiration"), "", None)
+                            @block(messages("mail.barter.contact.intro"), "", None)
+                            @block(messages("mail.barter.contact"), messages("mail.barter.contact.link"), Some(messages("mail.barter.contact.linkText")))
+                            @block(messages("mail.barter.thanks"), "", None)
+
+                        </table>
+                    </td>
+                </tr>
+
+                    <!-- FOOTER -->
+                <tr>
+                    <td align="center" style="padding:20px;">
+                        <p>@messages("mail.barter.footer.firstLine")</p>
+                        <p>@messages("mail.barter.footer.secondLine")</p>
+                    </td>
+                </tr>
+
+            </table>
+        </div>
+    </body>
+
+</html>
