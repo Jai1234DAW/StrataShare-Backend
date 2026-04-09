@@ -146,4 +146,11 @@ trait Configuration {
 
   def mail: Mail
 
+  // Barter
+  case class Barter(
+      requestLinkDuration: FiniteDuration,
+      purchaseResourceUrl: String
+  )
+
+  def barter: Barter
 }
