@@ -207,4 +207,10 @@ class PlayConfiguration @Inject() (
     from = playConfig.get[MailAddress]("mail.from"),
     replyTo = playConfig.getOptional[MailAddress]("mail.replyTo")
   )
+
+  // Barter
+  override val barter: Barter = Barter(
+    requestLinkDuration = playConfig.get[FiniteDuration]("barter.requestLinkDuration"),
+    purchaseResourceUrl = playConfig.get[String]("barter.purchaseResourceUrl")
+  )
 }

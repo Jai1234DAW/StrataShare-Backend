@@ -140,6 +140,13 @@ class ErrorHandler @Inject() (
           )
         )
 
+      case _: NumberFormatException =>
+        replaceException(
+          new BadRequestException(
+            message = "Invalid argument"
+          )
+        )
+
       case _: SQLException =>
         replaceException(
           new InternalServerException(
