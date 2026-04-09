@@ -1,0 +1,18 @@
+###
+#  summary: Create a new barter request
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL"]}
+#  requestBody:
+#      required: true
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/CreateBarterRequest'
+#  responses:
+#    200:
+#      description: Success
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/BarterRequestResponse'
+###
+POST         /create                                        dev.pompilius.barter.infrastructure.controllers.BarterController.create()

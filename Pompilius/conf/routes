@@ -29,4 +29,4 @@ GET        /api/assets/*file                           controllers.Assets.versio
 ->         /api/resources                              resource.Routes
 ->         /api/resources/samples                      sample.Routes
 ->         /api/resources/studies                      study.Routes
-
+->         /api/transaction/barter                     barter.Routes

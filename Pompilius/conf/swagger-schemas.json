@@ -843,6 +843,123 @@
         "required": true
       }
     }
+  },
+  "StudySample": {
+    "properties": {
+      "studyId": {
+        "type": "string",
+        "default": "study123456",
+        "required": true,
+        "description": "Study ID"
+      },
+      "sampleId": {
+        "type": "string",
+        "default": "sample789012",
+        "required": true,
+        "description": "Sample ID"
+      }
+    }
+  },
+  "StudySampleList": {
+    "properties": {
+      "items": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/StudySample"
+        }
+      },
+      "moreItems": {
+        "type": "boolean",
+        "default": false,
+        "required": true
+      }
+    }
+  },
+  "AddSamplesToStudyRequest": {
+    "properties": {
+      "sampleIds": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "default": [
+          "sample123456",
+          "sample789012"
+        ],
+        "required": true,
+        "description": "List of sample IDs to add to the study"
+      }
+    }
+  },
+  "CreateBarterRequest": {
+    "properties": {
+      "resourceId": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": true,
+        "description": "ID of the resource being requested in the barter"
+      },
+      "offeredResourceId": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": true,
+        "description": "ID of the resource being offered in the barter"
+      }
+    }
+  },
+  "BarterRequestResponse": {
+    "properties": {
+      "barterId": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": true,
+        "description": "ID of the barter request"
+      },
+      "transactionId": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": true,
+        "description": "ID of the transaction associated with the barter request"
+      },
+      "transactionStatus": {
+        "type": "string",
+        "default": "PENDING",
+        "required": true,
+        "description": "Status of the transaction (e.g., PENDING, COMPLETED, FAILED)"
+      },
+      "offeredResourceId": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": true,
+        "description": "ID of the resource being offered in the barter"
+      },
+      "requestedResourceId": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": true,
+        "description": "ID of the resource being requested in the barter"
+      },
+      "rejectAt": {
+        "type": "string",
+        "format": "date-time",
+        "default": "2022-01-01T12:30:00Z",
+        "required": true,
+        "description": "Timestamp when the barter request will be automatically rejected if not accepted"
+      },
+      "created": {
+        "type": "string",
+        "format": "date-time",
+        "default": "2022-01-01T12:30:00Z",
+        "required": true,
+        "description": "Timestamp when the barter request was created"
+      },
+      "updated": {
+        "type": "string",
+        "format": "date-time",
+        "default": "2022-01-01T12:30:00Z",
+        "required": true,
+        "description": "Timestamp when the barter request was last updated"
+      }
+    }
   }
-
 }
