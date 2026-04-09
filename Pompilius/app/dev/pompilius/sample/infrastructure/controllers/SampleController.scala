@@ -1,15 +1,7 @@
 package dev.pompilius.sample.infrastructure.controllers
 
 import dev.pompilius.resource.domain.exceptions.ResourceNotFoundException
-import dev.pompilius.resource.domain.{
-  Resource,
-  ResourceId,
-  ResourceRepository,
-  ResourceType,
-  ResourceUser,
-  ResourceUserRepository,
-  ResourceUserType
-}
+import dev.pompilius.resource.domain.{Resource, ResourceAccessLevel, ResourceId, ResourceRepository, ResourceType, ResourceUser, ResourceUserRepository, ResourceUserType}
 import dev.pompilius.resource.infrastructure.ResourceAccessValidator
 import dev.pompilius.sample.domain.{Sample, SampleFilter, SampleId, SampleRepository}
 import dev.pompilius.sample.infrastructure.parsers.{CreateSampleRequestParser, UpdateSampleRequestParser}
@@ -18,9 +10,8 @@ import dev.pompilius.shared.domain.{Paginated, Pagination, Visibility}
 import dev.pompilius.users.domain.{Role, UserId}
 import dev.pompilius.shared.infrastructure.BaseController
 import dev.pompilius.shared.infrastructure.writers.PaginatedWriter
-import org.joda.time.DateTime
+import play.api.Logger
 import play.api.mvc.{Action, AnyContent}
-import play.api.libs.json.Json
 
 import javax.inject._
 import scala.concurrent.{ExecutionContext, Future}
@@ -36,6 +27,8 @@ class SampleController @Inject() (
     paginatedWriter: PaginatedWriter
 )(implicit val ec: ExecutionContext)
     extends BaseController {
+
+  private val logger = Logger(this.getClass)
 
   def create: Action[AnyContent] =
     Action.async { implicit request =>
@@ -97,7 +90,7 @@ class SampleController @Inject() (
               )
             )
             // 4. Retornar JSON
-            json <- resourceWriter.asOwner(newResource, Some(newSample), None)
+            json <- resourceWriter.asPublic(newResource, Some(newSample), None)
           } yield {
             Ok(json)
           }
@@ -108,10 +101,11 @@ class SampleController @Inject() (
     Action.async { implicit request =>
       withAnyOfThisRoles(Seq(Role.STUDENT, Role.PROFESSIONAL)) {
         case (_, user, _, _) =>
+          val sid = SampleId(sampleId)
           val updateSampleRequest = UpdateSampleRequestParser.parse(request)
 
           for {
-            (sample, resource) <- getSampleWithResource(sampleId)
+            (sample, resource) <- getSampleWithResource(sid)
 
             // Verificar que es propietario del resource y que no está borrado lógicamente
             _ <- resourceAccessValidator.verifyOwnership(resource.id, user.id)
@@ -142,7 +136,7 @@ class SampleController @Inject() (
             _ <- sampleRepository.save(updatedSample)
 
             // Retornar JSON actualizado
-            json <- resourceWriter.asOwner(updatedResource, Some(updatedSample), None)
+            json <- resourceWriter.asPublic(updatedResource, Some(updatedSample), None)
           } yield {
             Ok(json)
           }
@@ -153,32 +147,22 @@ class SampleController @Inject() (
     Action.async { implicit request =>
       withAuthenticatedUser {
         case (_, user, _) =>
-          for {
-            (sample, resource) <- getSampleWithResource(sampleId)
+          val sid = SampleId(sampleId)
 
-            json <- resource.visibility match {
-              // Si es PÚBLICO → Todos ven datos completos
-              case Visibility.PUBLIC =>
+          for {
+            (sample, resource) <- getSampleWithResource(sid)
+
+            // Obtener el nivel de acceso del usuario
+            accessLevel <- resourceAccessValidator.getAccessLevel(resource.id, user.id)
+
+            json <- accessLevel match {
+              case ResourceAccessLevel.FULL_ACCESS =>
                 resourceWriter.asPublic(resource, Some(sample), None)
 
-              // Si es PRIVADO → Verificar tipo de acceso del usuario
-              case Visibility.PRIVATE =>
-                resourceUserRepository.findByResourceAndUser(resource.id, user.id).flatMap {
-                  case Some(ru) if !ru.deleted && ru.resourceUserType == ResourceUserType.OWNER =>
-                    // Es el propietario → Vista completa con permisos
-                    resourceWriter.asOwner(resource, Some(sample), None)
+              case _ =>
+                // PREVIEW_ONLY → Solo preview
+                resourceWriter.asPrivate(resource, Some(sample), None)
 
-                  case Some(ru)
-                      if !ru.deleted &&
-                        (ru.resourceUserType == ResourceUserType.PURCHASED ||
-                          ru.resourceUserType == ResourceUserType.ACCEPTED_AS_PAYMENT) =>
-                    // Lo compró o recibió como pago → Vista completa sin permisos
-                    resourceWriter.asPublic(resource, Some(sample), None)
-
-                  case _ =>
-                    // NO tiene acceso → Solo preview/teaser
-                    resourceWriter.asPrivate(resource, Some(sample), None)
-                }
             }
 
           } yield {
@@ -192,7 +176,7 @@ class SampleController @Inject() (
       withAnyOfThisRoles(Seq(Role.STUDENT, Role.PROFESSIONAL)) {
         case (_, user, _, _) =>
           for {
-            (_, resource) <- getSampleWithResource(sampleId)
+            (_, resource) <- getSampleWithResource(SampleId(sampleId))
 
             // Verificar que es propietario
             _ <- resourceAccessValidator.verifyOwnership(resource.id, user.id)
@@ -250,7 +234,7 @@ class SampleController @Inject() (
                       _.getOrElse(throw new ResourceNotFoundException(s"Resource not found for study ${sample.id}"))
                     )
                 // Siempre devolver preview (datos básicos para el listado)
-                //Luego se pordrá acceder con más datos a cada uno de ellos.
+                //Luego se pordá acceder con más datos a cada uno de ellos.
                 json <- resourceWriter.asPrivate(resource, Some(sample), None)
               } yield json
             }
@@ -260,11 +244,13 @@ class SampleController @Inject() (
           }
       }
     }
-  private def getSampleWithResource(sampleId: String): Future[(Sample, Resource)] = {
+
+  private def getSampleWithResource(sampleId: SampleId): Future[(Sample, Resource)] = {
     for {
+
       sample <-
         sampleRepository
-          .findById(SampleId(sampleId))
+          .findById(sampleId)
           .map(
             _.getOrElse(throw new ResourceNotFoundException(s"Sample with id $sampleId not found"))
           )
@@ -277,4 +263,5 @@ class SampleController @Inject() (
           )
     } yield (sample, resource)
   }
+
 }

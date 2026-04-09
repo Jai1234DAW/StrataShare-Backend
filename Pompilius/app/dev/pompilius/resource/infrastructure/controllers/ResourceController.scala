@@ -10,7 +10,6 @@ import dev.pompilius.resource.infrastructure.ResourceAccessValidator
 import dev.pompilius.shared.domain.Pagination
 import dev.pompilius.shared.domain.exceptions.{BadRequestException, ForbiddenException}
 import dev.pompilius.shared.infrastructure.BaseController
-import dev.pompilius.shared.infrastructure.IdValidator
 import dev.pompilius.users.domain.Role
 import play.api.libs.Files
 import play.api.mvc.{Action, AnyContent, MultipartFormData}
@@ -27,15 +26,14 @@ class ResourceController @Inject() (
     attachmentWriter: AttachmentWriter
 )(implicit val ec: ExecutionContext)
     extends BaseController
-    with Attachments
-    with IdValidator {
+    with Attachments {
 
   def uploadFiles(resourceId: String): Action[MultipartFormData[Files.TemporaryFile]] =
     Action.async(parse.multipartFormData) { implicit request =>
       withAnyOfThisRoles(Seq(Role.STUDENT, Role.PROFESSIONAL)) {
         case (_, user, _, _) =>
           val body = request.body
-          val rid = checkResourceId(resourceId)
+          val rid = ResourceId(resourceId)
 
           resourceAccessValidator.verifyOwnership(rid, user.id)
 
@@ -62,7 +60,7 @@ class ResourceController @Inject() (
     Action.async(parse.multipartFormData) { implicit request =>
       withAnyOfThisRoles(Seq(Role.PROFESSIONAL, Role.STUDENT)) {
         case (_, user, _, _) =>
-          val rid = checkResourceId(resourceId)
+          val rid = ResourceId(resourceId)
           val body = request.body
 
           // Filtrar solo imágenes
@@ -111,8 +109,8 @@ class ResourceController @Inject() (
     Action.async { implicit request =>
       withAuthenticatedUser {
         case (_, user, _) =>
-          val aid = checkAttachmentId(attachmentId)
-          val rid = checkResourceId(resourceId)
+          val aid = AttachmentId(attachmentId)
+          val rid = ResourceId(resourceId)
 
           for {
             resource <-
@@ -158,8 +156,8 @@ class ResourceController @Inject() (
     Action.async { implicit request =>
       withAuthenticatedUser {
         case (_, user, _) =>
-          val aid = checkAttachmentId(attachmentId)
-          val rid = checkResourceId(resourceId)
+          val aid = AttachmentId(attachmentId)
+          val rid = ResourceId(resourceId)
           for {
             resource <-
               resourceRepository
@@ -194,7 +192,7 @@ class ResourceController @Inject() (
     Action.async { implicit request =>
       withAuthenticatedUser {
         case (_, user, _) =>
-          val rid = checkResourceId(resourceId)
+          val rid = ResourceId(resourceId)
 
           for {
             // Verificar que el recurso existe
@@ -255,8 +253,8 @@ class ResourceController @Inject() (
     Action.async { implicit request =>
       withAnyOfThisRoles(Seq(Role.STUDENT, Role.PROFESSIONAL)) {
         case (_, user, _, _) =>
-          val rid = checkResourceId(resourceId)
-          val aid = checkAttachmentId(attachmentId)
+          val rid = ResourceId(resourceId)
+          val aid = AttachmentId(attachmentId)
           val body = request.body.asJson.getOrElse(throw new BadRequestException("JSON body expected"))
 
           val newDescription = (body \ "description").asOpt[String]

@@ -7,7 +7,6 @@ import dev.pompilius.shared.domain.Pagination
 import dev.pompilius.shared.infrastructure.ScalikeUtil
 import dev.pompilius.shared.infrastructure.contexts.DbExecutionContext
 import dev.pompilius.study.domain.{Area, Study, StudyFilter, StudyId, StudyRepository}
-import dev.pompilius.users.domain.UserId
 import org.apache.pekko.Done
 import org.joda.time.DateTime
 import scalikejdbc._
@@ -60,11 +59,16 @@ class StudyMySqlRepository @Inject() (
 
   override def find(filter: StudyFilter, pag: Pagination): Future[List[Study]] =
     Future {
+      val r = resourceMySqlRepository.syntax("r")
       val orderBy: Seq[SQLSyntax] = buildOrderBy(pag)
+
 
       DB.localTx { implicit session =>
         withSQL {
-          selectFrom(this as st)
+          select(st.result.*)
+            .from(this as st)
+            .innerJoin(resourceMySqlRepository as r)
+            .on(st.resourceId, r.id)
             .append(
               filterToSqlSyntax(filter).map(sqls.where(_)).getOrElse(sqls.empty)
             )
@@ -77,23 +81,32 @@ class StudyMySqlRepository @Inject() (
     }
 
   private def buildOrderBy(pag: Pagination): Seq[SQLSyntax] = {
-    val defaultOrderBy = Seq(st.name, st.id.desc)
+    val r = resourceMySqlRepository.syntax("r")
+
+    val defaultOrderBy = Seq(r.created.desc, st.id.desc)
 
     pag.orderBy match {
       case Nil =>
         defaultOrderBy
+
       case seq =>
         seq.flatMap { field =>
           val desc = field.startsWith("-")
+
           field.stripPrefix("-") match {
             case Strings.name =>
               Some(if (desc) st.name.desc else st.name.asc)
+
+            case Strings.created =>
+              Some(if (desc) r.created.desc else r.created.asc)
+
             case _ =>
               None
           }
         } match {
           case Nil =>
             defaultOrderBy
+
           case e =>
             e.appended(st.id.desc)
         }

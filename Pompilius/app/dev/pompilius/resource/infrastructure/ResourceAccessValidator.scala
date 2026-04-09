@@ -2,14 +2,13 @@ package dev.pompilius.resource.infrastructure
 
 import com.google.inject.ImplementedBy
 import dev.pompilius.resource.domain.exceptions.{ResourceNotAllowedException, ResourceNotFoundException}
-import dev.pompilius.resource.domain.{ResourceAccessLevel, ResourceId, ResourceRepository, ResourceUserRepository, ResourceUserType}
-import dev.pompilius.shared.domain.{Pagination, Visibility}
+import dev.pompilius.resource.domain._
 import dev.pompilius.shared.domain.exceptions.ForbiddenException
+import dev.pompilius.shared.domain.{Pagination, Visibility}
 import dev.pompilius.users.domain.UserId
 
-import javax.inject.{Inject,Singleton}
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
-
 
 @ImplementedBy(classOf[ResourceAccessValidatorImpl])
 trait ResourceAccessValidator {
@@ -17,45 +16,40 @@ trait ResourceAccessValidator {
   def verifyOwnership(resourceId: ResourceId, userId: UserId): Future[Unit]
   def validateAccess(resourceId: ResourceId, userId: UserId): Future[Unit]
   def getAccessLevel(resourceId: ResourceId, userId: UserId): Future[ResourceAccessLevel]
-
+  def validateResourceIsActive(resourceId: ResourceId, userId: UserId): Future[Unit]
+  def validateAlreadyHaveAccess(resourceId: ResourceId, userId: UserId): Future[Unit]
 }
 
 @Singleton
 class ResourceAccessValidatorImpl @Inject() (
-  resourceUserRepository: ResourceUserRepository,
-  resourceRepository: ResourceRepository)(implicit ec: ExecutionContext)
- extends ResourceAccessValidator {
+    resourceUserRepository: ResourceUserRepository,
+    resourceRepository: ResourceRepository
+)(implicit ec: ExecutionContext)
+    extends ResourceAccessValidator {
 
-
-  def verifyOwnership(resourceId: ResourceId, userId: UserId)
-                   : Future[Unit] = {
+  def verifyOwnership(resourceId: ResourceId, userId: UserId): Future[Unit] = {
 
     resourceUserRepository
       .findByUserAndType(userId, ResourceUserType.OWNER, Pagination.all)
       .flatMap { resourceIds =>
         if (resourceIds.contains(resourceId)) {
           Future.successful(())
+          validateResourceIsActive(resourceId, userId)
         } else {
-          isResourceActive(resourceId, userId).flatMap {
-            case true => Future.successful(())
-            case false => Future.failed(
-              new ResourceNotAllowedException(
-                "You don't have permission to get or update this resource"
-              )
-            )
-          }
+            Future.failed(new ForbiddenException("You don't have ownership of this resource"))
         }
       }
   }
 
-
-  private def isResourceActive(resourceId: ResourceId, userId: UserId): Future[Boolean] = {
-    resourceUserRepository.findByResourceAndUser(resourceId, userId).map {
-      case Some(resourceUser) => !resourceUser.deleted
-      case None => false
+  def validateResourceIsActive(resourceId: ResourceId, userId: UserId): Future[Unit] = {
+    resourceUserRepository.findByResourceAndUser(resourceId, userId).flatMap {
+      case Some(ru) if !ru.deleted => Future.unit
+      case _ =>
+        Future.failed(
+          new ResourceNotAllowedException("The requested resource is blocked for purchases")
+        )
     }
   }
-
   def validateAccess(resourceId: ResourceId, userId: UserId): Future[Unit] = {
     resourceRepository.findById(resourceId).flatMap {
       case Some(resource) =>
@@ -72,9 +66,9 @@ class ResourceAccessValidatorImpl @Inject() (
                 Future.successful(())
 
               case Some(ru)
-                if !ru.deleted &&
-                  (ru.resourceUserType == ResourceUserType.PURCHASED ||
-                    ru.resourceUserType == ResourceUserType.ACCEPTED_AS_PAYMENT) =>
+                  if !ru.deleted &&
+                    (ru.resourceUserType == ResourceUserType.PURCHASED ||
+                      ru.resourceUserType == ResourceUserType.ACCEPTED_AS_PAYMENT) =>
                 // Lo compró o recibió como pago → Acceso completo
                 Future.successful(())
 
@@ -107,9 +101,9 @@ class ResourceAccessValidatorImpl @Inject() (
                 ResourceAccessLevel.FULL_ACCESS
 
               case Some(ru)
-                if !ru.deleted &&
-                  (ru.resourceUserType == ResourceUserType.PURCHASED ||
-                    ru.resourceUserType == ResourceUserType.ACCEPTED_AS_PAYMENT) =>
+                  if !ru.deleted &&
+                    (ru.resourceUserType == ResourceUserType.PURCHASED ||
+                      ru.resourceUserType == ResourceUserType.ACCEPTED_AS_PAYMENT) =>
                 // Lo compró o recibió como pago tiene acceso completo
                 ResourceAccessLevel.FULL_ACCESS
 
@@ -124,4 +118,12 @@ class ResourceAccessValidatorImpl @Inject() (
     }
   }
 
+  override def validateAlreadyHaveAccess(resourceId: ResourceId, userId: UserId): Future[Unit] = {
+    resourceUserRepository.findByResourceAndUser(resourceId, userId).flatMap {
+      case Some(ru) if !ru.deleted =>
+        Future.failed(new ResourceNotAllowedException("You already have access to this resource"))
+      case _ =>
+        Future.successful(())
+    }
+  }
 }
