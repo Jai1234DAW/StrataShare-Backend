@@ -1,19 +1,17 @@
 package dev.pompilius.resource.infrastructure.repositories
 
-import dev.pompilius.resource.domain.{Resource, ResourceFilter, ResourceId, ResourceRepository, ResourceType}
+import dev.pompilius.resource.domain._
 import dev.pompilius.shared.domain.{Pagination, Visibility}
 import dev.pompilius.shared.infrastructure.ScalikeUtil
 import dev.pompilius.shared.infrastructure.contexts.DbExecutionContext
-import dev.pompilius.users.domain.UserId
 import org.apache.pekko.Done
-
-import javax.inject.{Inject, Singleton}
-import scala.concurrent.Future
 import scalikejdbc._
 import scalikejdbc.jodatime.JodaParameterBinderFactory._
 import scalikejdbc.jodatime.JodaTypeBinder._
 
 import java.time.ZoneId
+import javax.inject.{Inject, Singleton}
+import scala.concurrent.Future
 
 @Singleton
 class ResourceMySqlRepository @Inject() (

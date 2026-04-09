@@ -1,42 +1,19 @@
 package dev.pompilius.study.infrastructure.controllers
 
 import dev.pompilius.resource.domain.exceptions.ResourceNotFoundException
-import dev.pompilius.shared.domain.exceptions.ForbiddenException
-import dev.pompilius.resource.domain.{
-  Resource,
-  ResourceAccessLevel,
-  ResourceId,
-  ResourceRepository,
-  ResourceType,
-  ResourceUser,
-  ResourceUserRepository,
-  ResourceUserType
-}
+import dev.pompilius.resource.domain._
 import dev.pompilius.resource.infrastructure.ResourceAccessValidator
-import dev.pompilius.sample.domain.{SampleId, SampleRepository}
-import dev.pompilius.study.infrastructure.parsers.{
-  AddSamplesToStudyRequestParser,
-  CreateStudyRequestParser,
-  UpdateStudyRequestParser
-}
 import dev.pompilius.resource.infrastructure.writers.ResourceWriter
+import dev.pompilius.sample.domain.{SampleId, SampleRepository}
+import dev.pompilius.shared.domain.exceptions.ForbiddenException
+import dev.pompilius.shared.domain.{Paginated, Pagination, Visibility}
+import dev.pompilius.shared.infrastructure.BaseController
+import dev.pompilius.shared.infrastructure.writers.PaginatedWriter
+import dev.pompilius.study.domain._
+import dev.pompilius.study.infrastructure.parsers.{AddSamplesToStudyRequestParser, CreateStudyRequestParser, UpdateStudyRequestParser}
 import dev.pompilius.study.infrastructure.writers.StudySampleWriter
 import dev.pompilius.users.domain.{Role, UserId}
-import dev.pompilius.shared.infrastructure.BaseController
-import dev.pompilius.shared.infrastructure.IdValidator
-import dev.pompilius.study.domain.{
-  Area,
-  Study,
-  StudyFilter,
-  StudyId,
-  StudyRepository,
-  StudySample,
-  StudySampleRepository
-}
-import dev.pompilius.shared.domain.{Paginated, Pagination, Visibility}
-import dev.pompilius.shared.infrastructure.writers.PaginatedWriter
 import play.api.mvc.{Action, AnyContent}
-import play.api.libs.json.Json
 
 import javax.inject._
 import scala.concurrent.{ExecutionContext, Future}
@@ -55,7 +32,7 @@ class StudyController @Inject() (
     studySampleWriter: StudySampleWriter
 )(implicit val ec: ExecutionContext)
     extends BaseController
-    with IdValidator {
+   {
 
   def create: Action[AnyContent] =
     Action.async { implicit request =>
@@ -129,7 +106,7 @@ class StudyController @Inject() (
           val updateStudyRequest = UpdateStudyRequestParser.parse(request)
 
           for {
-            //método simplificado está más abajo para reutilizarlo en get y delete
+
             (study, resource) <- getStudyWithResource(studyId)
 
             // Verificar que es propietario del resource y que no está borrado lógicamente
@@ -181,7 +158,7 @@ class StudyController @Inject() (
 
             json <- accessLevel match {
               case ResourceAccessLevel.FULL_ACCESS =>
-                // Tiene acceso completo → Muestra todo
+
                 resourceWriter.asPublic(resource, None, Some(study))
 
               case _ =>
@@ -227,9 +204,9 @@ class StudyController @Inject() (
       area: Option[String],
       authors: Option[String],
       search: Option[String],
-      userId: Option[String],
       visibility: Option[String],
       localization: Option[String],
+      userId: Option[String],
       pag: Pagination
   ): Action[AnyContent] =
     Action.async { implicit request =>
@@ -259,8 +236,7 @@ class StudyController @Inject() (
                     .map(
                       _.getOrElse(throw new ResourceNotFoundException(s"Resource not found for study ${study.id}"))
                     )
-                // Siempre devolver preview (datos básicos para el listado)
-                //Luego se pordrá acceder con más datos a cada uno de ellos.
+
                 json <- resourceWriter.asPrivate(resource, None, Some(study))
               } yield json
             }
@@ -276,7 +252,7 @@ class StudyController @Inject() (
     Action.async { implicit request =>
       withAnyOfThisRoles(Seq(Role.STUDENT, Role.PROFESSIONAL)) {
         case (_, user, _, _) =>
-          val sid = checkStudyId(studyId)
+          val sid = StudyId(studyId)
 
           for {
             // Verificar que el estudio existe
@@ -320,8 +296,8 @@ class StudyController @Inject() (
     Action.async { implicit request =>
       withAnyOfThisRoles(Seq(Role.STUDENT, Role.PROFESSIONAL)) {
         case (_, user, _, _) =>
-          val sid = checkStudyId(studyId)
-          val sampId = checkSampleId(sampleId)
+          val sid = StudyId(studyId)
+          val sampId = SampleId(sampleId)
 
           for {
             // Verificar que el estudio existe
@@ -349,7 +325,7 @@ class StudyController @Inject() (
     Action.async { implicit request =>
       withAuthenticatedUser {
         case (_, user, _) =>
-          val sid = checkStudyId(studyId)
+          val sid = StudyId(studyId)
 
           for {
             // Verificar que el estudio existe
@@ -381,7 +357,7 @@ class StudyController @Inject() (
     }
 
   private def getStudyWithResource(studyId: String): Future[(Study, Resource)] = {
-    val sid = checkStudyId(studyId)
+    val sid = StudyId(studyId)
     for {
       study <-
         studyRepository

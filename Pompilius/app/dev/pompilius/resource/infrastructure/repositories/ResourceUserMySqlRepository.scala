@@ -4,17 +4,20 @@ import dev.pompilius.resource.domain.{ResourceId, ResourceUser, ResourceUserRepo
 import dev.pompilius.shared.domain.Pagination
 import dev.pompilius.shared.infrastructure.ScalikeUtil
 import dev.pompilius.shared.infrastructure.contexts.DbExecutionContext
-import dev.pompilius.users.domain.UserId
+import dev.pompilius.users.domain.{User, UserId}
+import dev.pompilius.users.infrastructure.repositories.UserMySqlRepository
 import org.apache.pekko.Done
 import scalikejdbc._
-
-import javax.inject.{Inject, Singleton}
-import scala.concurrent.Future
 import scalikejdbc.jodatime.JodaParameterBinderFactory._
 import scalikejdbc.jodatime.JodaTypeBinder._
 
+import javax.inject.{Inject, Singleton}
+import scala.concurrent.Future
+
 @Singleton
-class ResourceUserMySqlRepository @Inject() (implicit ec: DbExecutionContext)
+class ResourceUserMySqlRepository @Inject() (
+    userMySqlRepository: UserMySqlRepository
+)(implicit ec: DbExecutionContext)
     extends ResourceUserRepository
     with SQLSyntaxSupport[ResourceUser] {
 
@@ -103,4 +106,38 @@ class ResourceUserMySqlRepository @Inject() (implicit ec: DbExecutionContext)
         }.map(apply(ru.resultName)(_)).single()
       }
     }
+
+  override def findOwnerByResource(resourceId: ResourceId): Future[Option[User]] =
+    Future {
+      DB.localTx { implicit session =>
+        val u = userMySqlRepository.syntax("u")
+
+        withSQL {
+          select(u.result.*)
+            .from(userMySqlRepository as u)
+            .innerJoin(this as ru)
+            .on(ru.userId, u.id)
+            .where
+            .eq(ru.resourceId, resourceId.id)
+            .and
+            .eq(ru.resourceUserType, ResourceUserType.OWNER.toString)
+            .and
+            .eq(ru.deleted, false)
+        }.map(userMySqlRepository.apply(u.resultName)(_)).single()
+      }
+    }
+
+  override def deleteAllResourceByUserId(userId: UserId): Future[Done] = {
+    Future {
+      DB.localTx { implicit session =>
+        withSQL {
+          update(this as ru)
+            .set(column.deleted -> true)
+            .where
+            .eq(ru.userId, userId.id)
+        }.update()
+      }
+      Done
+    }
+  }
 }
