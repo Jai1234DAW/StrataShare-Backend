@@ -33,7 +33,7 @@ POST         /:resourceId/attachments/files                             dev.pomp
 #        schema:
 #         type: object
 #         properties:
-#          images:
+#          file:
 #           type: array
 #           items:
 #            type: string
@@ -83,9 +83,12 @@ GET          /:resourceId/attachments                             dev.pompilius.
 #  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL","AMATEUR"]}
 #  responses:
 #    200:
-#      description: File downloaded successfully
-#    404:
-#      description: File or resource not found
+#      description: File
+#      content:
+#       application/octet-stream:
+#        schema:
+#         type: string
+#         format: binary
 ###
 GET          /:resourceId/attachment/:attachmentId               dev.pompilius.resource.infrastructure.controllers.ResourceController.downloadFile(resourceId: String, attachmentId: String)
 

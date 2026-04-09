@@ -53,7 +53,7 @@ PUT          /:studyId                                      dev.pompilius.study.
 #         $ref: '#/components/schemas/StudyList'
 #      description: List of studies for the user
 ###
-GET          /                                               dev.pompilius.study.infrastructure.controllers.StudyController.getAll(name:Option[String], year: Option[Int], area: Option[String], authors: Option[String], search: Option[String], visibility: Option[String], localization: Option[String], userId: Option[String], pag:Pagination)
+GET          /                                               dev.pompilius.study.infrastructure.controllers.StudyController.getAll(name:Option[String], year: Option[Int], area: Option[String], authors: Option[String], search: Option[String], visibility: Option[String], localization: Option[String],  userId: Option[String], pag:Pagination)
 
 ###
 #  summary: Get a study by ID
@@ -80,4 +80,53 @@ GET          /:studyId                                      dev.pompilius.study.
 #      description: Study not found
 ###
 DELETE       /:studyId                                      dev.pompilius.study.infrastructure.controllers.StudyController.delete(studyId: String)
+
+###
+#  summary: Add samples to a study
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL"]}
+#  requestBody:
+#      required: true
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/AddSamplesToStudyRequest'
+#  responses:
+#    200:
+#      description: Samples added successfully
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/StudySampleList'
+###
+POST         /:studyId/samples                                 dev.pompilius.study.infrastructure.controllers.StudyController.addSamples(studyId: String)
+
+###
+#  summary: Remove a sample from a study
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL"]}
+#  parameters:
+#    - name: sampleId
+#      in: path
+#      required: true
+#      schema:
+#        type: string
+#  responses:
+#    200:
+#      description: Sample removed successfully
+###
+DELETE       /:studyId/samples/:sampleId                       dev.pompilius.study.infrastructure.controllers.StudyController.removeSample(studyId: String, sampleId: String)
+
+###
+#  summary: Get all samples associated with a study
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL","AMATEUR"]}
+#  responses:
+#    200:
+#      description: Success
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/SampleList'
+###
+GET          /:studyId/samples                                 dev.pompilius.study.infrastructure.controllers.StudyController.getSamples(studyId: String, pag:Pagination)
+
+
 
