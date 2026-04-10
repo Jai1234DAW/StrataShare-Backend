@@ -32,3 +32,22 @@ mail.reset.footer.links.second=
 mail.reset.footer.links.third.link=
 mail.reset.footer.links.third=
 
+mail.barter.title=New barter request
+mail.barter.logo=https://pompilius.dev/assets/images/logo.png
+
+mail.barter.subject=New barter request from {0}
+mail.barter.hello=Hello {0},
+mail.barter.intro=User {0} has sent you a barter request.
+mail.barter.requestedResource=Requested resource: {0}
+mail.barter.offeredResource=Offered resource: {0}
+mail.barter.cta=You can review the request and decide whether to accept or reject it using this link:
+mail.barter.linkText=View barter request
+mail.barter.expiration=This request will expire soon if it is not answered.
+mail.barter.contact.intro=If you have any questions, you can contact us.
+mail.barter.contact=Contact support
+mail.barter.contact.link=https://pompilius.dev/contact
+mail.barter.contact.linkText=Go to support
+mail.barter.thanks=Thank you for using StrataShare.
+
+mail.barter.footer.firstLine=StrataShare
+mail.barter.footer.secondLine=Exchange resources in a simple and secure way.
