@@ -4,9 +4,11 @@ import dev.pompilius.Strings
 import dev.pompilius.attachment.domain.{AttachmentCheck, AttachmentRepository}
 import dev.pompilius.attachment.infrastructure.Attachments
 import dev.pompilius.attachment.infrastructure.parsers.UploadedAttachmentRequestParser
+import dev.pompilius.auth.domain.SessionRepository
 import dev.pompilius.auth.domain.exceptions.InvalidPasswordOrUsernameException
 import dev.pompilius.country.domain.Country
 import dev.pompilius.mail.domain._
+import dev.pompilius.resource.domain.ResourceUserRepository
 import dev.pompilius.shared.domain.exceptions.{BadRequestException, NotFoundException}
 import dev.pompilius.shared.domain.{Paginated, Pagination}
 import dev.pompilius.shared.infrastructure.writers.PaginatedWriter
@@ -35,6 +37,8 @@ class UserController @Inject() (
     userWriter: UserWriter,
     userRepository: UserRepository,
     mailRepository: MailRepository,
+    resourceUserRepository: ResourceUserRepository,
+    sessionRepository: SessionRepository,
     mailSentRepository: MailSentRepository,
     userAttachment: UserAttachmentRepository,
     attachmentRepository: AttachmentRepository,
@@ -304,6 +308,8 @@ class UserController @Inject() (
           )
           for {
             _ <- userRepository.save(updatedUser)
+            _ <- sessionRepository.closeAllSessions(currentUser.id, None)
+            _ <- resourceUserRepository.deleteAllResourceByUserId(currentUser.id)
           } yield {
             Ok
           }

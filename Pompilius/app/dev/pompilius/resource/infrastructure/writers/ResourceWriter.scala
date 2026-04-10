@@ -22,23 +22,29 @@ trait ResourceWriter {
 class ResourceWriterImpl @Inject() ()(implicit val ec: ExecutionContext) extends ResourceWriter {
 
   // Método privado: Construir JSON base del recurso (sin datos específicos)
-  private def buildBaseResourceJson(resource: Resource): JsValue = {
-    Json.obj(
-      List(
-        toJsValueWrapper(Strings.resourceId, resource.id.toString),
-        toJsValueWrapper(Strings.resourceType, resource.resourceType.toString),
-        toJsValueWrapper(Strings.visibility, resource.visibility.toString),
-        toJsValueWrapper(Strings.localization, resource.localization),
-        toJsValueWrapper(Strings.observations, resource.observations),
-        toJsValueWrapper(Strings.summary, resource.summary),
-        toJsValueWrapper(Strings.created, resource.created),
-        toJsValueWrapper(Strings.updated, resource.updated)
-      ).flatten: _*
-    )
-  }
+  private def buildBaseResourceJson(resource: Resource): JsObject = {
+      Json.obj(
+        List(
+          toJsValueWrapper(Strings.resourceId, resource.id.toString),
+          toJsValueWrapper(Strings.resourceType, resource.resourceType.toString),
+          toJsValueWrapper(Strings.visibility, resource.visibility.toString),
+          toJsValueWrapper(Strings.localization, resource.localization),
+          toJsValueWrapper(Strings.observations, resource.observations),
+          toJsValueWrapper(Strings.summary, resource.summary),
+          toJsValueWrapper(Strings.created, resource.created),
+          toJsValueWrapper(Strings.updated, resource.updated)
+        ).flatten: _*
+      )
+    }
+
 
   // Método privado: Agregar datos específicos (sample o study) al JSON base
-  private def withSpecificData(baseJson: JsValue, sample: Option[Sample], study: Option[Study], fullAccess: Boolean): JsValue = {
+  private def withSpecificData(
+      baseJson: JsValue,
+      sample: Option[Sample],
+      study: Option[Study],
+      fullAccess: Boolean
+  ): JsValue = {
     val specificData = if (fullAccess) {
       buildSpecificDataFull(sample, study)
     } else {
@@ -126,7 +132,7 @@ class ResourceWriterImpl @Inject() ()(implicit val ec: ExecutionContext) extends
   }
 
   // Sample: PREVIEW (lo básico para usuarios sin acceso)
-  private def buildSampleJsonPreview(sample: Sample): JsValue = {
+  private def buildSampleJsonPreview(sample: Sample): JsObject = {
     Json.obj(
       List(
         toJsValueWrapper(Strings.id, sample.id.toString),
@@ -139,7 +145,7 @@ class ResourceWriterImpl @Inject() ()(implicit val ec: ExecutionContext) extends
   }
 
   // Sample: COMPLETO (para owner/comprador/público en caso de estarlo)
-  private def buildSampleJsonFull(sample: Sample): JsValue = {
+  private def buildSampleJsonFull(sample: Sample): JsObject = {
     Json.obj(
       List(
         toJsValueWrapper(Strings.id, sample.id.toString),
