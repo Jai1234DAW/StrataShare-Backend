@@ -1,33 +1,36 @@
 package dev.pompilius.transaction.infrastructure
 
 import com.google.inject.ImplementedBy
-import dev.pompilius.Strings.isPublic
-import dev.pompilius.barter.domain.{BarterData, BarterNotAllowException}
+import dev.pompilius.barter.domain.exception.BarterNotAllowException
+import dev.pompilius.barter.domain.{Barter, BarterData}
 import dev.pompilius.resource.domain._
 import dev.pompilius.resource.domain.exceptions.{ResourceNotAllowedException, ResourceNotFoundException}
 import dev.pompilius.resource.infrastructure.ResourceAccessValidator
-import dev.pompilius.shared.domain.exceptions.ForbiddenException
-import dev.pompilius.shared.domain.Pagination
 import dev.pompilius.shared.domain.Visibility.PUBLIC
-import dev.pompilius.transaction.domain.{TransactionFilter, TransactionRepository, TransactionStatus}
-import dev.pompilius.users.domain.{User, UserId}
+import dev.pompilius.shared.domain.exceptions.ForbiddenException
+import dev.pompilius.shared.domain.{Clock, Pagination}
+import dev.pompilius.transaction.domain.{Transaction, TransactionFilter, TransactionRepository, TransactionStatus}
 import dev.pompilius.users.domain.exceptions.UserNotFoundException
+import dev.pompilius.users.domain.{User, UserId}
+import org.apache.pekko.Done
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
-@ImplementedBy(classOf[TransactionValidatorImpl])
-trait TransactionValidator {
+@ImplementedBy(classOf[TransactionUtilsImpl])
+trait TransactionUtils {
   def verifyNotPendingTransaction(resourceId: ResourceId, userId: UserId): Future[Unit]
   def isAbleToBarter(resourceId: ResourceId, buyer: User, offeredResourceId: ResourceId): Future[BarterData]
+  def transactionTrans(transaction: Transaction, barter: Barter): Future[Done]
 }
 
 @Singleton
-class TransactionValidatorImpl @Inject() (
+class TransactionUtilsImpl @Inject() (
     transactionRepository: TransactionRepository,
     resourceRepository: ResourceRepository,
     resourceUserRepository: ResourceUserRepository,
-    resourceAccessValidator: ResourceAccessValidator
+    resourceAccessValidator: ResourceAccessValidator,
+    clock: Clock
 )(implicit ec: ExecutionContext)
     extends TransactionValidator {
 
@@ -67,8 +70,7 @@ class TransactionValidatorImpl @Inject() (
 
   private def validateResourceIsNotPublic(resource: Resource): Future[Unit] = {
     if (resource.visibility == PUBLIC) {
-      Future.failed(
-        new BarterNotAllowException("This resource is public, does not require a barter"))
+      Future.failed(new BarterNotAllowException("This resource is public, does not require a barter"))
     } else {
       Future.unit
     }
@@ -94,7 +96,7 @@ class TransactionValidatorImpl @Inject() (
 
       _ <- resourceAccessValidator.validateResourceIsActive(resourceId, owner.id)
 
-    _ <-validateResourceIsNotPublic(requestedResource)
+      _ <- validateResourceIsNotPublic(requestedResource)
 
       //Recurso ofrecido
       offeredResource <-
@@ -110,7 +112,7 @@ class TransactionValidatorImpl @Inject() (
 
       _ <- validateNotSelfTransaction(owner.id, buyer.id)
 
-      _ <-validateResourceIsNotPublic(offeredResource)
+      _ <- validateResourceIsNotPublic(offeredResource)
 
       _ <- resourceAccessValidator.validateAlreadyHaveAccess(resourceId, buyer.id)
 
@@ -123,5 +125,29 @@ class TransactionValidatorImpl @Inject() (
         seller = owner
       )
     } yield data
+  }
+
+  override def transactionTrans(transaction: Transaction, barter: Barter): Future[Done] = {
+    resourceUserRepository
+      .save(
+        ResourceUser(
+          resourceId = transaction.resourceId,
+          userId = transaction.buyerId,
+          resourceUserType = ResourceUserType.PURCHASED,
+          created = clock.now
+        )
+      )
+
+    resourceUserRepository
+      .save(
+        ResourceUser(
+          resourceId = barter.offeredResourceId,
+          userId = transaction.sellerId,
+          resourceUserType = ResourceUserType.ACCEPTED_AS_PAYMENT,
+          created = clock.now
+        )
+      )
+
+    transactionRepository.updateStatus(transaction.id, TransactionStatus.COMPLETED)
   }
 }
