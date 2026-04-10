@@ -31,3 +31,23 @@ mail.reset.footer.links.second.link=
 mail.reset.footer.links.second=
 mail.reset.footer.links.third.link=
 mail.welcome.footer=El equipo de StrataShare
+
+mail.barter.title=Nueva solicitud de trueque
+mail.barter.logo=https://pompilius.dev/assets/images/logo.png
+
+mail.barter.subject=Nuevo trueque: {0} te ha enviado una solicitud de trueque
+mail.barter.hello=Hola {0},
+mail.barter.intro=El usuario {0} te ha enviado una solicitud de trueque.
+mail.barter.requestedResource=Recurso solicitado: {0}
+mail.barter.offeredResource=Recurso ofrecido: {0}
+mail.barter.cta=Puedes revisar la solicitud y decidir si quieres aceptarla o rechazarla desde este enlace:
+mail.barter.linkText=Ver solicitud de trueque
+mail.barter.expiration=Esta solicitud caducará próximamente si no se responde.
+mail.barter.contact.intro=Si tienes alguna duda, puedes contactarnos.
+mail.barter.contact=Contacta con soporte
+mail.barter.contact.link=https://pompilius.dev/contact
+mail.barter.contact.linkText=Ir a soporte
+mail.barter.thanks=Gracias por usar Pompilius.
+
+mail.barter.footer.firstLine=Pompilius
+mail.barter.footer.secondLine=Intercambia recursos de forma sencilla y segura.

@@ -16,3 +16,53 @@
 #         $ref: '#/components/schemas/BarterRequestResponse'
 ###
 POST         /create                                        dev.pompilius.barter.infrastructure.controllers.BarterController.create()
+
+###
+#  summary: Accept a barter request
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL"]}
+#  requestBody:
+#      required: true
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/AcceptBarterRequest'
+#  responses:
+#    200:
+#      description: Barter accepted successfully
+###
+POST         /:barterId/accept                              dev.pompilius.barter.infrastructure.controllers.BarterController.acceptBarter(barterId: String)
+
+###
+#  summary: Reject a barter request
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL"]}
+#  requestBody:
+#      required: true
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/AcceptBarterRequest'
+#  responses:
+#    200:
+#      description: Barter rejected successfully
+###
+POST         /:barterId/deny                                dev.pompilius.barter.infrastructure.controllers.BarterController.denyBarter(barterId: String)
+
+###
+#  summary: Cancel a barter before it's accepted
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL"]}
+#  responses:
+#    200:
+#      description: Barter cancelled successfully
+###
+DELETE       /:barterId/cancel                              dev.pompilius.barter.infrastructure.controllers.BarterController.cancel(transactionId : String, barterId: String)
+
+###
+#  summary: Get all successful barters for the current user
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL"]}
+#  responses:
+#    200:
+#      description: List of successful barters
+###
+GET          /successful                                    dev.pompilius.barter.infrastructure.controllers.BarterController.getAllSuccessfulBarters(pag:Pagination)
+
+
