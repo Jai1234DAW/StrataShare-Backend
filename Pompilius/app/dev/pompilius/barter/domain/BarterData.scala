@@ -1,6 +1,7 @@
 package dev.pompilius.barter.domain
 
 import dev.pompilius.resource.domain.Resource
+import dev.pompilius.transaction.domain.Transaction
 import dev.pompilius.users.domain.User
 
 case class BarterData(

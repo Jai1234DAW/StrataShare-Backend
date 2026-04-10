@@ -2,18 +2,27 @@ package dev.pompilius.barter.infrastructure.controllers
 
 import dev.pompilius.Strings
 import dev.pompilius.auth.domain.MailToken
+import dev.pompilius.auth.infrastructure.parsers.{MailTokenParser, PasswordResetRequestParser}
 import dev.pompilius.auth.infrastructure.writers.MailTokenWriter
+import dev.pompilius.barter.domain.exception.{
+  BarterAlreadyCompletedException,
+  BarterNotAllowException,
+  BarterNotFoundException,
+  BarterRejectedException
+}
 import dev.pompilius.barter.domain.{Barter, BarterData, BarterId, BarterRepository}
-import dev.pompilius.barter.infrastructure.parsers.CreateBarterRequestParser
+import dev.pompilius.barter.infrastructure.parsers.{AcceptMailBarterRequestParser, CreateBarterRequestParser}
 import dev.pompilius.barter.infrastructure.writers.BarterWriter
 import dev.pompilius.mail.domain.{Mail, MailAddress, MailContent, MailSubject}
 import dev.pompilius.mail.infrastructure.repositories.MailSmtpRepository
-import dev.pompilius.payment.domain.Gateway
 import dev.pompilius.resource.domain.ResourceId
+import dev.pompilius.shared.domain.Pagination
+import dev.pompilius.shared.domain.exceptions.BadRequestException
 import dev.pompilius.shared.infrastructure.{BaseController, UrlUtil}
 import dev.pompilius.transaction.domain._
-import dev.pompilius.transaction.infrastructure.TransactionValidator
-import dev.pompilius.users.domain.Role
+import dev.pompilius.transaction.domain.exceptions.TransactionNotFoundException
+import dev.pompilius.transaction.infrastructure.TransactionService
+import dev.pompilius.users.domain.{Role, User}
 import play.api.Logger
 import play.api.i18n.{Lang, MessagesImpl}
 import play.api.libs.json.Json
@@ -27,7 +36,7 @@ import scala.util.control.NonFatal
 class BarterController @Inject() (
     barterRepository: BarterRepository,
     transactionRepository: TransactionRepository,
-    transactionValidator: TransactionValidator,
+    transactionService: TransactionService,
     barterWriter: BarterWriter,
     mailTokenWriter: MailTokenWriter,
     mailSmtpRepository: MailSmtpRepository
@@ -47,7 +56,7 @@ class BarterController @Inject() (
 
           for {
             // Validar que el trueque es posible (incluye todas las validaciones de negocio)
-            data <- transactionValidator.isAbleToBarter(resourceId, user, offeredResourceId)
+            data <- transactionService.isAbleToBarter(resourceId, user, offeredResourceId)
 
             // Generar IDs
             transactionId = TransactionId.gen(configuration.nodeId)
@@ -83,28 +92,30 @@ class BarterController @Inject() (
                 transactionRepository.delete(transactionId).map(_ => throw e)
             }
 
-            // Enviar notificación por email al vendedor
-//            _ <- sendBarterRequestMail(data).recover {
-//              case e: Throwable =>
-//                // Log el error pero no falla la operación si el email falla
-//                logger.warn(s"Failed to send barter notification email: ${e.getMessage}")
-//                ()
-//            }
+            //Enviar notificación por email al vendedor
+            _ <- sendBarterRequestMail(data, barterId, transactionId).recover {
+              case e: Throwable =>
+                // Log el error pero no falla la operación si el email falla
+                logger.warn(s"Failed to send barter notification email: ${e.getMessage}")
+                ()
+            }
 
-            json <- barterWriter.asJson(barter, transaction, data.requestedResource)
+            json <- barterWriter.asJson(barter, transaction)
 
           } yield Ok(json)
       }
     }
 
   private def sendBarterRequestMail(
-      data: BarterData
+      data: BarterData,
+      barterId: BarterId,
+      transactionId: TransactionId
   ): Future[Unit] = {
     for {
       token <- mailTokenWriter.toString(
         MailToken(
           data.seller.email,
-          clock.now.plusMillis(configuration.auth.resetLinkDuration.toMillis.toInt)
+          clock.now.plusMillis(configuration.barter.requestLinkDuration.toMillis.toInt)
         ),
         configuration.mails.tokenSecretKey
       )
@@ -115,24 +126,26 @@ class BarterController @Inject() (
         configuration.barter.purchaseResourceUrl,
         Map(
           Strings.token -> token,
-          "buyerId" -> data.buyer.id.toString,
-          "requestedResourceId" -> data.requestedResource.id.toString,
-          "offeredResourceId" -> data.offeredResource.id.toString
+          Strings.barterId -> barterId.toString,
+          Strings.transactionId -> transactionId.toString,
+          Strings.buyerId -> data.buyer.id.toString,
+          Strings.requestedResourceId -> data.requestedResource.id.toString,
+          Strings.offeredResourceId -> data.offeredResource.id.toString
         )
       )
 
       mailContent = dev.pompilius.barter.infrastructure.views.html.request_barter_email(
         sellerName = data.seller.username,
         buyerName = data.buyer.username,
-        requestedResourceTitle = data.requestedResource.summary.getOrElse(""),
-        offeredResourceTitle = data.offeredResource.summary.getOrElse(""),
+        requestedResourceTitle = data.requestedResource.summary.getOrElse("A resource from your list of resources"),
+        offeredResourceTitle = data.offeredResource.summary.getOrElse("Is offering a sample rock or a study"),
         link = link
       )(messages)
 
       mail = Mail(
         to = MailAddress(
           address = data.seller.email,
-          name = None
+          name = Some(data.seller.username)
         ),
         subject = Some(MailSubject(messages("mail.barter.subject", data.buyer.username))),
         content = MailContent(
@@ -144,4 +157,208 @@ class BarterController @Inject() (
       _ <- mailSmtpRepository.sendMail(mail)
     } yield ()
   }
+
+  def acceptBarter(barterId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      withAnyOfThisRoles(Seq(Role.STUDENT, Role.PROFESSIONAL)) {
+        case (_, user, _, _) =>
+          val acceptRequest = AcceptMailBarterRequestParser.parse(request)
+
+          // Validar el token del email
+          val mailToken = MailTokenParser.parse(acceptRequest.token, configuration.mails.tokenSecretKey)
+
+          // Validar que el email del token coincide con el email enviado
+          if (!mailToken.mail.equalsIgnoreCase(acceptRequest.email)) {
+            throw new BadRequestException("The email does not match the token")
+          }
+
+          // Validar que el email coincide con el usuario logueado
+          if (!acceptRequest.email.equalsIgnoreCase(user.email)) {
+            throw new BadRequestException("The email does not match your account")
+          }
+
+          if (mailToken.expires.isBefore(clock.now)) {
+            throw new BadRequestException("Token expired")
+          }
+
+          val idB = BarterId(barterId)
+          val idT = TransactionId(acceptRequest.transactionId)
+
+          for {
+            transaction <-
+              transactionRepository
+                .findById(idT)
+                .map(_.getOrElse(throw new BadRequestException("Transaction not found")))
+
+            barter <-
+              barterRepository
+                .findByTransactionId(idT)
+                .map(_.getOrElse(throw new BadRequestException("Barter not found")))
+
+            _ = if (barter.barterId != idB) {
+              throw new BarterNotAllowException("Barter ID does not match Transaction")
+            }
+
+            // Validar que el usuario es el vendedor
+            _ = if (transaction.sellerId != user.id) {
+              throw new BarterNotAllowException("Only the seller can accept the barter")
+            }
+
+            // Validar que el trueque está pendiente
+            _ = if (transaction.transactionStatus != TransactionStatus.PENDING) {
+              throw new BarterAlreadyCompletedException("Only pending barters can be accepted")
+            }
+
+            // Validar que no fue rechazado previamente
+            _ = if (barter.rejectedAt.isDefined) {
+              throw new BarterRejectedException("Barter was already rejected and cannot be accepted")
+            }
+
+            // Transferir recursos (en transacción atómica)
+            _ <- transactionService.transactionTrans(transaction, barter)
+
+            json <- barterWriter.asJsonComplete(barter, transaction)
+
+          } yield Ok(json)
+      }
+    }
+
+  def denyBarter(barterId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      withAnyOfThisRoles(Seq(Role.STUDENT, Role.PROFESSIONAL)) {
+        case (_, user, _, _) =>
+          val denyRequest = AcceptMailBarterRequestParser.parse(request)
+
+          // Validar el token del email
+          val mailToken = MailTokenParser.parse(denyRequest.token, configuration.mails.tokenSecretKey)
+
+          if (!mailToken.mail.equalsIgnoreCase(user.email)) {
+            throw new BadRequestException("The email token does not match your account")
+          }
+
+          if (mailToken.expires.isBefore(clock.now)) {
+            throw new BadRequestException("Token expired")
+          }
+
+          val idB = BarterId(barterId)
+          val idT = TransactionId(denyRequest.transactionId)
+
+          for {
+            transaction <-
+              transactionRepository
+                .findById(idT)
+                .map(_.getOrElse(throw new BadRequestException("Transaction not found")))
+
+            barter <-
+              barterRepository
+                .findByTransactionId(idT)
+                .map(_.getOrElse(throw new BadRequestException("Barter not found")))
+
+            _ = if (barter.barterId != idB) {
+              throw new BarterNotAllowException("Barter ID does not match Transaction")
+            }
+
+            // Validar que el usuario es el vendedor
+            _ = if (transaction.sellerId != user.id) {
+              throw new BarterNotAllowException("Only the seller can reject the barter")
+            }
+
+            // Validar que el trueque está pendiente
+            _ = if (transaction.transactionStatus != TransactionStatus.PENDING) {
+              throw new BarterAlreadyCompletedException("Only pending barters can be rejected")
+            }
+
+            // Marcar el trueque como rechazado
+            updatedBarter = barter.copy(rejectedAt = Some(clock.now))
+            _ <- barterRepository.save(updatedBarter)
+
+            // Actualizar transaction a REJECTED
+            _ <- transactionRepository.updateStatus(idT, TransactionStatus.REJECTED)
+
+          } yield Ok
+      }
+    }
+
+  def getAllSuccessfulBarters(pag: Pagination): Action[AnyContent] =
+    Action.async { implicit request =>
+      withAnyOfThisRoles(Seq(Role.STUDENT, Role.PROFESSIONAL)) {
+        case (_, user, _, _) =>
+          for {
+            transactions <- transactionRepository.find(
+              TransactionFilter(
+                buyerId = None,
+                sellerId = Some(user.id),
+                resourceId = None,
+                transactionType = None,
+                transactionStatus = None
+              ),
+              pag.oneMore
+            )
+
+            barters <- Future.sequence(
+              transactions.map { t =>
+                barterRepository.findByTransactionId(t.id).map(_.get)
+              }
+            )
+
+            successfulBarters = barters.filter { b =>
+              transactions
+                .find(t => t.id == b.transactionId)
+                .exists(_.transactionStatus == TransactionStatus.COMPLETED)
+            }
+
+
+            jsons <- Future.sequence(
+              successfulBarters.map { b =>
+                transactionRepository
+                  .findById(b.transactionId)
+                  .map(_.get)
+                  .flatMap(t => barterWriter.asJsonComplete(b, t))
+              }
+            )
+          } yield Ok(Json.toJson(jsons))
+      }
+    }
+
+  //Esto es para cancelar un trueque antes de que el vendedor lo acepte.
+  def cancel(transactionId: String, barterId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      withAuthenticatedUser {
+        case (_, user, _) =>
+          val eid = TransactionId(transactionId)
+          val bId = BarterId(barterId)
+
+          for {
+            transaction <-
+              transactionRepository
+                .findById(eid)
+                .map(_.getOrElse(throw new TransactionNotFoundException("Transaction not found")))
+
+            barter <-
+              barterRepository
+                .findByTransactionId(eid)
+                .map(_.getOrElse(throw new BarterNotFoundException("Barter not found")))
+
+            _ = if (barter.barterId != bId) {
+              throw new BarterNotFoundException("Barter ID does not match Transaction")
+            }
+
+            // Validar que el usuario es el comprador
+            _ = if (transaction.buyerId != user.id) {
+              throw new BarterNotAllowException("Only the buyer can cancel the barter")
+            }
+
+            // Validar que el trueque está pendiente
+            _ = if (transaction.transactionStatus != TransactionStatus.PENDING) {
+              throw new BarterNotAllowException("Only pending barters can be cancelled")
+            }
+
+            // Actualizar Transaction a CANCELLED
+            _ <- transactionRepository.updateStatus(transaction.id, TransactionStatus.CANCELLED)
+            //Se puede enviar una notificacion al vendedor, pero esto no es critico
+
+          } yield Ok(Json.obj("message" -> "Trueque cancelado exitosamente"))
+      }
+    }
+
 }

@@ -1,4 +1,4 @@
-package dev.pompilius.barter.domain
+package dev.pompilius.barter.domain.exception
 
 import dev.pompilius.shared.domain.exceptions.ForbiddenException
 
