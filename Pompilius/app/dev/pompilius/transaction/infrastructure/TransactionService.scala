@@ -17,22 +17,22 @@ import org.apache.pekko.Done
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
-@ImplementedBy(classOf[TransactionUtilsImpl])
-trait TransactionUtils {
+@ImplementedBy(classOf[TransactionServImpl])
+trait TransactionService {
   def verifyNotPendingTransaction(resourceId: ResourceId, userId: UserId): Future[Unit]
   def isAbleToBarter(resourceId: ResourceId, buyer: User, offeredResourceId: ResourceId): Future[BarterData]
   def transactionTrans(transaction: Transaction, barter: Barter): Future[Done]
 }
 
 @Singleton
-class TransactionUtilsImpl @Inject() (
+class TransactionServImpl @Inject() (
     transactionRepository: TransactionRepository,
     resourceRepository: ResourceRepository,
     resourceUserRepository: ResourceUserRepository,
     resourceAccessValidator: ResourceAccessValidator,
     clock: Clock
 )(implicit ec: ExecutionContext)
-    extends TransactionValidator {
+    extends TransactionService {
 
   override def verifyNotPendingTransaction(resourceId: ResourceId, userId: UserId): Future[Unit] = {
     val transactionFilter = TransactionFilter(
