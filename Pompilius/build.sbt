@@ -78,6 +78,9 @@ libraryDependencies += "commons-io" % "commons-io" % "2.18.0"
 libraryDependencies += "org.apache.commons" % "commons-email" % "1.6.0"
 libraryDependencies += "com.sun.activation" % "javax.activation" % "1.2.0"
 
+// https://mvnrepository.com/artifact/com.stripe/stripe-java
+libraryDependencies += "com.stripe" % "stripe-java" % "29.3.0"
+
 // Para solucionar problemas de dependencias con scala-parser-combinators entre Play y ScalikeJDBC
 dependencyOverrides += "org.scala-lang.modules" %% "scala-parser-combinators" % "2.4.0"
 
