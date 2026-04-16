@@ -1,5 +1,6 @@
 package dev.pompilius.payment.domain
 
+import dev.pompilius.gateways.domain.Gateway
 import dev.pompilius.transaction.domain.TransactionId
 import dev.pompilius.users.domain.UserId
 
@@ -11,7 +12,6 @@ case class PaymentFilter(
     currency: Option[String] = None,
     instrument: Option[String] = None, // "card", "wallet", "paypal"
     couponCode: Option[String] = None,
-    refunded: Option[Boolean] = None,
     withDiscount: Option[Boolean] = None, // discount > 0
 
     // Rangos de montos

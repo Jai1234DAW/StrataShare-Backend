@@ -1,5 +1,6 @@
 package dev.pompilius.payment.infrastructure.repositories
 
+import dev.pompilius.gateways.domain.Gateway
 import dev.pompilius.payment.domain._
 import dev.pompilius.shared.domain.Pagination
 import dev.pompilius.shared.infrastructure.ScalikeUtil
@@ -32,17 +33,13 @@ class PaymentMySqlRepository @Inject() ()(implicit dbExecutionContext: DbExecuti
       transactionId = TransactionId(rs.get[Long](p.transactionId)),
       gateway = Gateway.withNameInsensitive(rs.get[String](p.gateway)),
       gatewayPaymentId = rs.get[String](p.gatewayPaymentId),
-      price = rs.get[BigDecimal](p.price),
       amount = rs.get[BigDecimal](p.amount),
-      discount = rs.get[BigDecimal](p.discount),
       netAmount = rs.get[BigDecimal](p.netAmount),
       currency = rs.get[String](p.currency),
-      exchangeRate = rs.get[BigDecimal](p.exchangeRate),
-      couponCode = rs.get[Option[String]](p.couponCode),
-      buyerReference = rs.get[Option[String]](p.buyerReference),
-      instrument = rs.get[Option[String]](p.instrument),
       receiptUrl = rs.get[Option[String]](p.receiptUrl),
+      instrument = rs.get[Option[String]](p.instrument),
       refunded = rs.get[Boolean](p.refunded),
+      refundedAmount = rs.get[BigDecimal](p.refundedAmount),
       created = rs.get[DateTime](p.created),
       updated = rs.get[DateTime](p.updated),
       metadata = rs.get[Option[String]](p.metadata)
@@ -58,17 +55,13 @@ class PaymentMySqlRepository @Inject() ()(implicit dbExecutionContext: DbExecuti
           column.transactionId -> payment.transactionId.id,
           column.gateway -> payment.gateway.toString,
           column.gatewayPaymentId -> payment.gatewayPaymentId,
-          column.price -> payment.price,
           column.amount -> payment.amount,
-          column.discount -> payment.discount,
           column.netAmount -> payment.netAmount,
           column.currency -> payment.currency,
-          column.exchangeRate -> payment.exchangeRate,
-          column.couponCode -> payment.couponCode,
-          column.buyerReference -> payment.buyerReference,
-          column.instrument -> payment.instrument,
           column.receiptUrl -> payment.receiptUrl,
+          column.instrument -> payment.instrument,
           column.refunded -> payment.refunded,
+          column.refundedAmount -> payment.refundedAmount,
           column.created -> payment.created,
           column.updated -> payment.updated,
           column.metadata -> payment.metadata
@@ -132,12 +125,6 @@ class PaymentMySqlRepository @Inject() ()(implicit dbExecutionContext: DbExecuti
     val gatewayPaymentIdFilter = filter.gatewayPaymentId.map(id => sqls.eq(p.gatewayPaymentId, id))
     val currencyFilter = filter.currency.map(c => sqls.eq(p.currency, c))
     val instrumentFilter = filter.instrument.map(i => sqls.eq(p.instrument, i))
-    val couponCodeFilter = filter.couponCode.map(c => sqls.eq(p.couponCode, c))
-    val refundedFilter = filter.refunded.map(r => sqls.eq(p.refunded, r))
-    val withDiscountFilter = filter.withDiscount.map { wd =>
-      if (wd) sqls.gt(p.discount, BigDecimal(0))
-      else sqls.eq(p.discount, BigDecimal(0))
-    }
     val minAmountFilter = filter.minAmount.map(min => sqls.ge(p.amount, min))
     val maxAmountFilter = filter.maxAmount.map(max => sqls.le(p.amount, max))
 
@@ -147,9 +134,6 @@ class PaymentMySqlRepository @Inject() ()(implicit dbExecutionContext: DbExecuti
       gatewayPaymentIdFilter,
       currencyFilter,
       instrumentFilter,
-      couponCodeFilter,
-      refundedFilter,
-      withDiscountFilter,
       minAmountFilter,
       maxAmountFilter
     ).flatten

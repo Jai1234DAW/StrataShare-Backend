@@ -1,14 +1,15 @@
 package dev.pompilius.payment.domain.request
 
+import dev.pompilius.gateways.domain.Gateway
 import dev.pompilius.resource.domain.ResourceId
-import dev.pompilius.transaction.domain.{TransactionStatus, TransactionType}
-import dev.pompilius.users.domain.UserId
+import dev.pompilius.shared.domain.RequestFingerprint
 
 case class CreatePaymentRequest(
-    transactionType: TransactionType,
-    transactionStatus: TransactionStatus,
-    sellerId: UserId,
-    buyerId: UserId,
     resourceId: ResourceId,
-    metadata: Option[String] = None
+    gateway: Gateway,
+    buyerReference: Option[String],
+    instrument: Option[String],
+    //couponCode: Option[String],
+    returnUrlParams: Option[Map[String, String]],
+    extraInfo: Option[String],
 )
