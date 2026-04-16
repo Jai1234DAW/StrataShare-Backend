@@ -28,17 +28,19 @@ object UrlUtil {
 
   def redactUrl(url: String): String = {
     val uri = Uri(url)
-    uri.withQuery(Query(uri.query().toMap.map {
-      case (key, _) if key.toLowerCase.contains("password") => (key, "********")
-      case (key, _) if key.toLowerCase.contains("token") => (key, "********")
-      case (key, _) if key.toLowerCase.contains("key") => (key, "********")
-      case (key, _) if key.toLowerCase.contains("apikey") => (key, "********")
-      case (key, _) if key.toLowerCase.contains("api-key") => (key, "********")
-      case (key, _) if key.toLowerCase.contains("secret") => (key, "********")
-      case (key, _) if key.toLowerCase.contains("code") => (key, "********")
-      case (key, _) if key.toLowerCase.contains("pin") => (key, "********")
-      case (key, value) => (key, value)
-    })).toString
+    uri
+      .withQuery(Query(uri.query().toMap.map {
+        case (key, _) if key.toLowerCase.contains("password") => (key, "********")
+        case (key, _) if key.toLowerCase.contains("token")    => (key, "********")
+        case (key, _) if key.toLowerCase.contains("key")      => (key, "********")
+        case (key, _) if key.toLowerCase.contains("apikey")   => (key, "********")
+        case (key, _) if key.toLowerCase.contains("api-key")  => (key, "********")
+        case (key, _) if key.toLowerCase.contains("secret")   => (key, "********")
+        case (key, _) if key.toLowerCase.contains("code")     => (key, "********")
+        case (key, _) if key.toLowerCase.contains("pin")      => (key, "********")
+        case (key, value)                                     => (key, value)
+      }))
+      .toString
   }
 
   def interpolateVariables(

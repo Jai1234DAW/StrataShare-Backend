@@ -213,4 +213,29 @@ class PlayConfiguration @Inject() (
     requestLinkDuration = playConfig.get[FiniteDuration]("barter.requestLinkDuration"),
     purchaseResourceUrl = playConfig.get[String]("barter.purchaseResourceUrl")
   )
+
+  // Stripe
+  override val stripe: Stripe = Stripe(
+    sandbox = playConfig.get[Boolean]("stripe.sandbox"),
+    secretKey = playConfig.get[String]("stripe.secretKey"),
+    publishableKey = playConfig.get[String]("stripe.publishableKey"),
+    webhookSecret = playConfig.get[String]("stripe.webhookSecret"),
+    apiUrl = playConfig.get[String]("stripe.apiUrl"),
+    currency = playConfig.get[String]("stripe.currency")
+  )
+
+  // Payments
+  override val payments: Payments = Payments(
+    //allowedOneTimePaymentGateways = playConfig.get[Seq[play.api.Configuration]]("payments.allowedOneTimePaymentGateways").toList,
+    paymentCompletedUrl = playConfig.get[String]("payments.paymentCompletedUrl"),
+    paymentCanceledUrl = playConfig.get[String]("payments.paymentCanceledUrl"),
+    currency = playConfig.get[String]("payments.currency"),
+    defaultFee = BigDecimal(playConfig.get[Double]("payments.defaultFee")),
+    feeOwnPlatform = BigDecimal(playConfig.get[Double]("payments.feeOwnPlatform"))
+  )
+
+  override val gatewaySurcharges: GatewaySurcharges = GatewaySurcharges(
+    stripeSurchargePercentage = BigDecimal(playConfig.get[Double]("gatewaySurcharges.stripeSurchargePercentage")),
+    stripeSurchargeFixed = BigDecimal(playConfig.get[Double]("gatewaySurcharges.stripeSurchargeFixed"))
+  )
 }

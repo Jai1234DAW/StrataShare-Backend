@@ -40,7 +40,7 @@ object ReadsUtil {
 
   // Valida la contraseña: longitud máxima
   def password(implicit reads: Reads[String]): Reads[String] =
-    Reads.maxLength[String](256)
+    Reads.minLength(8) keepAnd Reads.maxLength[String](256)
 
   // Valida el email: formato y longitud máxima
   def email(implicit reads: Reads[String]): Reads[String] =
@@ -230,5 +230,21 @@ object ReadsUtil {
     Reads.maxLength[String](512)
 
   def nameSection(implicit reads: Reads[String]): Reads[String] =
+    Reads.maxLength[String](256)
+
+  def buyerReference(implicit reads: Reads[String]): Reads[String] =
+    Reads.maxLength[String](255)
+
+
+  def paymentInstrument(implicit reads: Reads[String]): Reads[String] =
+    Reads.maxLength[String](255)
+
+  def couponCode(implicit reads: Reads[String]): Reads[String] =
+    Reads.pattern(
+      Strings.couponCodeRegex,
+      "error.couponCode"
+    ) keepAnd Reads.minLength[String](4) keepAnd Reads.maxLength[String](32)
+
+  def extraInfo(implicit reads: Reads[String]): Reads[String] =
     Reads.maxLength[String](256)
 }
