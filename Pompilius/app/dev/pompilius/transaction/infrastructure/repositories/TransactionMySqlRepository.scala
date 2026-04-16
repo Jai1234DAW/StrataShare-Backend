@@ -42,7 +42,7 @@ class TransactionMySqlRepository @Inject() ()(implicit dbExecutionContext: DbExe
       sellerId = UserId(rs.get[Long](t.sellerId)),
       buyerId = UserId(rs.get[Long](t.buyerId)),
       resourceId = ResourceId(rs.get[Long](t.resourceId)),
-      fee = rs.get[BigDecimal](t.fee),
+      fee = rs.getOpt[BigDecimal](t.fee),
       created = rs.get[DateTime](t.created),
       updated = rs.get[DateTime](t.updated),
       metadata = rs.get[Option[String]](t.metadata),

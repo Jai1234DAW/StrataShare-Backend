@@ -3,7 +3,6 @@ package dev.pompilius.transaction.domain
 import com.google.inject.ImplementedBy
 import dev.pompilius.shared.domain.Pagination
 import dev.pompilius.transaction.infrastructure.repositories.TransactionMySqlRepository
-import dev.pompilius.users.domain.UserId
 import org.apache.pekko.Done
 
 import scala.concurrent.Future
