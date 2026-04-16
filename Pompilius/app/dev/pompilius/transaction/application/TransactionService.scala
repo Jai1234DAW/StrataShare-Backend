@@ -1,4 +1,4 @@
-package dev.pompilius.transaction.infrastructure
+package dev.pompilius.transaction.application
 
 import com.google.inject.ImplementedBy
 import dev.pompilius.barter.domain.exception.BarterNotAllowException
