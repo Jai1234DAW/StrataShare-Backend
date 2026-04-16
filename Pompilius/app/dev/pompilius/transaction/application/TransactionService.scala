@@ -11,7 +11,7 @@ import dev.pompilius.shared.domain.exceptions.ForbiddenException
 import dev.pompilius.shared.domain.{Clock, Pagination}
 import dev.pompilius.transaction.domain.{Transaction, TransactionFilter, TransactionRepository, TransactionStatus}
 import dev.pompilius.users.domain.exceptions.UserNotFoundException
-import dev.pompilius.users.domain.{User, UserId}
+import dev.pompilius.users.domain.{User, UserId, UserRepository}
 import org.apache.pekko.Done
 
 import javax.inject.{Inject, Singleton}
@@ -21,6 +21,7 @@ import scala.concurrent.{ExecutionContext, Future}
 trait TransactionService {
   def verifyNotPendingTransaction(resourceId: ResourceId, userId: UserId): Future[Unit]
   def isAbleToBarter(resourceId: ResourceId, buyer: User, offeredResourceId: ResourceId): Future[BarterData]
+  def isAbleToPurchase(resourceId: ResourceId, buyer: User): Future[(Resource, User)]
   def transactionTrans(transaction: Transaction, barter: Barter): Future[Done]
 }
 
@@ -30,6 +31,7 @@ class TransactionServImpl @Inject() (
     resourceRepository: ResourceRepository,
     resourceUserRepository: ResourceUserRepository,
     resourceAccessValidator: ResourceAccessValidator,
+    userRepository: UserRepository,
     clock: Clock
 )(implicit ec: ExecutionContext)
     extends TransactionService {
@@ -61,7 +63,7 @@ class TransactionServImpl @Inject() (
   private def validateNotSelfTransaction(ownerId: UserId, buyerId: UserId): Future[Unit] = {
     if (ownerId == buyerId) {
       Future.failed(
-        new BarterNotAllowException("You cannot propose a barter for your own resource")
+        new ResourceNotAllowedException("You cannot transact with your own resources")
       )
     } else {
       Future.successful(())
@@ -89,6 +91,7 @@ class TransactionServImpl @Inject() (
           .findById(resourceId)
           .map(_.getOrElse(throw new ResourceNotFoundException(s"ResourceId $resourceId not found")))
 
+      //Aquí ya se valida que el usuario dueño del recurso esté activo.
       owner <-
         resourceUserRepository
           .findOwnerByResource(resourceId)
@@ -149,5 +152,47 @@ class TransactionServImpl @Inject() (
       )
 
     transactionRepository.updateStatus(transaction.id, TransactionStatus.COMPLETED)
+  }
+
+  override def isAbleToPurchase(resourceId: ResourceId, buyer: User): Future[(Resource, User)] = {
+    for {
+      // Verificar que el recurso existe
+      resource <-
+        resourceRepository
+          .findById(resourceId)
+          .map(_.getOrElse(throw new ResourceNotFoundException(s"Resource $resourceId not found")))
+
+      // Verificar que el recurso es PRIVADO (no se compran recursos públicos)
+      _ <- validateResourceIsNotPublic(resource)
+
+      // Obtener el vendedor (owner del recurso), aquí mismo se valida que está activo
+      seller <-
+        resourceUserRepository
+          .findOwnerByResource(resourceId)
+          .map(_.getOrElse(throw new UserNotFoundException(s"Owner of resource $resourceId not found")))
+
+      seller <-
+        userRepository
+          .findById(seller.id)
+          .map(_.getOrElse(throw new UserNotFoundException(s"Seller user $seller.id not found")))
+
+      // Para validar que el vendedor está habilitado
+      _ = if (!seller.enabled) {
+        throw new ResourceNotAllowedException("The owner of this resource is no longer active")
+      }
+
+      // Validar que el recurso está activo
+      _ <- resourceAccessValidator.validateResourceIsActive(resourceId, seller.id)
+
+      // Validar que el comprador no es el vendedor
+      _ <- validateNotSelfTransaction(seller.id, buyer.id)
+
+      // Validar que el comprador no tiene ya acceso
+      _ <- resourceAccessValidator.validateAlreadyHaveAccess(resourceId, buyer.id)
+
+      // Validar que no tiene transacciones pendientes
+      _ <- verifyNotPendingTransaction(resourceId, buyer.id)
+
+    } yield (resource, seller)
   }
 }
