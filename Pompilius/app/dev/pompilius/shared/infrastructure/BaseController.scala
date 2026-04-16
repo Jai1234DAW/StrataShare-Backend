@@ -20,7 +20,7 @@ import play.api.http.HeaderNames
 
 trait BaseController extends InjectedController {
 
-  //Configuracion general de la aplicacion, con valores cargados desde el application.conf. Se utiliza para acceder a valores de configuracion en los controladores sin necesidad de inyectar la configuracion en cada uno de ellos.
+  //Configuración general de la aplicación, con valores cargados desde el application.conf. Se utiliza para acceder a valores de configuracion en los controladores sin necesidad de inyectar la configuracion en cada uno de ellos.
   private[this] var _config: Configuration = _
 
   @SuppressWarnings(Array("NullParameter"))

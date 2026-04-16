@@ -23,7 +23,8 @@ class PaginatedWriterImpl @Inject() (implicit val ec: ExecutionContext) extends 
   }
 
   def toFlattedJson[T](p: Paginated[T])(implicit f: T => Future[Option[JsValue]]): Future[JsValue] = {
-    Future.sequence(p.items.map(item => f(item))).map(items => Json.toJson(Paginated(items = items.flatten, p.moreItems)))
+    Future
+      .sequence(p.items.map(item => f(item)))
+      .map(items => Json.toJson(Paginated(items = items.flatten, p.moreItems)))
   }
-
 }

@@ -4,13 +4,8 @@ import com.google.inject.ImplementedBy
 import dev.pompilius.Strings
 import dev.pompilius.attachment.domain.exceptions.AttachmentNotFoundException
 import dev.pompilius.auth.domain.exceptions.InvalidPasswordOrUsernameException
-import dev.pompilius.resource.domain.exceptions.{ResourceNotAllowedException, ResourceNotFoundException}
+import dev.pompilius.resource.domain.exceptions.ResourceNotFoundException
 import play.mvc.Http.HeaderNames
-//import dev.pompilius.auth.domain.exceptions.InvalidPasswordOrUsernameException
-//Colocar aqui las excepciones que faltan
-//import dev.pompilius.image.domain.exceptions.{ImageNotFoundException, ImageStorageException}
-//import dev.pompilius.mail.domain.exceptions.SendMailException
-//import dev.pompilius.page.domain.exceptions.PageNotFoundException
 import dev.pompilius.shared.domain.VerboseException
 import dev.pompilius.shared.domain.exceptions._
 import dev.pompilius.shared.infrastructure.JsUtils.toJsValueWrapper

@@ -153,4 +153,34 @@ trait Configuration {
   )
 
   def barter: Barter
+
+  // Stripe
+  case class Stripe(
+      sandbox: Boolean,
+      secretKey: String,
+      publishableKey: String,
+      webhookSecret: String,
+      apiUrl: String,
+      currency: String
+  )
+
+  def stripe: Stripe
+
+  case class Payments(
+      currency: String,
+      //allowedOneTimePaymentGateways: List[AllowedGateway],
+      paymentCompletedUrl: String,
+      paymentCanceledUrl: String,
+      defaultFee: BigDecimal,
+      feeOwnPlatform: BigDecimal
+  )
+
+  def payments: Payments
+
+  case class GatewaySurcharges(
+      stripeSurchargePercentage: BigDecimal,
+      stripeSurchargeFixed: BigDecimal
+  )
+
+  def gatewaySurcharges: GatewaySurcharges
 }
