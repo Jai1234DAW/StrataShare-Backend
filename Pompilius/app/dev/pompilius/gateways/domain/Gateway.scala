@@ -1,4 +1,4 @@
-package dev.pompilius.payment.domain.gateway
+package dev.pompilius.gateways.domain
 
 import enumeratum.{Enum, EnumEntry, PlayJsonEnum}
 
