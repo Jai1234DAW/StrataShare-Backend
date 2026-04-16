@@ -3,7 +3,7 @@ package dev.pompilius.resource.domain
 import com.google.inject.ImplementedBy
 import dev.pompilius.resource.infrastructure.repositories.ResourceUserMySqlRepository
 import dev.pompilius.shared.domain.Pagination
-import dev.pompilius.users.domain.{User,UserId}
+import dev.pompilius.users.domain.{User, UserId}
 import org.apache.pekko.Done
 
 import scala.concurrent.Future

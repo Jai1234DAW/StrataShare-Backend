@@ -11,5 +11,6 @@ case class Resource(
     updated: DateTime,
     localization: String,
     observations: Option[String],
-    summary: Option[String]
+    summary: Option[String],
+    price: Option[BigDecimal] = None
 )

@@ -34,7 +34,8 @@ class ResourceMySqlRepository @Inject() (
       updated = rs.get(r.updated),
       localization = rs.get[String](r.localization),
       observations = rs.get[Option[String]](r.observations),
-      summary = rs.get[Option[String]](r.summary)
+      summary = rs.get[Option[String]](r.summary),
+      price = rs.get[Option[BigDecimal]](r.price)
     )
 
   private val r = this.syntax("r")
@@ -50,7 +51,8 @@ class ResourceMySqlRepository @Inject() (
           column.updated -> resource.updated,
           column.localization -> resource.localization,
           column.observations -> resource.observations,
-          column.summary -> resource.summary
+          column.summary -> resource.summary,
+          column.price -> resource.price
         )
         withSQL {
           insert
