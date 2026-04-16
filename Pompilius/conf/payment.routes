@@ -1,0 +1,58 @@
+###
+#  summary: Create a PaymentIntent for purchasing a resource
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL","AMATEUR"]}
+#  requestBody:
+#      required: true
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/CreatePaymentIntentRequest'
+#  responses:
+#    200:
+#      description: Success
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/PaymentIntent'
+###
+POST         /create-intent                                 dev.pompilius.payment.infrastructure.controllers.PaymentController.createPaymentIntent()
+
+###
+#  summary: Get user payments
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL","AMATEUR"]}
+#  responses:
+#    200:
+#      description: Success
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/PaymentList'
+###
+GET         /                                              dev.pompilius.payment.infrastructure.controllers.PaymentController.getMyPayments(pag: Pagination)
+
+###
+#  summary: Get status for a specific payment
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL","AMATEUR"]}
+#  responses:
+#    200:
+#      description: Success
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/PaymentStatus'
+###
+GET        /:paymentId/status                            dev.pompilius.payment.infrastructure.controllers.PaymentController.getPaymentIntentStatus(paymentId: String)
+
+###
+#  summary: Get a specific payment by ID
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL","AMATEUR"]}
+#  responses:
+#    200:
+#      description: Success
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/Payment'
+###
+GET          /payments/:paymentId                           dev.pompilius.payment.infrastructure.controllers.PaymentController.getPaymentById(paymentId: String)
+

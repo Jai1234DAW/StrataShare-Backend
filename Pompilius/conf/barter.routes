@@ -62,6 +62,12 @@ DELETE       /:barterId/cancel                              dev.pompilius.barter
 #  responses:
 #    200:
 #      description: List of successful barters
+#      content:
+#       application/json:
+#        schema:
+#         type: array
+#         items:
+#          $ref: '#/components/schemas/Barter'
 ###
 GET          /successful                                    dev.pompilius.barter.infrastructure.controllers.BarterController.getAllSuccessfulBarters(pag:Pagination)
 

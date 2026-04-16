@@ -1,23 +1,6 @@
-# Actualizar transaction para soportar BARTER
+# Crear tabla barter para trueques
 
 # --- !Ups
-# Hacer opcionales los campos específicos de pagos pues no aplican para BARTER
-ALTER TABLE `transaction`
-    MODIFY COLUMN `gateway` ENUM('STRIPE', 'STRIPE_MOBILE') NULL DEFAULT NULL;
-
-ALTER TABLE `transaction`
-    MODIFY COLUMN `gateway_payment_id` VARCHAR(255) NULL DEFAULT NULL;
-
-# Quitar el índice único que falla con NULLs
-ALTER TABLE `transaction`
-DROP INDEX `unique_gateway_payment_id`;
-
-# Agregar índice único solo para casos no-null (cuando es pago real)
-ALTER TABLE `transaction`
-    ADD UNIQUE KEY `UNIQUE_GATEWAY_PAYMENT_ID` (`gateway_payment_id`);
-
-
-# Crear tabla barter para trueques
 
 # Tabla barter
 CREATE TABLE `barter` (

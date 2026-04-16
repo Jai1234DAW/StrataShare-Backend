@@ -961,5 +961,321 @@
         "description": "Timestamp when the barter request was last updated"
       }
     }
+  },
+  "BarterCompleted": {
+    "properties": {
+      "barterId": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": true,
+        "description": "ID of the completed barter"
+      },
+      "transactionId": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": true,
+        "description": "ID of the transaction associated with the completed barter"
+      },
+      "offeredResourceId": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": true,
+        "description": "ID of the resource being offered in the barter"
+      },
+      "requestedResourceId": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": true,
+        "description": "ID of the resource being requested in the barter"
+      },
+      "completedAt": {
+        "type": "string",
+        "format": "date-time",
+        "default": "2022-01-01T12:30:00Z",
+        "required": true,
+        "description": "Timestamp when the barter was completed"
+      }
+    }
+  },
+  "BarterRequestList": {
+    "properties": {
+      "items": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Barter"
+        }
+      },
+      "moreItems": {
+        "type": "boolean",
+        "default": false,
+        "required": true,
+        "description": "Indicates if there are more items available beyond the current list"
+      }
+    }
+  },
+  "CreatePaymentIntentRequest": {
+    "properties": {
+      "resourceId": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": true,
+        "description": "ID of the resource for which the payment intent is being created"
+      },
+      "gateway": {
+        "type": "string",
+        "default": "STRIPE",
+        "required": true,
+        "description": "Payment gateway to be used for the payment intent"
+      },
+      "buyerReference": {
+        "type": "string",
+        "default": "buyer123456",
+        "required": true,
+        "description": "Reference of the buyer making the payment"
+      },
+      "instrument": {
+        "type": "string",
+        "default": "CARD",
+        "required": false,
+        "description": "Payment instrument to be used for the payment (e.g., CARD, BANK_TRANSFER)"
+      },
+      "returnUrlParams": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "string"
+        },
+        "default": {
+          "param1": "value1",
+          "param2": "value2"
+        },
+        "required": false,
+        "description": "Additional parameters to be included in the return URL after payment completion"
+      },
+      "extraInfo": {
+        "type": "string",
+        "default": "Additional information about the payment intent",
+        "required": false,
+        "description": "Extra information about the payment intent that can be used for internal tracking or logging purposes"
+      }
+    }
+  },
+  "PaymentIntent": {
+    "properties": {
+      "paymentId": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": true,
+        "description": "ID of the payment intent"
+      },
+      "transactionId": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": true,
+        "description": "ID of the transaction associated with the payment intent"
+      },
+      "gateway": {
+        "type": "string",
+        "default": "STRIPE",
+        "required": true,
+        "description": "Payment gateway used for the payment intent"
+      },
+      "gatewayIntentId": {
+        "type": "string",
+        "default": "pi_1234567890",
+        "required": true,
+        "description": "ID of the payment intent in the payment gateway"
+      },
+      "resourceId": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": true,
+        "description": "ID of the resource associated with the payment intent"
+      },
+      "price": {
+        "type": "number",
+        "format": "float",
+        "default": 100.00,
+        "required": true,
+        "description": "Price of the resource being purchased"
+      },
+      "surcharge": {
+        "type": "number",
+        "format": "float",
+        "default": 2.50,
+        "required": false,
+        "description": "Additional surcharge applied to the payment (e.g., for using a specific payment method)"
+      },
+      "amount": {
+        "type": "number",
+        "format": "double",
+        "default": 102.50,
+        "required": true,
+        "description": "Total amount to be paid, including price and any surcharges"
+      },
+      "created": {
+        "type": "string",
+        "format": "date-time",
+        "default": "2022-01-01T12:30:00Z",
+        "required": true,
+        "description": "Timestamp when the payment intent was created"
+      },
+      "status": {
+        "type": "string",
+        "default": "PENDING",
+        "required": true,
+        "description": "Status of the payment intent (e.g., PENDING, COMPLETED, FAILED)"
+      },
+      "discount": {
+        "type": "number",
+        "format": "double",
+        "default": 10.00,
+        "required": false,
+        "description": "Discount applied to the payment, if any"
+      },
+      "url": {
+        "type": "string",
+        "default": "https://payment-gateway.com/checkout?paymentId=3gqbdpbym4ua",
+        "required": true,
+        "description": "URL to which the buyer should be redirected to complete the payment"
+      },
+      "createdTransaction": {
+        "type": "string",
+        "format": "date-time",
+        "default": "2022-01-01T12:30:00Z",
+        "required": true,
+        "description": "Timestamp when the payment intent was created"
+      },
+      "buyerReference": {
+        "type": "string",
+        "default": "buyer@gmail.com"
+      },
+      "instrument": {
+        "type": "string",
+        "default": "CARD",
+        "required": false,
+        "description": "Payment instrument used for the payment (e.g., CARD, BANK_TRANSFER)"
+      },
+      "fingerprint": {
+        "type": "string",
+        "default": "abc123def456ghi789",
+        "required": false,
+        "description": "Unique fingerprint of the payment method used, which can be used for fraud detection and prevention"
+      },
+      "returnUrlParams": {
+        "type": "string"
+      },
+      "metadata": {
+        "type": "string"
+      },
+      "extraInfo": {
+        "type": "string",
+        "default": "Additional information about the payment intent",
+        "required": false,
+        "description": "Extra information about the payment intent that can be used for internal tracking or logging purposes"
+      },
+      "updated": {
+        "type": "string",
+        "format": "date-time",
+        "default": "2022-01-01T12:30:00Z",
+        "required": true,
+        "description": "Timestamp when the payment intent was last updated"
+      }
+    }
+  },
+  "PaymentList": {
+    "properties": {
+      "items": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Payment"
+        }
+      },
+      "moreItems": {
+        "type": "boolean",
+        "default": false,
+        "required": true,
+        "description": "Indicates if there are more items available beyond the current list"
+      }
+    }
+  },
+  "Payment": {
+    "properties": {
+      "paymentId": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": true,
+        "description": "ID of the payment"
+      },
+      "transactionId": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": true,
+        "description": "ID of the transaction associated with the payment"
+      },
+      "gateway": {
+        "type": "string",
+        "default": "STRIPE",
+        "required": true,
+        "description": "Payment gateway used for the payment"
+      },
+      "gatewayIntentId": {
+        "type": "string",
+        "default": "pi_1234567890",
+        "required": true,
+        "description": "ID of the payment intent in the payment gateway"
+      },
+      "resourceId": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": true,
+        "description": "ID of the resource associated with the payment"
+      },
+      "price": {
+        "type": "number",
+        "format": "float",
+        "default": 100.00,
+        "required": true,
+        "description": "Price of the resource being purchased"
+      },
+      "surcharge": {
+        "type": "number",
+        "format": "float",
+        "default": 2.50,
+        "required": false,
+        "description": "Additional surcharge applied to the payment (e.g., for using a specific payment method)"
+      },
+      "amount": {
+        "type": "number",
+        "format": "double",
+        "default": 102.50,
+        "required": true,
+        "description": "Total amount paid, including price and any surcharges"
+      },
+      "fee": {
+        "type": "number",
+        "format": "double",
+        "default": 3.00,
+        "required": true,
+        "description": "Total fees charged by the payment gateway for processing the payment"
+      }
+    },
+    "netAmount": {
+      "type": "number",
+      "format": "double",
+      "default": 99.50,
+      "required": true,
+      "description": "Net amount received after deducting fees from the total amount paid"
+    },
+    "currency": {
+      "type": "string",
+      "default": "EUR",
+      "required": true,
+      "description": "Currency in which the payment was made (e.g., USD, EUR)"
+    },
+    "url": {
+      "type": "string"
+    }
   }
 }
+
+
