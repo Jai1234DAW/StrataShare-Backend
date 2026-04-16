@@ -19,9 +19,9 @@ import dev.pompilius.resource.domain.ResourceId
 import dev.pompilius.shared.domain.Pagination
 import dev.pompilius.shared.domain.exceptions.BadRequestException
 import dev.pompilius.shared.infrastructure.{BaseController, UrlUtil}
+import dev.pompilius.transaction.application.TransactionService
 import dev.pompilius.transaction.domain._
 import dev.pompilius.transaction.domain.exceptions.TransactionNotFoundException
-import dev.pompilius.transaction.infrastructure.TransactionService
 import dev.pompilius.users.domain.{Role, User}
 import play.api.Logger
 import play.api.i18n.{Lang, MessagesImpl}
@@ -70,7 +70,7 @@ class BarterController @Inject() (
               sellerId = data.seller.id,
               buyerId = user.id,
               resourceId = resourceId,
-              fee = BigDecimal(0), // Sin fee en trueques
+              fee = Some(BigDecimal(0)), // Sin fee en trueques)
               created = clock.now,
               updated = clock.now,
               metadata = Some(Json.obj("offeredResourceId" -> offeredResourceId.toString).toString)
@@ -100,7 +100,7 @@ class BarterController @Inject() (
                 ()
             }
 
-            json <- barterWriter.asJson(barter, transaction)
+            json <- barterWriter.toJson(transaction, barter)
 
           } yield Ok(json)
       }
@@ -217,7 +217,7 @@ class BarterController @Inject() (
             // Transferir recursos (en transacción atómica)
             _ <- transactionService.transactionTrans(transaction, barter)
 
-            json <- barterWriter.asJsonComplete(barter, transaction)
+            json <- barterWriter.asSeller(transaction,barter)
 
           } yield Ok(json)
       }
@@ -313,7 +313,7 @@ class BarterController @Inject() (
                 transactionRepository
                   .findById(b.transactionId)
                   .map(_.get)
-                  .flatMap(t => barterWriter.asJsonComplete(b, t))
+                  .flatMap(t => barterWriter.asSeller(t,b))
               }
             )
           } yield Ok(Json.toJson(jsons))
