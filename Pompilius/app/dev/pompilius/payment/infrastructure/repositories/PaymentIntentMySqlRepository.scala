@@ -1,11 +1,16 @@
 package dev.pompilius.payment.infrastructure.repositories
 
-import dev.pompilius.payment.domain.{Gateway, PaymentId, PaymentIntent, PaymentIntentRepository, PaymentIntentStatus}
+import dev.pompilius.gateways.domain.Gateway
+import dev.pompilius.payment.domain.{PaymentId, PaymentIntent, PaymentIntentRepository, PaymentIntentStatus}
+import dev.pompilius.resource.domain.ResourceId
 import dev.pompilius.shared.domain.Clock
 import dev.pompilius.shared.infrastructure.ScalikeUtil
 import dev.pompilius.shared.infrastructure.contexts.DbExecutionContext
+import dev.pompilius.transaction.domain.TransactionId
+import dev.pompilius.users.domain.UserId
 import org.apache.pekko.Done
 import org.joda.time.DateTime
+import play.api.libs.json.Json
 import scalikejdbc._
 import scalikejdbc.jodatime.JodaParameterBinderFactory._
 import scalikejdbc.jodatime.JodaTypeBinder._
@@ -13,6 +18,7 @@ import scalikejdbc.jodatime.JodaTypeBinder._
 import java.time.ZoneId
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
+import scala.util.Try
 
 @Singleton
 class PaymentIntentMySqlRepository @Inject() (clock: Clock)(implicit dbExecutionContext: DbExecutionContext)
@@ -28,61 +34,61 @@ class PaymentIntentMySqlRepository @Inject() (clock: Clock)(implicit dbExecution
   def apply(pi: ResultName[PaymentIntent])(rs: WrappedResultSet): PaymentIntent =
     PaymentIntent(
       paymentId = PaymentId(rs.get[Long](pi.paymentId)),
+      transactionId = TransactionId(rs.get[Long](pi.transactionId)),
       gateway = Gateway.withNameInsensitive(rs.get[String](pi.gateway)),
       gatewayIntentId = rs.get[String](pi.gatewayIntentId),
+      resourceId = ResourceId(rs.get[Long](pi.resourceId)),
+      price = rs.get[BigDecimal](pi.price),
+      surcharge = rs.get[BigDecimal](pi.surcharge),
       amount = rs.get[BigDecimal](pi.amount),
-      currency = rs.get[String](pi.currency),
-      status = PaymentIntentStatus.withName(rs.get[String](pi.status)),
+      status = PaymentIntentStatus.withNameInsensitive(rs.get[String](pi.status)),
+      //couponCode = rs.get[Option[String]](pi.couponCode),
+      discount = rs.get[Option[BigDecimal]](pi.discount),
+      url = rs.get[Option[String]](pi.url),
       created = rs.get[DateTime](pi.created),
-      updated = rs.get[DateTime](pi.updated),
-      fingerprint = rs.get[String](pi.fingerprint),
-      metadata = rs.get[Option[String]](pi.metadata)
+      buyerReference = rs.get[Option[String]](pi.buyerReference),
+      instrument = rs.get[Option[String]](pi.instrument),
+      fingerprint = rs.get[Option[String]](pi.fingerprint),
+      returnUrlParams = rs.get[Option[String]](pi.returnUrlParams).flatMap { js =>
+        Try(Json.parse(js).as[Map[String, String]]).toOption
+      },
+      metadata = rs.get[Option[String]](pi.metadata),
+      extraInfo = rs.get[Option[String]](pi.extraInfo),
+      updated = rs.get[Option[DateTime]](pi.updated)
     )
 
   private val pi = this.syntax("pi")
 
-  override def create(paymentIntent: PaymentIntent): Future[Done] =
+  override def save(paymentIntent: PaymentIntent): Future[Done] =
     Future {
       DB.localTx { implicit session =>
         val values = List(
           column.paymentId -> paymentIntent.paymentId.id,
+          column.transactionId -> paymentIntent.transactionId.id,
           column.gateway -> paymentIntent.gateway.toString,
           column.gatewayIntentId -> paymentIntent.gatewayIntentId,
+          column.resourceId -> paymentIntent.resourceId.id,
+          column.price -> paymentIntent.price,
+          column.surcharge -> paymentIntent.surcharge,
           column.amount -> paymentIntent.amount,
-          column.currency -> paymentIntent.currency,
           column.status -> paymentIntent.status.toString,
+          //column.couponCode -> paymentIntent.couponCode,
+          column.discount -> paymentIntent.discount,
+          column.url -> paymentIntent.url,
           column.created -> paymentIntent.created,
-          column.updated -> paymentIntent.updated,
+          column.buyerReference -> paymentIntent.buyerReference,
+          column.instrument -> paymentIntent.instrument,
           column.fingerprint -> paymentIntent.fingerprint,
-          column.metadata -> paymentIntent.metadata
+          column.returnUrlParams -> Try(Json.toJson(paymentIntent.returnUrlParams).toString).toOption,
+          column.metadata -> paymentIntent.metadata,
+          column.extraInfo -> paymentIntent.extraInfo,
+          column.updated -> clock.now
         )
         withSQL {
           insert
             .into(this)
             .namedValues(values: _*)
             .append(ScalikeUtil.onDuplicateUpdate(column.paymentId, values: _*))
-        }.update()
-      }
-      Done
-    }
-
-  override def save(paymentIntent: PaymentIntent): Future[Done] =
-    Future {
-      DB.localTx { implicit session =>
-        withSQL {
-          update(this)
-            .set(
-              column.gateway -> paymentIntent.gateway.toString,
-              column.gatewayIntentId -> paymentIntent.gatewayIntentId,
-              column.amount -> paymentIntent.amount,
-              column.currency -> paymentIntent.currency,
-              column.status -> paymentIntent.status.toString,
-              sqls"updated" -> clock.now,
-              column.fingerprint -> paymentIntent.fingerprint,
-              column.metadata -> paymentIntent.metadata
-            )
-            .where
-            .eq(column.paymentId, paymentIntent.paymentId.id)
         }.update()
       }
       Done
@@ -124,5 +130,4 @@ class PaymentIntentMySqlRepository @Inject() (clock: Clock)(implicit dbExecution
       }
       Done
     }
-
 }

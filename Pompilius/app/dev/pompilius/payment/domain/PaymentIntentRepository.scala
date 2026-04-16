@@ -1,6 +1,7 @@
 package dev.pompilius.payment.domain
 
 import com.google.inject.ImplementedBy
+import dev.pompilius.gateways.domain.Gateway
 import dev.pompilius.payment.infrastructure.repositories.PaymentIntentMySqlRepository
 import org.apache.pekko.Done
 
@@ -10,8 +11,6 @@ import scala.concurrent.Future
 trait PaymentIntentRepository {
 
   def save(paymentIntent: PaymentIntent): Future[Done]
-
-  def create(intent: PaymentIntent):Future[Done]
 
   def findByPaymentId(paymentId: PaymentId): Future[Option[PaymentIntent]]
 
