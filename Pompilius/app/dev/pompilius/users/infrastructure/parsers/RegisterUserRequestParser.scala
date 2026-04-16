@@ -16,7 +16,7 @@ object RegisterUserRequestParser {
 
   implicit val jsonReads: Reads[RegisterUserRequest] = (
     (__ \ Strings.username).read[String](ReadsUtil.username) and
-      (__ \ Strings.password).read[String] and
+      (__ \ Strings.password).read[String](ReadsUtil.password)  and
       (__ \ Strings.email).read[String](ReadsUtil.email) and
       (__ \ Strings.phone).readNullable[String](ReadsUtil.phone) and
       (__ \ Strings.firstName).readNullable[String](ReadsUtil.firstName) and

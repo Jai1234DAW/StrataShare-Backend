@@ -7,7 +7,6 @@ import dev.pompilius.sample.domain.{Sample, SampleFilter, SampleId, SampleReposi
 import dev.pompilius.shared.domain.Pagination
 import dev.pompilius.shared.infrastructure.ScalikeUtil
 import dev.pompilius.shared.infrastructure.contexts.DbExecutionContext
-import dev.pompilius.users.domain.UserId
 import org.apache.pekko.Done
 import scalikejdbc._
 

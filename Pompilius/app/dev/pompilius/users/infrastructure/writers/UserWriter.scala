@@ -1,16 +1,16 @@
 package dev.pompilius.users.infrastructure.writers
 
 import com.google.inject.ImplementedBy
-import play.api.libs.json._
-import dev.pompilius.users.domain.User
 import dev.pompilius.Strings
 import dev.pompilius.attachment.domain.AttachmentRepository
-import dev.pompilius.country.infrastructure.writers.{CountryWriter, CountryWriterImpl}
+import dev.pompilius.country.infrastructure.writers.CountryWriter
 import dev.pompilius.shared.infrastructure.JsUtils.{JodaDateTimeFormat, toJsValueWrapper}
 import dev.pompilius.shared.infrastructure.UrlUtil
+import dev.pompilius.users.domain.User
+import play.api.libs.json._
+
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
-import controllers.routes
 
 @ImplementedBy(classOf[UserWriterImpl])
 trait UserWriter {
