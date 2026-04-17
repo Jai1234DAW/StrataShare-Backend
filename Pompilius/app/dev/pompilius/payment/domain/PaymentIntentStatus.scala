@@ -40,4 +40,9 @@ object PaymentIntentStatus extends Enum[PaymentIntentStatus] with PlayJsonEnum[P
     override def value: String = "canceled"
   }
 
+  @SuppressWarnings(Array("ObjectNames"))
+    case object FAILED extends PaymentIntentStatus {
+    override def value: String = "failed"
+  }
+
 }

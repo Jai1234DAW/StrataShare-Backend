@@ -7,7 +7,6 @@ import dev.pompilius.Strings
 import dev.pompilius.gateways.domain.Gateway
 import dev.pompilius.payment.domain._
 import dev.pompilius.payment.domain.exceptions.PaymentNotFoundException
-import dev.pompilius.payment.infrastructure.writers.PaymentIntentWriter
 import dev.pompilius.resource.domain.{ResourceUser, ResourceUserRepository, ResourceUserType}
 import dev.pompilius.shared.domain.{Clock, Configuration}
 import dev.pompilius.shared.infrastructure.{BaseController, UrlUtil}
@@ -28,7 +27,6 @@ class GatewayController @Inject() (
     resourceUserRepository: ResourceUserRepository,
     clock: Clock,
     configuration: Configuration,
-    paymentIntentWriter: PaymentIntentWriter
 )(implicit val ec: ExecutionContext)
     extends BaseController {
 
@@ -52,15 +50,16 @@ class GatewayController @Inject() (
     * - Rechaza webhooks con firma inválida
     * - Previene ataques de terceros intentando simular eventos de Stripe
     */
+
   def handleStripeWebhook: Action[RawBuffer] =
     Action.async(parse.raw) { implicit request =>
       val payload = request.body.asBytes().map(_.utf8String).getOrElse("")
       val signature = request.headers.get("Stripe-Signature").getOrElse("")
 
-      println(payload)
-
+      logger.error(s"WEBHOOK HIT method=${request.method} path=${request.path} contentType=${request.contentType}")
       // Validar firma del webhook usando la librería oficial de Stripe
       // Esto garantiza que el webhook realmente viene de Stripe y no fue alterado
+
       val validationResult =
         try {
           val event = Webhook.constructEvent(payload, signature, webhookSecret)
@@ -251,7 +250,7 @@ class GatewayController @Inject() (
       _ <- transactionRepository.updateStatus(transaction.id, TransactionStatus.COMPLETED)
 
       // CREAR Payment (registro final del pago exitoso)
-      paymentId = PaymentId.gen(configuration.nodeId)
+      paymentId = paymentIntent.paymentId
 
       // Calcular montos
       amountBigDecimal = BigDecimal(amountTotal) / 100
@@ -331,7 +330,7 @@ class GatewayController @Inject() (
         case Some(pi) =>
           for {
             _ <- paymentIntentRepository.updateStatus(pi.paymentId, PaymentIntentStatus.CANCELED)
-            _ <- transactionRepository.updateStatus(pi.transactionId, TransactionStatus.CANCELLED)
+            _ <- transactionRepository.updateStatus(pi.transactionId, TransactionStatus.CANCELED)
           } yield ()
         case None =>
           logger.warn(s"PaymentIntent not found for expired session: $sessionId")
@@ -340,7 +339,7 @@ class GatewayController @Inject() (
     } yield ()
   }
 
-  //Handler para payment_intent.succeeded (opcional, como backup) En Checkout Sessions, normalmente usamos checkout.session.completed
+  //Handler para payment_intent.succeeded (opcional, como backup) En Checkout Sessions, normalmente se usa checkout.session.completed
   private def handlePaymentIntentSucceeded(json: JsValue): Future[Unit] = {
     val paymentIntentObj = json \ "data" \ "object"
     val paymentIntentId = (paymentIntentObj \ "id").as[String]
@@ -355,15 +354,22 @@ class GatewayController @Inject() (
   // Handler para payment_intent.payment_failed
   private def handlePaymentIntentFailed(json: JsValue): Future[Unit] = {
     val paymentIntentObj = json \ "data" \ "object"
-    val paymentIntentId = (paymentIntentObj \ "id").as[String]
+    val sessionId = (paymentIntentObj \ "id").as[String]
 
-    logger.warn(s"PaymentIntent failed: $paymentIntentId")
+    logger.warn(s"PaymentIntent failed: $sessionId")
 
-    // Intentar encontrar por el paymentIntentId en metadata o como gatewayIntentId
     for {
-      _ <- Future.successful(())
-      // Podríamos buscar y marcar como fallido, pero en Checkout Sessions
-      // esto generalmente es manejado por checkout.session.expired
+      paymentIntentOpt <- paymentIntentRepository.findByGatewayIntentId(Gateway.STRIPE, sessionId)
+      _ <- paymentIntentOpt match {
+        case Some(pi) =>
+          for {
+            _ <- paymentIntentRepository.updateStatus(pi.paymentId, PaymentIntentStatus.FAILED)
+            _ <- transactionRepository.updateStatus(pi.transactionId, TransactionStatus.FAILED)
+          } yield ()
+        case None =>
+          logger.warn(s"PaymentIntent not found  for session: $sessionId")
+          Future.successful(())
+      }
     } yield ()
   }
 
@@ -371,11 +377,22 @@ class GatewayController @Inject() (
 
   private def handlePaymentIntentCanceled(json: JsValue): Future[Unit] = {
     val paymentIntentObj = json \ "data" \ "object"
-    val paymentIntentId = (paymentIntentObj \ "id").as[String]
+    val sessionId = (paymentIntentObj \ "id").as[String]
 
-    logger.info(s"PaymentIntent canceled: $paymentIntentId")
+    logger.info(s"PaymentIntent canceled: $sessionId")
 
-    // Similar a failed, en Checkout Sessions esto es manejado por otros eventos
-    Future.successful(())
+    for {
+      paymentIntentOpt <- paymentIntentRepository.findByGatewayIntentId(Gateway.STRIPE, sessionId)
+      _ <- paymentIntentOpt match {
+        case Some(pi) =>
+          for {
+            _ <- paymentIntentRepository.updateStatus(pi.paymentId, PaymentIntentStatus.CANCELED)
+            _ <- transactionRepository.updateStatus(pi.transactionId, TransactionStatus.CANCELED)
+          } yield ()
+        case None =>
+          logger.warn(s"PaymentIntent not found for session: $sessionId")
+          Future.successful(())
+      }
+    } yield ()
   }
 }
