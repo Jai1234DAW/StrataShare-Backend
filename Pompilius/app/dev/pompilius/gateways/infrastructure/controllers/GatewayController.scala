@@ -1,7 +1,8 @@
 package dev.pompilius.gateways.infrastructure.controllers
 
 import com.stripe.exception.SignatureVerificationException
-import com.stripe.model.{Charge, PaymentIntent}
+import com.stripe.model.checkout.Session
+import com.stripe.model.{Charge, PaymentIntent => StripePaymentIntent}
 import com.stripe.net.Webhook
 import dev.pompilius.Strings
 import dev.pompilius.gateways.domain.Gateway
@@ -11,13 +12,14 @@ import dev.pompilius.resource.domain.{ResourceUser, ResourceUserRepository, Reso
 import dev.pompilius.shared.domain.{Clock, Configuration}
 import dev.pompilius.shared.infrastructure.{BaseController, UrlUtil}
 import dev.pompilius.transaction.domain.exceptions.{TransactionNotAllowedException, TransactionNotFoundException}
-import dev.pompilius.transaction.domain.{TransactionRepository, TransactionStatus}
+import dev.pompilius.transaction.domain.{Transaction, TransactionRepository, TransactionStatus}
 import play.api.Logger
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, AnyContent, RawBuffer}
 
 import javax.inject._
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.control.NonFatal
 
 @Singleton
 class GatewayController @Inject() (
@@ -139,6 +141,62 @@ class GatewayController @Inject() (
               throw new TransactionNotAllowedException("This payment does not belong to the provided gateway")
             }
 
+            _ <-
+              paymentIntent.status match {
+                case PaymentIntentStatus.SUCCEEDED =>
+                  logger.info(s"PaymentIntent ${paymentIntent.paymentId} already SUCCEEDED, skipping fallback")
+                  Future.successful(())
+
+                case _ =>
+                  val sessionId = paymentIntent.gatewayIntentId
+
+                  if (sessionId == null || sessionId.trim.isEmpty) {
+                    Future.failed(
+                      new PaymentNotFoundException(
+                        s"No gatewayIntentId/sessionId found for paymentIntent ${paymentIntent.paymentId}"
+                      )
+                    )
+                  } else {
+                    Future {
+                      logger.info(s"Fallback: retrieving Stripe Checkout Session $sessionId")
+
+                      val session = Session.retrieve(sessionId)
+
+                      val sessionStatus = Option(session.getStatus).getOrElse("")
+                      val paymentStatus = Option(session.getPaymentStatus).getOrElse("")
+
+                      val isPaid =
+                        paymentStatus == "paid" || sessionStatus == "complete"
+
+                      if (!isPaid) {
+                        throw new TransactionNotAllowedException(
+                          s"Payment not completed. session=$sessionId status=$sessionStatus payment_status=$paymentStatus"
+                        )
+                      }
+
+                      val amountTotal = Option(session.getAmountTotal).map(_.longValue()).getOrElse(0L)
+                      val currency = Option(session.getCurrency).getOrElse("eur")
+                      val stripePaymentIntentId = Option(session.getPaymentIntent).map(_.toString)
+
+                      (sessionId, amountTotal, currency, stripePaymentIntentId)
+                    }.flatMap {
+                      case (sessionId, amountTotal, currency, stripePaymentIntentId) =>
+                        for {
+                          receiptUrl <- fetchReceiptUrl(stripePaymentIntentId)
+                          _ <- reconcileSuccessfulCheckout(
+                            paymentIntent = paymentIntent,
+                            transaction = transaction,
+                            sessionId = sessionId,
+                            stripePaymentIntentId = stripePaymentIntentId,
+                            amountTotalInCents = amountTotal,
+                            currency = currency,
+                            receiptUrl = receiptUrl
+                          )
+                        } yield ()
+                    }
+                  }
+              }
+
           } yield {
             val parameters =
               paymentIntent.returnUrlParams.getOrElse(Map.empty[String, String]) ++ Map(
@@ -158,7 +216,6 @@ class GatewayController @Inject() (
           }
       }
     }
-
   @SuppressWarnings(Array("UnusedMethodParameter"))
   def oneTimePaymentCanceled(gatewayName: String, paymentId: String): Action[AnyContent] =
     Action.async { implicit request =>
@@ -209,115 +266,49 @@ class GatewayController @Inject() (
           }
       }
     }
-  // Maneja el evento cuando una sesión de checkout se completa exitosamente. Este es el evento principal para Stripe Checkout
 
   private def handleCheckoutSessionCompleted(json: JsValue): Future[Unit] = {
     val sessionObj = json \ "data" \ "object"
     val sessionId = (sessionObj \ "id").as[String]
-    val metadata = (sessionObj \ "metadata").asOpt[Map[String, String]].getOrElse(Map.empty)
-    val paymentIntentId = (sessionObj \ "payment_intent").asOpt[String]
-    val paymentIdStr = metadata.getOrElse("paymentId", "")
+    val paymentStatus = (sessionObj \ "payment_status").asOpt[String].getOrElse("")
     val amountTotal = (sessionObj \ "amount_total").asOpt[Long].getOrElse(0L)
     val currency = (sessionObj \ "currency").asOpt[String].getOrElse("eur")
-    val paymentStatus = (sessionObj \ "payment_status").asOpt[String].getOrElse("")
+    val stripePaymentIntentId = (sessionObj \ "payment_intent").asOpt[String]
 
-    logger.info(s"Checkout session completed: $sessionId, paymentId: $paymentIdStr, status: $paymentStatus")
+    logger.info(
+      s"Checkout session completed received: sessionId=$sessionId payment_status=$paymentStatus amount_total=$amountTotal"
+    )
 
     if (paymentStatus != "paid") {
-      logger.warn(s"Checkout session $sessionId completed but payment status is: $paymentStatus")
-      return Future.successful(())
-    }
-
-    for {
-      // Buscar el PaymentIntent en nuestra BD usando el sessionId (que guardamos como gatewayIntentId)
-      paymentIntentOpt <- paymentIntentRepository.findByGatewayIntentId(Gateway.STRIPE, sessionId)
-      paymentIntent = paymentIntentOpt.getOrElse(
-        throw new PaymentNotFoundException(s"PaymentIntent not found for session: $sessionId")
-      )
-
-      // Actualizar el PaymentIntent a SUCCEEDED
-      _ <- paymentIntentRepository.updateStatus(paymentIntent.paymentId, PaymentIntentStatus.SUCCEEDED)
-
-      // Buscar la Transaction
-      transaction <-
-        transactionRepository
-          .findById(paymentIntent.transactionId)
-          .map(
-            _.getOrElse(throw new TransactionNotFoundException(s"Transaction ${paymentIntent.transactionId} not found"))
-          )
-
-      // Actualizar Transaction a COMPLETED
-      _ <- transactionRepository.updateStatus(transaction.id, TransactionStatus.COMPLETED)
-
-      // CREAR Payment (registro final del pago exitoso)
-      paymentId = paymentIntent.paymentId
-
-      // Calcular montos
-      amountBigDecimal = BigDecimal(amountTotal) / 100
-      stripeFee = amountBigDecimal * BigDecimal(0.029) + BigDecimal(0.30)
-      netAmount = amountBigDecimal - stripeFee
-
-      // Obtener la URL del recibo si está disponible (necesitamos el PaymentIntent)
-      receiptUrl <- paymentIntentId match {
-        case Some(piId) =>
-          Future {
-            try {
-              val pi = PaymentIntent.retrieve(piId)
-              Option(pi.getLatestCharge).flatMap { chargeId =>
-                try {
-                  val charge = Charge.retrieve(chargeId)
-                  Option(charge.getReceiptUrl)
-                } catch {
-                  case _: Exception => None
-                }
-              }
-            } catch {
-              case e: Exception =>
-                logger.warn(s"Could not retrieve receipt URL: ${e.getMessage}")
-                None
-            }
-          }
-        case None => Future.successful(None)
-      }
-
-      payment = Payment(
-        id = paymentId,
-        transactionId = transaction.id,
-        gateway = Gateway.STRIPE,
-        gatewayPaymentId = paymentIntentId.getOrElse(sessionId), // Usamos el PaymentIntent ID si está disponible
-        amount = amountBigDecimal,
-        netAmount = netAmount,
-        currency = currency,
-        receiptUrl = receiptUrl,
-        instrument = paymentIntent.instrument,
-        refunded= false,
-        refundedAmount = BigDecimal(0),
-        created = clock.now,
-        updated = clock.now,
-        metadata = Some(Json.obj("sessionId" -> sessionId, "paymentIntentId" -> paymentIntentId).toString)
-      )
-
-      // Guardar Payment
-      _ <- paymentRepository.create(payment)
-
-      // Dar acceso al recurso al comprador
-      _ <- resourceUserRepository.save(
-        ResourceUser(
-          resourceId = transaction.resourceId,
-          userId = transaction.buyerId,
-          resourceUserType = ResourceUserType.PURCHASED,
-          created = clock.now
+      logger.warn(s"Checkout session $sessionId completed but payment_status=$paymentStatus")
+      Future.successful(())
+    } else {
+      for {
+        paymentIntentOpt <- paymentIntentRepository.findByGatewayIntentId(Gateway.STRIPE, sessionId)
+        paymentIntent = paymentIntentOpt.getOrElse(
+          throw new PaymentNotFoundException(s"PaymentIntent not found for session: $sessionId")
         )
-      )
 
-      _ = logger.info(
-        s"Purchase completed successfully for transaction: ${transaction.id}, payment: ${paymentId.toString}"
-      )
+        transaction <-
+          transactionRepository
+            .findById(paymentIntent.transactionId)
+            .map(_.getOrElse(throw new TransactionNotFoundException(s"Transaction ${paymentIntent.transactionId} not found")))
 
-    } yield ()
+        receiptUrl <- fetchReceiptUrl(stripePaymentIntentId)
+
+        _ <- reconcileSuccessfulCheckout(
+          paymentIntent = paymentIntent,
+          transaction = transaction,
+          sessionId = sessionId,
+          stripePaymentIntentId = stripePaymentIntentId,
+          amountTotalInCents = amountTotal,
+          currency = currency,
+          receiptUrl = receiptUrl
+        )
+      } yield ()
+    }
   }
 
-  // Manejo del evento cuando una sesión de checkout expira
   private def handleCheckoutSessionExpired(json: JsValue): Future[Unit] = {
     val sessionObj = json \ "data" \ "object"
     val sessionId = (sessionObj \ "id").as[String]
@@ -332,6 +323,7 @@ class GatewayController @Inject() (
             _ <- paymentIntentRepository.updateStatus(pi.paymentId, PaymentIntentStatus.CANCELED)
             _ <- transactionRepository.updateStatus(pi.transactionId, TransactionStatus.CANCELED)
           } yield ()
+
         case None =>
           logger.warn(s"PaymentIntent not found for expired session: $sessionId")
           Future.successful(())
@@ -339,60 +331,126 @@ class GatewayController @Inject() (
     } yield ()
   }
 
-  //Handler para payment_intent.succeeded (opcional, como backup) En Checkout Sessions, normalmente se usa checkout.session.completed
   private def handlePaymentIntentSucceeded(json: JsValue): Future[Unit] = {
     val paymentIntentObj = json \ "data" \ "object"
-    val paymentIntentId = (paymentIntentObj \ "id").as[String]
+    val stripePaymentIntentId = (paymentIntentObj \ "id").as[String]
 
-    logger.info(s"PaymentIntent succeeded: $paymentIntentId (this might be handled by checkout.session.completed)")
+    logger.info(
+      s"Stripe payment_intent.succeeded received for pi=$stripePaymentIntentId. " +
+        s"Handled mainly via checkout.session.completed in this integration."
+    )
 
-    // En checkout sessions, esto es redundante con checkout.session.completed
-    // Podemos simplemente loguear o ignorar
     Future.successful(())
   }
 
-  // Handler para payment_intent.payment_failed
   private def handlePaymentIntentFailed(json: JsValue): Future[Unit] = {
     val paymentIntentObj = json \ "data" \ "object"
-    val sessionId = (paymentIntentObj \ "id").as[String]
+    val stripePaymentIntentId = (paymentIntentObj \ "id").as[String]
 
-    logger.warn(s"PaymentIntent failed: $sessionId")
+    logger.warn(
+      s"Stripe payment_intent.payment_failed received for pi=$stripePaymentIntentId. " +
+        s"No DB update is performed because this integration stores sessionId (cs_...) as gatewayIntentId."
+    )
 
-    for {
-      paymentIntentOpt <- paymentIntentRepository.findByGatewayIntentId(Gateway.STRIPE, sessionId)
-      _ <- paymentIntentOpt match {
-        case Some(pi) =>
-          for {
-            _ <- paymentIntentRepository.updateStatus(pi.paymentId, PaymentIntentStatus.FAILED)
-            _ <- transactionRepository.updateStatus(pi.transactionId, TransactionStatus.FAILED)
-          } yield ()
-        case None =>
-          logger.warn(s"PaymentIntent not found  for session: $sessionId")
-          Future.successful(())
-      }
-    } yield ()
+    Future.successful(())
   }
-
-  //Handler para payment_intent.canceled
 
   private def handlePaymentIntentCanceled(json: JsValue): Future[Unit] = {
     val paymentIntentObj = json \ "data" \ "object"
-    val sessionId = (paymentIntentObj \ "id").as[String]
+    val stripePaymentIntentId = (paymentIntentObj \ "id").as[String]
 
-    logger.info(s"PaymentIntent canceled: $sessionId")
+    logger.info(
+      s"Stripe payment_intent.canceled received for pi=$stripePaymentIntentId. " +
+        s"No DB update is performed because this integration stores sessionId (cs_...) as gatewayIntentId."
+    )
 
-    for {
-      paymentIntentOpt <- paymentIntentRepository.findByGatewayIntentId(Gateway.STRIPE, sessionId)
-      _ <- paymentIntentOpt match {
-        case Some(pi) =>
-          for {
-            _ <- paymentIntentRepository.updateStatus(pi.paymentId, PaymentIntentStatus.CANCELED)
-            _ <- transactionRepository.updateStatus(pi.transactionId, TransactionStatus.CANCELED)
-          } yield ()
-        case None =>
-          logger.warn(s"PaymentIntent not found for session: $sessionId")
-          Future.successful(())
-      }
-    } yield ()
+    Future.successful(())
   }
+
+  private def reconcileSuccessfulCheckout(
+   paymentIntent:dev.pompilius.payment.domain.PaymentIntent,
+   transaction: Transaction,
+   sessionId: String,
+   stripePaymentIntentId: Option[String],
+   amountTotalInCents: Long,
+   currency: String,
+   receiptUrl: Option[String]
+  ): Future[Unit] = {
+
+    paymentIntentRepository.markSucceededIfNotSucceeded(paymentIntent.paymentId).flatMap { updatedRows =>
+      if (updatedRows == 0) {
+        logger.info(s"PaymentIntent ${paymentIntent.paymentId} already reconciled by another process")
+        Future.successful(())
+      } else {
+        val amount = BigDecimal(amountTotalInCents) / 100
+        val stripeFee = amount * BigDecimal(0.029) + BigDecimal(0.30)
+        val netAmount = amount - stripeFee
+
+        val payment = Payment(
+          id = paymentIntent.paymentId,
+          transactionId = transaction.id,
+          gateway = Gateway.STRIPE,
+          gatewayPaymentId = stripePaymentIntentId.getOrElse(sessionId),
+          amount = amount,
+          netAmount = netAmount,
+          currency = currency,
+          receiptUrl = receiptUrl,
+          instrument = paymentIntent.instrument,
+          refunded = false,
+          refundedAmount = BigDecimal(0),
+          created = clock.now,
+          updated = clock.now,
+          metadata = Some(
+            Json.obj(
+              "sessionId" -> sessionId,
+              "paymentIntentId" -> stripePaymentIntentId
+            ).toString
+          )
+        )
+
+        for {
+          _ <- transactionRepository.updateStatus(transaction.id, TransactionStatus.COMPLETED)
+          _ <- paymentRepository.create(payment)
+          _ <- resourceUserRepository.save(
+            ResourceUser(
+              resourceId = transaction.resourceId,
+              userId = transaction.buyerId,
+              resourceUserType = ResourceUserType.PURCHASED,
+              created = clock.now
+            )
+          )
+          _ = logger.info(
+            s"Purchase reconciled successfully for transaction=${transaction.id}, payment=${payment.id}, session=$sessionId"
+          )
+        } yield ()
+      }
+    }
+  }
+
+  private def fetchReceiptUrl(stripePaymentIntentId: Option[String]): Future[Option[String]] =
+    stripePaymentIntentId match {
+      case Some(piId) =>
+        Future {
+          try {
+            val pi = StripePaymentIntent.retrieve(piId)
+            Option(pi.getLatestCharge).flatMap { chargeId =>
+              try {
+                val charge = Charge.retrieve(chargeId)
+                Option(charge.getReceiptUrl)
+              } catch {
+                case NonFatal(e) =>
+                  logger.warn(s"Could not retrieve Charge $chargeId: ${e.getMessage}")
+                  None
+              }
+            }
+          } catch {
+            case NonFatal(e) =>
+              logger.warn(s"Could not retrieve Stripe PaymentIntent $piId: ${e.getMessage}")
+              None
+          }
+        }
+
+      case None =>
+        Future.successful(None)
+    }
 }

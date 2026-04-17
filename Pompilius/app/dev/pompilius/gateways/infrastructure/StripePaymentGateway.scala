@@ -44,8 +44,6 @@ class StripePaymentGateway @Inject() (
 
   override def createPaymentIntent(createParams: PaymentCreateParams): Future[PaymentIntent] = {
 
-
-
     for {
       fingerprint <- createParams.fingerprint match {
         case Some(f) =>
@@ -137,33 +135,4 @@ class StripePaymentGateway @Inject() (
       )
     }
   }
-
-//  override def validateWebhook(payload: String, signature: String): Boolean = {
-//    try {
-//      // Usar la librería de Stripe para validar el webhook con HMAC SHA256
-//      val event = constructEvent(payload, signature, webhookSecret)
-//      logger.info(s"Webhook validated successfully: ${event.getType}")
-//      true
-//    } catch {
-//      case e: com.stripe.exception.SignatureVerificationException =>
-//        logger.error(s"Invalid webhook signature: ${e.getMessage}")
-//        false
-//      case e: Exception =>
-//        logger.error(s"Error validating webhook: ${e.getMessage}")
-//        false
-//    }
-//  }
-
-//  // Mapea los estados de Stripe a los estados interno
-//  private def mapStripeStatusToInternal(stripeStatus: String): PaymentIntentStatus = {
-//    stripeStatus match {
-//      case "requires_payment_method" => PaymentIntentStatus.REQUIRES_PAYMENT_METHOD
-//      case "requires_confirmation"   => PaymentIntentStatus.REQUIRES_CONFIRMATION
-//      case "requires_action"         => PaymentIntentStatus.REQUIRES_ACTION
-//      case "processing"              => PaymentIntentStatus.PROCESSING
-//      case "succeeded"               => PaymentIntentStatus.SUCCEEDED
-//      case "canceled"                => PaymentIntentStatus.CANCELED
-//      case _                         => PaymentIntentStatus.REQUIRES_PAYMENT_METHOD
-//    }
-//  }
 }

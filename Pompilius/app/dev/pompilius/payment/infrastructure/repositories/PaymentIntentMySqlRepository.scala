@@ -130,4 +130,19 @@ class PaymentIntentMySqlRepository @Inject() (clock: Clock)(implicit dbExecution
       }
       Done
     }
+
+  override def markSucceededIfNotSucceeded(paymentId: PaymentId): Future[Int] =
+    Future {
+        DB.localTx { implicit session =>
+            withSQL {
+            update(this)
+                .set(
+                column.status -> PaymentIntentStatus.SUCCEEDED.toString,
+                column.updated -> DateTime.now()
+                )
+                .where
+                .eq(column.paymentId, paymentId.id)
+            }.update()
+        }
+    }
 }
