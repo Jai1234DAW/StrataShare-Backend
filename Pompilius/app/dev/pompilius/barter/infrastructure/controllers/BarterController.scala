@@ -354,7 +354,7 @@ class BarterController @Inject() (
             }
 
             // Actualizar Transaction a CANCELLED
-            _ <- transactionRepository.updateStatus(transaction.id, TransactionStatus.CANCELLED)
+            _ <- transactionRepository.updateStatus(transaction.id, TransactionStatus.CANCELED)
             //Se puede enviar una notificacion al vendedor, pero esto no es critico
 
           } yield Ok(Json.obj("message" -> "Trueque cancelado exitosamente"))

@@ -20,7 +20,8 @@ import scala.math.BigDecimal.RoundingMode
 import scala.util.Try
 
 //Implementación de PaymentGateway para Stripe usando la librería oficial de Stripe.
-// Crea un Session de Stripe para el pago y devuelve la URL para redirigir al usuario a Stripe Checkout. Valida los webhooks de Stripe usando la librería oficial.
+// Crea un Session de Stripe para el pago y devuelve la URL para redirigir al usuario a Stripe Checkout.
+// Valida los webhooks de Stripe usando la librería oficial.
 
 @Singleton
 class StripePaymentGateway @Inject() (
@@ -137,71 +138,21 @@ class StripePaymentGateway @Inject() (
     }
   }
 
-//  override def getPayment(gatewayPaymentId: String): Future[GatewayPayment] =
-//    Future {
-//      val params = PaymentIntentRetrieveParams.builder().addExpand("latest_charge").build()
-//
-//      val payment = StripePaymentIntent.retrieve(gatewayPaymentId, params, null)
-//
-//      GatewayPayment(
-//        gateway = Gateway.STRIPE,
-//        gatewayPaymentId = Some(payment.getId),
-//        gatewayIntentId = None,
-//        buyerReference = None,
-//        instrument = None,
-//        receiptUrl = Try(payment.getLatestChargeObject.getReceiptUrl).toOption,
-//        amount = Try(BigDecimal(payment.getAmount)).getOrElse(BigDecimal(0)) / 100,
-//        succeeded = Try(payment.getStatus == Strings.succeeded).getOrElse(false),
-//        metadata = Try(payment.getRawJsonObject.toString).toOption
-//      )
-//    }
-
-//  override def getPaymentIntent(gatewayIntentId: String): Future[GatewayPayment] =
-//    Future {
-//      Session.retrieve(gatewayIntentId)
-//    }.flatMap { session =>
-//      getPayment(session.getPaymentIntent).map(_.copy(gatewayIntentId = Some(gatewayIntentId)))
-//    }
-//
-//  override def getPaymentIntentStatus(gatewayIntentId: String): Future[PaymentIntentStatus] = {
-//    Future {
-//      val paymentIntent = PaymentIntent.retrieve(gatewayIntentId)
-//      mapStripeStatusToInternal(paymentIntent.getStatus)
-//    }.recover {
-//      case e: com.stripe.exception.StripeException =>
-//        logger.error(s"Error retrieving PaymentIntent status: ${e.getMessage}")
-//        throw new BadRequestException(s"Could not retrieve payment status: ${e.getMessage}")
+//  override def validateWebhook(payload: String, signature: String): Boolean = {
+//    try {
+//      // Usar la librería de Stripe para validar el webhook con HMAC SHA256
+//      val event = constructEvent(payload, signature, webhookSecret)
+//      logger.info(s"Webhook validated successfully: ${event.getType}")
+//      true
+//    } catch {
+//      case e: com.stripe.exception.SignatureVerificationException =>
+//        logger.error(s"Invalid webhook signature: ${e.getMessage}")
+//        false
+//      case e: Exception =>
+//        logger.error(s"Error validating webhook: ${e.getMessage}")
+//        false
 //    }
 //  }
-
-//  override def cancelPaymentIntent(gatewayIntentId: String): Future[Unit] = {
-//    Future {
-//      val paymentIntent = PaymentIntent.retrieve(gatewayIntentId)
-//      paymentIntent.cancel()
-//      logger.info(s"PaymentIntent $gatewayIntentId canceled successfully")
-//      ()
-//    }.recover {
-//      case e: com.stripe.exception.StripeException =>
-//        logger.error(s"Error canceling PaymentIntent: ${e.getMessage}")
-//        throw new Exception(s"Could not cancel payment: ${e.getMessage}")
-//    }
-//  }
-
-  override def validateWebhook(payload: String, signature: String): Boolean = {
-    try {
-      // Usar la librería de Stripe para validar el webhook con HMAC SHA256
-      val event = constructEvent(payload, signature, webhookSecret)
-      logger.info(s"Webhook validated successfully: ${event.getType}")
-      true
-    } catch {
-      case e: com.stripe.exception.SignatureVerificationException =>
-        logger.error(s"Invalid webhook signature: ${e.getMessage}")
-        false
-      case e: Exception =>
-        logger.error(s"Error validating webhook: ${e.getMessage}")
-        false
-    }
-  }
 
 //  // Mapea los estados de Stripe a los estados interno
 //  private def mapStripeStatusToInternal(stripeStatus: String): PaymentIntentStatus = {

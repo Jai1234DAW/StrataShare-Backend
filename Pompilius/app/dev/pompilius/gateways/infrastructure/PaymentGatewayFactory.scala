@@ -18,9 +18,6 @@ class PaymentGatewayFactory @Inject() (
       case Gateway.STRIPE | Gateway.STRIPE_MOBILE =>
         stripePaymentGateway
 
-      case Gateway.BARTER =>
-        throw new BadRequestException("BARTER is not a payment gateway")
-
       // Implementaciones futuras:
       // case Gateway.PAYPAL =>
       //   paypalPaymentGateway
