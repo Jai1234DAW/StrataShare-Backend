@@ -18,4 +18,5 @@ trait PaymentIntentRepository {
 
   def updateStatus(paymentId: PaymentId, status: PaymentIntentStatus): Future[Done]
 
+  def markSucceededIfNotSucceeded(paymentId: PaymentId): Future[Int]
 }
