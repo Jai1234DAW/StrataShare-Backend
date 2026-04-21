@@ -28,6 +28,7 @@ class ResourceMySqlRepository @Inject() (clock: Clock)(
   def apply(r: ResultName[Resource])(rs: WrappedResultSet): Resource =
     Resource(
       id = ResourceId(rs.get[Long](r.id)),
+      name= rs.get[String](r.name),
       resourceType = ResourceType.withNameInsensitive(rs.get[String](r.resourceType)),
       visibility = Visibility.withNameInsensitive(rs.get[String](r.visibility)),
       created = rs.get(r.created),
@@ -46,6 +47,7 @@ class ResourceMySqlRepository @Inject() (clock: Clock)(
       DB.localTx { implicit session =>
         val values = List(
           column.id -> resource.id.id,
+          column.name-> resource.name,
           column.resourceType -> resource.resourceType.toString,
           column.visibility -> resource.visibility.toString,
           column.created -> resource.created,
@@ -80,6 +82,10 @@ class ResourceMySqlRepository @Inject() (clock: Clock)(
       sqls.eq(r.resourceType, rt.value)
     }
 
+    val nameFilter= filter.name.map { n =>
+      sqls.like(sqls.lower(r.name), s"%${n.toLowerCase}%")
+    }
+
     val visibilityFilter = filter.visibility.map { v =>
       sqls.eq(r.visibility, v.value)
     }
@@ -98,6 +104,7 @@ class ResourceMySqlRepository @Inject() (clock: Clock)(
 
     val filters = List(
       typeFilter,
+      nameFilter,
       visibilityFilter,
       createdFromFilter,
       createdToFilter,

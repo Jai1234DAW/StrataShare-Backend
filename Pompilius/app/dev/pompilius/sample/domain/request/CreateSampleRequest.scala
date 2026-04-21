@@ -4,13 +4,14 @@ import dev.pompilius.shared.domain.Visibility
 
 case class CreateSampleRequest(
     // Datos comunes (Resource)
+    name: String,
     visibility: Visibility,
     localization: String,
     observations: Option[String],
     summary: Option[String],
 
     // Datos específicos (Sample)
-    name: String,
+
     minerals: Option[String],
     collectionMethods: Option[String],
     isFresh: Boolean,

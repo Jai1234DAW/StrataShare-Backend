@@ -6,7 +6,6 @@ import org.joda.time.DateTime
 case class Study(
     id: StudyId,
     resourceId: ResourceId,
-    name: String,
     startDate: DateTime,
     endDate: Option[DateTime],
     description: String,

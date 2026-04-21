@@ -15,11 +15,11 @@ import play.api.mvc.{AnyContentAsJson, Request}
 object UpdateStudyRequestParser {
 
   implicit val jsonReads: Reads[UpdateStudyRequest] = (
-    (__ \ Strings.visibility).readNullable[String].map(_.map(Visibility.withNameInsensitive)) and
+    (__ \ Strings.name).readNullable[String] and
+      (__ \ Strings.visibility).readNullable[String].map(_.map(Visibility.withNameInsensitive)) and
       (__ \ Strings.localization).readNullable[String] and
       (__ \ Strings.observations).readNullable[String].map(_.map(StringUtil.stripTags)) and
       (__ \ Strings.summary).readNullable[String].map(_.map(StringUtil.stripTags)) and
-      (__ \ Strings.name).readNullable[String] and
       (__ \ Strings.startDate).readNullable[DateTime](JodaDateTimeReads) and
       (__ \ Strings.endDate).readNullable[DateTime](JodaDateTimeReads) and
       (__ \ Strings.description).readNullable[String].map(_.map(StringUtil.stripTags)) and

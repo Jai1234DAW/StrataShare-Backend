@@ -33,7 +33,6 @@ class StudyMySqlRepository @Inject() (
     Study(
       id = StudyId(rs.get[Long](st.id)),
       resourceId = ResourceId(rs.get[Long](st.resourceId)),
-      name = rs.get(st.name),
       startDate = rs.get(st.startDate),
       endDate = rs.get(st.endDate),
       description = rs.get(st.description),
@@ -94,8 +93,6 @@ class StudyMySqlRepository @Inject() (
           val desc = field.startsWith("-")
 
           field.stripPrefix("-") match {
-            case Strings.name =>
-              Some(if (desc) st.name.desc else st.name.asc)
 
             case Strings.created =>
               Some(if (desc) r.created.desc else r.created.asc)
@@ -118,15 +115,22 @@ class StudyMySqlRepository @Inject() (
     val searchFilter = filter.search.map { search =>
       val normalizedSearch = ScalikeUtil.normalizeSearch(search)
       sqls.roundBracket(
-        sqls
-          .like(st.name, normalizedSearch)
-          .or
+        sqls.like(st.description, normalizedSearch).or
           .like(st.authors, normalizedSearch)
       )
     }
 
     val nameFilter = filter.name.map { name =>
-      sqls.like(sqls.lower(st.name), s"%${name.toLowerCase}%")
+      val r = resourceMySqlRepository.syntax("r")
+      sqls.exists(
+        select(sqls"1")
+          .from(resourceMySqlRepository as r)
+          .where
+          .eq(r.id, st.resourceId)
+          .and
+          .eq(r.name, name)
+          .toSQLSyntax
+      )
     }
 
     val yearFilter = filter.year.map { year =>
@@ -217,7 +221,6 @@ class StudyMySqlRepository @Inject() (
         val values = List(
           column.id -> study.id.id,
           column.resourceId -> study.resourceId.id,
-          column.name -> study.name,
           column.startDate -> study.startDate,
           column.endDate -> study.endDate,
           column.description -> study.description,

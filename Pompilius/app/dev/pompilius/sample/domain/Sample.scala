@@ -6,7 +6,6 @@ case class Sample (
   // Campos específicos de Sample
   id: SampleId,
   resourceId: ResourceId,
-  name: String,
   minerals: Option[String] = None,
   collectionMethods: Option[String] = None,
   isFresh: Boolean = false,
