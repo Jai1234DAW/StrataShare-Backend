@@ -117,5 +117,50 @@ PUT        /me/delete                     dev.pompilius.users.infrastructure.con
 ###
 GET         /search                        dev.pompilius.users.infrastructure.controllers.UserController.searchUsers( search : Option[String], username: Option[String], firstName: Option[String], lastName: Option[String], country: Option[String], pag: Pagination)
 
+###
+#  summary: Follow a user
+#  roles: {"required": "any", "roles": ["STUDENT", "AMATEUR", "PROFESSIONAL", "ADMIN"]}
+#  responses:
+#    200:
+#      description: Success
+###
+POST        /:userId/follow                 dev.pompilius.users.infrastructure.controllers.UserController.followUser(userId: String)
 
+###
+#  summary: Unfollow a user
+#  roles: {"required": "any", "roles": ["STUDENT", "PROFESSIONAL", "AMATEUR", "ADMIN"]}
+#  responses:
+#    200:
+#      description: Success
+###
+POST        /:userId/unfollow               dev.pompilius.users.infrastructure.controllers.UserController.unfollowUser(userId: String)
 
+###
+#  summary: Get followers of a user
+#  roles: {"required": "any", "roles": ["STUDENT", "PROFESSIONAL", "AMATEUR", "ADMIN"]}
+#  responses:
+#    200:
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/UserFollowerList'
+#      description: List of followers
+###
+GET         /:userId/followers              dev.pompilius.users.infrastructure.controllers.UserController.getFollowers(userId: String, pag: Pagination)
+
+###
+#  summary: Get the total amount of followers of a user
+#  roles: {"required": "any", "roles": ["STUDENT", "PROFESSIONAL", "AMATEUR", "ADMIN"]}
+#  responses:
+#    200:
+#      content:
+#       application/json:
+#        schema:
+#         type: object
+#         properties:
+#          followers:
+#           type: integer
+#           default: 0
+#      description: Total amount of followers
+###
+GET         /:userId/followers/count        dev.pompilius.users.infrastructure.controllers.UserController.countFollowers(userId: String)

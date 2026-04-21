@@ -14,7 +14,7 @@ secrets.error.invalidLink.message=The link you are trying to access is invalid. 
 
 mail.reset.subject=Password Reset
 mail.reset.title=Password Reset
-mail.reset.logo=https://imagedelivery.net/NgMNTCL_Au9y7G-VFzKBEw/01775c43-9903-4e42-8f6a-487d993fb500/public
+mail.reset.logo=http://localhost:9000/assets/images/stratashare02.png
 mail.reset.hello=Hi,
 mail.reset.intro=We received a request to reset your password. If you made this request, click the link below to create a new password:
 mail.reset.remainder=This link will be valid for the next 24 hours. If you didn’t request a password reset, you can safely ignore this message — your account will remain secure.
