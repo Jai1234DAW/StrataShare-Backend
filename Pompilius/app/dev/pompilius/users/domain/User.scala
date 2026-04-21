@@ -12,6 +12,7 @@ case class User(
     passwordHash: String,
     enabled: Boolean,
     email: String,
+    interests: Option[List[String]],
     country: Country,
     firstName: Option[String],
     lastName: Option[String],

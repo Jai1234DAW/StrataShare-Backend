@@ -6,7 +6,7 @@ import dev.pompilius.attachment.domain.AttachmentRepository
 import dev.pompilius.country.infrastructure.writers.CountryWriter
 import dev.pompilius.shared.infrastructure.JsUtils.{JodaDateTimeFormat, toJsValueWrapper}
 import dev.pompilius.shared.infrastructure.UrlUtil
-import dev.pompilius.users.domain.User
+import dev.pompilius.users.domain.{Role, User, UserRoleRepository}
 import play.api.libs.json._
 
 import javax.inject.{Inject, Singleton}
@@ -23,6 +23,7 @@ trait UserWriter {
 @Singleton
 class UserWriterImpl @Inject() (
     attachmentRepository: AttachmentRepository,
+    userRoleRepository: UserRoleRepository,
     countryWriter: CountryWriter
 )(implicit ec: ExecutionContext)
     extends UserWriter {
@@ -38,6 +39,9 @@ class UserWriterImpl @Inject() (
           Map("hash" -> avatar.toString) // Cambiamos la url si cambia el avatar (para evitar la caché)
         )
       }
+
+      roles<- userRoleRepository.getAllByUserId(user.id).map(_.map(_.role))
+
     } yield {
       // Construimos el JSON final en una variable antes del yield
       val finalJson = Json.obj(
@@ -45,13 +49,16 @@ class UserWriterImpl @Inject() (
           toJsValueWrapper(Strings.id, user.id.toString),
           toJsValueWrapper(Strings.username, user.username),
           toJsValueWrapper(Strings.email, user.email),
+          toJsValueWrapper(Strings.interests, user.interests),
           toJsValueWrapper(Strings.phone, user.phone),
           toJsValueWrapper(Strings.avatar, avatarJs), // se usa aquí usamos el avatar resuelto
           toJsValueWrapper(Strings.firstName, user.firstName),
           toJsValueWrapper(Strings.lastName, user.lastName),
           toJsValueWrapper(Strings.country, countryJson), // usamos aquí country resuelto
           toJsValueWrapper(Strings.language, user.language.map(_.language)),
-          toJsValueWrapper(Strings.bio, user.bio)
+          toJsValueWrapper(Strings.bio, user.bio),
+          toJsValueWrapper(Strings.created, user.created),
+          toJsValueWrapper(Strings.role, roles)
         ).flatten: _*
       )
 
@@ -93,6 +100,8 @@ class UserWriterImpl @Inject() (
           Map("hash" -> avatar.toString) // Cambiamos la url si cambia el avatar (para evitar la caché)
         )
       }
+      roles<- userRoleRepository.getAllByUserId(user.id).map(_.map(_.role))
+
     } yield {
       // Construimos el JSON final en una variable antes del yield
       val finalJson = Json.obj(
@@ -102,7 +111,8 @@ class UserWriterImpl @Inject() (
           toJsValueWrapper(Strings.firstName, user.firstName),
           toJsValueWrapper(Strings.lastName, user.lastName),
           toJsValueWrapper(Strings.country, countryJson), // usamos aquí country resuelto
-          toJsValueWrapper(Strings.bio, user.bio)
+          toJsValueWrapper(Strings.bio, user.bio),
+          toJsValueWrapper(Strings.role, roles)
         ).flatten: _*
       )
 

@@ -14,6 +14,7 @@ object UpdateUserRequestParser {
 
   implicit val jsonReads: Reads[UpdateUserRequest] = (
     (__ \ Strings.username).read[String](ReadsUtil.username) and
+      (__ \ Strings.interests).readNullable[List[String]] and
       (__ \ Strings.phone).readNullable[String](ReadsUtil.phone) and
       (__ \ Strings.firstName).readNullable[String](ReadsUtil.firstName) and
       (__ \ Strings.lastName).readNullable[String](ReadsUtil.lastName) and

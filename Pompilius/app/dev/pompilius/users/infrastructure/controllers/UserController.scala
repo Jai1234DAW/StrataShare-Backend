@@ -42,7 +42,8 @@ class UserController @Inject() (
     mailSentRepository: MailSentRepository,
     userAttachment: UserAttachmentRepository,
     attachmentRepository: AttachmentRepository,
-    paginatedWriter: PaginatedWriter
+    paginatedWriter: PaginatedWriter,
+    userFollowerRepository: UserFollowersRepository
 )(implicit val ec: ExecutionContext)
     extends BaseController
     with Attachments {
@@ -63,6 +64,7 @@ class UserController @Inject() (
         passwordHash = UserPassword(createUserRequest.password).hash,
         enabled = true,
         email = createUserRequest.email,
+        interests=null,
         country = createUserRequest.country,
         firstName = createUserRequest.firstName,
         lastName = createUserRequest.lastName,
@@ -378,4 +380,88 @@ class UserController @Inject() (
           }
       }
     }
+
+  def followUser(userId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      withAuthenticatedUser {
+        case (_, currentUser, _) =>
+          val followedUserId = UserId(userId)
+          for {
+            _ <- userRepository.findById(followedUserId).map {
+              case Some(_) =>
+              case None =>
+                throw new UserNotFoundException(s"User with id $userId not found")
+            }
+            _ <- userFollowerRepository.save(UserFollower(followedUserId,currentUser.id, clock.now))
+          } yield {
+            Ok
+          }
+      }
+    }
+
+def unfollowUser(userId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      withAuthenticatedUser {
+        case (_, currentUser, _) =>
+          val unfollowedUserId = UserId(userId)
+          for {
+            _ <- userRepository.findById(unfollowedUserId).map {
+              case Some(_) =>
+              case None =>
+                throw new UserNotFoundException(s"User with id $userId not found")
+            }
+            _ <- userFollowerRepository.delete(UserFollower(unfollowedUserId, currentUser.id, clock.now))
+          } yield {
+            Ok
+          }
+      }
+    }
+
+  def getFollowers(userId: String, pag: Pagination): Action[AnyContent] =
+    Action.async { implicit request =>
+      withAuthenticatedUser {
+        case (_, _, _) =>
+          val uid = UserId(userId)
+
+          for {
+            _ <- userRepository.findById(uid).map {
+              case Some(_) =>
+              case None =>
+                throw new UserNotFoundException(s"User with id $uid not found")
+            }
+
+            followers <- userFollowerRepository.getAllByUserId(uid, pag.oneMore)
+            followersJson <- Future.sequence(
+              followers.map { follower =>
+                userRepository.findById(follower.followerId).map {
+                  case Some(user) => userWriter.asAnotherUser(user)
+                  case None       => throw new UserNotFoundException(s"User with id ${follower.followerId} not found")
+                }
+              }
+            )
+            json <- paginatedWriter.toJson(Paginated(followersJson, pag))
+          } yield {
+            Ok(json)
+          }
+      }
+    }
+
+  def countFollowers(userId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      withAuthenticatedUser {
+        case (_, _, _) =>
+          val uid = UserId(userId)
+          for {
+            _ <- userRepository.findById(uid).map {
+              case Some(_) =>
+              case None =>
+                throw new UserNotFoundException(s"User with id $uid not found")
+            }
+            followersCount <- userFollowerRepository.countByUserId(uid)
+          } yield {
+            Ok(Json.obj(Strings.followersCounted -> followersCount))
+          }
+      }
+    }
 }
+
