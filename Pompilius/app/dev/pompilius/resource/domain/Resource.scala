@@ -12,5 +12,6 @@ case class Resource(
     localization: String,
     observations: Option[String],
     summary: Option[String],
-    price: Option[BigDecimal] = None
+    price: Option[BigDecimal] = None,
+    isBarter: Boolean = false
 )

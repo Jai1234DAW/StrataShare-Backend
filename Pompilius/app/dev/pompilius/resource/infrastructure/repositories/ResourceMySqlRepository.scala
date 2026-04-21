@@ -14,7 +14,7 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
 
 @Singleton
-class ResourceMySqlRepository @Inject()(clock: Clock) (
+class ResourceMySqlRepository @Inject() (clock: Clock)(
 )(implicit dbExecutionContext: DbExecutionContext)
     extends ResourceRepository
     with SQLSyntaxSupport[Resource] {
@@ -35,7 +35,8 @@ class ResourceMySqlRepository @Inject()(clock: Clock) (
       localization = rs.get[String](r.localization),
       observations = rs.get[Option[String]](r.observations),
       summary = rs.get[Option[String]](r.summary),
-      price = rs.get[Option[BigDecimal]](r.price)
+      price = rs.get[Option[BigDecimal]](r.price),
+      isBarter = rs.get[Boolean](r.isBarter)
     )
 
   private val r = this.syntax("r")
@@ -52,7 +53,8 @@ class ResourceMySqlRepository @Inject()(clock: Clock) (
           column.localization -> resource.localization,
           column.observations -> resource.observations,
           column.summary -> resource.summary,
-          column.price -> resource.price
+          column.price -> resource.price,
+          column.isBarter -> resource.isBarter
         )
         withSQL {
           insert

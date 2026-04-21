@@ -32,11 +32,12 @@ class ResourceWriterImpl @Inject() ()(implicit val ec: ExecutionContext) extends
           toJsValueWrapper(Strings.observations, resource.observations),
           toJsValueWrapper(Strings.summary, resource.summary),
           toJsValueWrapper(Strings.created, resource.created),
-          toJsValueWrapper(Strings.updated, resource.updated)
+          toJsValueWrapper(Strings.updated, resource.updated),
+          toJsValueWrapper(Strings.price, resource.price),
+          toJsValueWrapper(Strings.isBarter, resource.isBarter)
         ).flatten: _*
       )
     }
-
 
   // Método privado: Agregar datos específicos (sample o study) al JSON base
   private def withSpecificData(
