@@ -1,7 +1,16 @@
 package dev.pompilius.sample.infrastructure.controllers
 
 import dev.pompilius.resource.domain.exceptions.ResourceNotFoundException
-import dev.pompilius.resource.domain.{Resource, ResourceAccessLevel, ResourceId, ResourceRepository, ResourceType, ResourceUser, ResourceUserRepository, ResourceUserType}
+import dev.pompilius.resource.domain.{
+  Resource,
+  ResourceAccessLevel,
+  ResourceId,
+  ResourceRepository,
+  ResourceType,
+  ResourceUser,
+  ResourceUserRepository,
+  ResourceUserType
+}
 import dev.pompilius.resource.infrastructure.ResourceAccessValidator
 import dev.pompilius.sample.domain.{Sample, SampleFilter, SampleId, SampleRepository}
 import dev.pompilius.sample.infrastructure.parsers.{CreateSampleRequestParser, UpdateSampleRequestParser}
