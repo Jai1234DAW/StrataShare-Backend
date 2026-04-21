@@ -27,6 +27,7 @@ class ResourceWriterImpl @Inject() ()(implicit val ec: ExecutionContext) extends
         List(
           toJsValueWrapper(Strings.resourceId, resource.id.toString),
           toJsValueWrapper(Strings.resourceType, resource.resourceType.toString),
+          toJsValueWrapper(Strings.name, resource.name),
           toJsValueWrapper(Strings.visibility, resource.visibility.toString),
           toJsValueWrapper(Strings.localization, resource.localization),
           toJsValueWrapper(Strings.observations, resource.observations),
@@ -137,7 +138,6 @@ class ResourceWriterImpl @Inject() ()(implicit val ec: ExecutionContext) extends
     Json.obj(
       List(
         toJsValueWrapper(Strings.id, sample.id.toString),
-        toJsValueWrapper(Strings.name, sample.name),
         toJsValueWrapper(Strings.isFresh, sample.isFresh),
         toJsValueWrapper(Strings.sampleType, sample.sampleType),
         toJsValueWrapper(Strings.rockType, sample.rockType)
@@ -150,7 +150,6 @@ class ResourceWriterImpl @Inject() ()(implicit val ec: ExecutionContext) extends
     Json.obj(
       List(
         toJsValueWrapper(Strings.id, sample.id.toString),
-        toJsValueWrapper(Strings.name, sample.name),
         toJsValueWrapper(Strings.isFresh, sample.isFresh),
         toJsValueWrapper(Strings.minerals, sample.minerals),
         toJsValueWrapper(Strings.collectionMethods, sample.collectionMethods),
@@ -167,7 +166,6 @@ class ResourceWriterImpl @Inject() ()(implicit val ec: ExecutionContext) extends
     Json.obj(
       List(
         toJsValueWrapper(Strings.id, study.id.toString),
-        toJsValueWrapper(Strings.name, study.name),
         toJsValueWrapper(Strings.startDate, study.startDate),
         toJsValueWrapper(Strings.endDate, study.endDate),
         toJsValueWrapper(Strings.area, study.area.toString),
@@ -181,7 +179,6 @@ class ResourceWriterImpl @Inject() ()(implicit val ec: ExecutionContext) extends
     Json.obj(
       List(
         toJsValueWrapper(Strings.id, study.id.toString),
-        toJsValueWrapper(Strings.name, study.name),
         toJsValueWrapper(Strings.startDate, study.startDate),
         toJsValueWrapper(Strings.endDate, study.endDate),
         toJsValueWrapper(Strings.description, study.description),

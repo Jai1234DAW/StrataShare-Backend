@@ -6,12 +6,13 @@ import org.joda.time.DateTime
 
 case class CreateStudyRequest(
     // Datos comunes (Resource)
+    name: String,
     visibility: Visibility,
     localization: String,
     observations: Option[String],
     summary: Option[String],
     // Datos específicos (Study)
-    name: String,
+
     startDate: DateTime,
     endDate: Option[DateTime],
     description: String,

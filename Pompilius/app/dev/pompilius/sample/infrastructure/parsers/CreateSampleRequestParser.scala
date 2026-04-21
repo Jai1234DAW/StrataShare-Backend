@@ -12,11 +12,11 @@ import play.api.mvc.{AnyContentAsJson, Request}
 object CreateSampleRequestParser {
 
   implicit val jsonReads: Reads[CreateSampleRequest] = (
+    (__ \ Strings.name).read[String] and
     (__ \ Strings.visibility).read[String].map(Visibility.withNameInsensitive) and
       (__ \ Strings.localization).read[String] and
       (__ \ Strings.observations).readNullable[String].map(_.map(StringUtil.stripTags)) and
       (__ \ Strings.summary).readNullable[String].map(_.map(StringUtil.stripTags)) and
-      (__ \ Strings.name).read[String] and
       (__ \ Strings.minerals).readNullable[String] and
       (__ \ Strings.collectionMethods).readNullable[String] and
       (__ \ Strings.isFresh).read[Boolean] and

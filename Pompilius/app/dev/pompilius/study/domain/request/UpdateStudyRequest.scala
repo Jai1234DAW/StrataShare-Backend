@@ -6,12 +6,13 @@ import org.joda.time.DateTime
 
 case class UpdateStudyRequest(
     // Datos comunes (Resource)
+    name: Option[String] = None,
     visibility: Option[Visibility] = None,
     localization: Option[String] = None,
     observations: Option[String] = None,
     summary: Option[String] = None,
     // Datos específicos (Study)
-    name: Option[String] = None,
+
     startDate: Option[DateTime] = None,
     endDate: Option[DateTime] = None,
     description: Option[String] = None,

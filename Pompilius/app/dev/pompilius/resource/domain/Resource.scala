@@ -5,6 +5,7 @@ import org.joda.time.DateTime
 
 case class Resource(
     id: ResourceId,
+    name: String,
     resourceType: ResourceType,
     visibility: Visibility,
     created: DateTime,

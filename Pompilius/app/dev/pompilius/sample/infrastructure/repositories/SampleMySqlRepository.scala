@@ -30,7 +30,6 @@ class SampleMySqlRepository @Inject() (
     Sample(
       id = SampleId(rs.get[Long](s.id)),
       resourceId = ResourceId(rs.get[Long](s.resourceId)),
-      name = rs.get(s.name),
       minerals = rs.get(s.minerals),
       collectionMethods = rs.get(s.collectionMethods),
       isFresh = rs.get(s.isFresh),
@@ -112,9 +111,20 @@ class SampleMySqlRepository @Inject() (
     }
 
   private def filterToSqlSyntax(filter: SampleFilter): Option[SQLSyntax] = {
+
     val nameFilter = filter.name.map { name =>
-      sqls.like(sqls.lower(s.name), s"%${name.toLowerCase}%")
+      val r = resourceMySqlRepository.syntax("r")
+      sqls.exists(
+        select(sqls"1")
+          .from(resourceMySqlRepository as r)
+          .where
+          .eq(r.id, s.resourceId)
+          .and
+          .eq(r.name, name)
+          .toSQLSyntax
+      )
     }
+
 
     val sampleTypeFilter = filter.sampleType.map { sampleType =>
       sqls.eq(sqls.lower(s.sampleType), sampleType.toLowerCase)
@@ -168,8 +178,8 @@ class SampleMySqlRepository @Inject() (
           val desc = field.startsWith("-")
 
           field.stripPrefix("-") match {
-            case Strings.name =>
-              Some(if (desc) s.name.desc else s.name.asc)
+//            case Strings.name =>
+//              Some(if (desc) s.name.desc else s.name.asc)
 
             case Strings.created =>
               Some(if (desc) r.created.desc else r.created.asc)
@@ -193,7 +203,6 @@ class SampleMySqlRepository @Inject() (
         val sampleValues = List(
           column.id -> sample.id.id,
           column.resourceId -> sample.resourceId.id,
-          column.name -> sample.name,
           column.minerals -> sample.minerals,
           column.collectionMethods -> sample.collectionMethods,
           column.isFresh -> sample.isFresh,

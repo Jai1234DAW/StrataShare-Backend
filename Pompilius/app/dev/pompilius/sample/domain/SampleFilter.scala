@@ -4,7 +4,7 @@ import dev.pompilius.shared.domain.Visibility
 import dev.pompilius.users.domain.UserId
 
 case class SampleFilter(
-    name: Option[String] = None,
+    name: Option[String],
     sampleType: Option[String] = None,
     rockType: Option[String] = None,
     isFresh: Option[Boolean] = None,

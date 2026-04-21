@@ -6,6 +6,7 @@ import org.joda.time.DateTime
 
 case class ResourceFilter(
     resourceType: Option[ResourceType] = None,
+    name: Option[String]=None,
     ownerId: Option[UserId] = None,
     visibility: Option[Visibility] = None,
     createdFrom: Option[DateTime] = None,

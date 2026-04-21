@@ -263,9 +263,16 @@
   "UpdateUserRequest": {
     "properties": {
       "username": {
-        "type": "string",
+        "type": "array",
         "default": "user",
         "required": true
+      },
+      "interests": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "default": ["Geology", "Mineralogy"]
       },
       "phone": {
         "type": "string",
@@ -358,6 +365,11 @@
   },
   "CreateSampleRequest": {
     "properties": {
+      "name": {
+        "type": "string",
+        "default": "Sample name",
+        "required": true
+      },
       "visibility": {
         "type": "string",
         "default": "public",
@@ -377,11 +389,6 @@
         "type": "string",
         "default": "Sample summary",
         "required": false
-      },
-      "name": {
-        "type": "string",
-        "default": "Sample name",
-        "required": true
       },
       "minerals": {
         "type": "string",
@@ -428,6 +435,11 @@
         "required": true,
         "description": "Resource ID"
       },
+      "name": {
+        "type": "string",
+        "default": "Sample name",
+        "required": true
+      },
       "resourceType": {
         "type": "string",
         "default": "SAMPLE",
@@ -471,11 +483,7 @@
         "required": true,
         "description": "Sample ID"
       },
-      "name": {
-        "type": "string",
-        "default": "Sample name",
-        "required": true
-      },
+
       "minerals": {
         "type": "string",
         "default": "Sample minerals",
@@ -515,6 +523,11 @@
   },
   "CreateStudyRequest": {
     "properties": {
+      "name": {
+        "type": "string",
+        "default": "Study name",
+        "required": true
+      },
       "visibility": {
         "type": "string",
         "default": "public",
@@ -534,11 +547,6 @@
         "type": "string",
         "default": "Study summary",
         "required": false
-      },
-      "name": {
-        "type": "string",
-        "default": "Study name",
-        "required": true
       },
       "startDate": {
         "type": "string",
@@ -602,6 +610,11 @@
         "required": true,
         "description": "Resource ID"
       },
+      "name": {
+        "type": "string",
+        "default": "Study name",
+        "required": true
+      },
       "resourceType": {
         "type": "string",
         "default": "STUDY",
@@ -645,11 +658,6 @@
         "required": true,
         "description": "Study ID"
       },
-      "name": {
-        "type": "string",
-        "default": "Study name",
-        "required": true
-      },
       "startDate": {
         "type": "string",
         "format": "date-time",
@@ -681,6 +689,11 @@
   },
   "UpdateStudyRequest": {
     "properties": {
+      "naame": {
+        "type": "string",
+        "default": "Study name",
+        "required": true
+      },
       "visibility": {
         "type": "string",
         "default": "public",
@@ -700,11 +713,6 @@
         "type": "string",
         "default": "Study summary",
         "required": false
-      },
-      "name": {
-        "type": "string",
-        "default": "Study name",
-        "required": true
       },
       "startDate": {
         "type": "string",
@@ -737,6 +745,11 @@
   },
   "UpdateSampleRequest": {
     "properties": {
+      "name": {
+        "type": "string",
+        "default": "Sample name",
+        "required": true
+      },
       "visibility": {
         "type": "string",
         "default": "public",
@@ -756,11 +769,6 @@
         "type": "string",
         "default": "Sample summary",
         "required": false
-      },
-      "name": {
-        "type": "string",
-        "default": "Sample name",
-        "required": true
       },
       "minerals": {
         "type": "string",

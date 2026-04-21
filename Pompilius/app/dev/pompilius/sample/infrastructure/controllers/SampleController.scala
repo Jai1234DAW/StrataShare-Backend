@@ -52,6 +52,7 @@ class SampleController @Inject() (
           // Crear el Resource (datos comunes)
           val newResource = Resource(
             id = resourceId,
+            name= createSampleRequest.name,
             resourceType = ResourceType.SAMPLE,
             visibility = createSampleRequest.visibility,
             created = clock.now,
@@ -65,7 +66,6 @@ class SampleController @Inject() (
           val newSample = Sample(
             id = sampleId,
             resourceId = resourceId,
-            name = createSampleRequest.name,
             minerals = createSampleRequest.minerals,
             collectionMethods = createSampleRequest.collectionMethods,
             isFresh = createSampleRequest.isFresh,
@@ -121,6 +121,7 @@ class SampleController @Inject() (
 
             // Actualizar el Resource (datos comunes)
             updatedResource = resource.copy(
+              name = updateSampleRequest.name.getOrElse(resource.name),
               visibility = updateSampleRequest.visibility.getOrElse(resource.visibility),
               localization = updateSampleRequest.localization.getOrElse(resource.localization),
               observations = updateSampleRequest.observations.orElse(resource.observations),
@@ -130,7 +131,6 @@ class SampleController @Inject() (
 
             // Actualizar el Sample (datos específicos)
             updatedSample = sample.copy(
-              name = updateSampleRequest.name.getOrElse(sample.name),
               minerals = updateSampleRequest.minerals.orElse(sample.minerals),
               collectionMethods = updateSampleRequest.collectionMethods.orElse(sample.collectionMethods),
               isFresh = updateSampleRequest.isFresh.getOrElse(sample.isFresh),
@@ -223,7 +223,7 @@ class SampleController @Inject() (
           for {
             samples <- sampleRepository.find(
               SampleFilter(
-                name = name,
+                name= name,
                 sampleType = sampleType,
                 rockType = rockType,
                 isFresh = isFresh,

@@ -46,6 +46,7 @@ class StudyController @Inject() (
           // Crear el Resource (datos comunes)
           val newResource = Resource(
             id = resourceId,
+            name = createStudyRequest.name,
             resourceType = ResourceType.STUDY,
             visibility = createStudyRequest.visibility,
             created = clock.now,
@@ -59,7 +60,6 @@ class StudyController @Inject() (
           val newStudy = Study(
             id = studyId,
             resourceId = resourceId,
-            name = createStudyRequest.name,
             startDate = createStudyRequest.startDate,
             endDate = createStudyRequest.endDate,
             description = createStudyRequest.description,
@@ -113,6 +113,7 @@ class StudyController @Inject() (
             _ <- resourceAccessValidator.verifyOwnership(resource.id, user.id)
 
             updatedResource = resource.copy(
+              name = updateStudyRequest.name.getOrElse(resource.name),
               visibility = updateStudyRequest.visibility.getOrElse(resource.visibility),
               localization = updateStudyRequest.localization.getOrElse(resource.localization),
               observations = updateStudyRequest.observations.orElse(resource.observations),
@@ -122,7 +123,6 @@ class StudyController @Inject() (
 
             // Actualizar el Study (datos específicos)
             updatedStudy = study.copy(
-              name = updateStudyRequest.name.getOrElse(study.name),
               startDate = updateStudyRequest.startDate.getOrElse(study.startDate),
               endDate = updateStudyRequest.endDate.orElse(study.endDate),
               description = updateStudyRequest.description.getOrElse(study.description),
