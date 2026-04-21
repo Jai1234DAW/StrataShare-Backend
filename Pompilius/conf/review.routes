@@ -1,0 +1,88 @@
+###
+#  summary: Create a review for a resource
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL","AMATEUR"]}
+#  requestBody:
+#      required: true
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/CreateReviewRequest'
+#  responses:
+#    200:
+#      description: Review created successfully
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/Review'
+###
+POST         /                                                     dev.pompilius.review.infrastructure.controllers.ReviewController.create()
+
+###
+#  summary: Update a review for a resource
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL","AMATEUR"]}
+#  requestBody:
+#      required: true
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/UpdateReviewRequest'
+#  responses:
+#    200:
+#      description: Review updated successfully
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/Review'
+###
+PUT          /:reviewId                                                    dev.pompilius.review.infrastructure.controllers.ReviewController.update(reviewId: String)
+
+###
+#  summary: Delete a review for a resource
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL","AMATEUR"]}
+#  responses:
+#    200:
+#      description: Review deleted successfully
+###
+DELETE       /:reviewId                                                     dev.pompilius.review.infrastructure.controllers.ReviewController.delete(reviewId : String)
+
+###
+#  summary: Get reviews for a resource
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL","AMATEUR"]}
+#  responses:
+#    200:
+#      description: List of reviews for the resource
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/ReviewList'
+###
+GET          /resource/:resourceId                                         dev.pompilius.review.infrastructure.controllers.ReviewController.getByResource(resourceId: String, pag: Pagination)
+
+###
+#  summary: Get a resource statics for a resource
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL","AMATEUR"]}
+#  responses:
+#    200:
+#      description: Resource statics
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/ResourceStatistics'
+###
+GET          /resource/:resourceId/statistics                              dev.pompilius.review.infrastructure.controllers.ReviewController.getResourceStats(resourceId: String)
+
+###
+#  summary: Get a review by id
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL","AMATEUR"]}
+#  responses:
+#    200:
+#      description: Review details
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/Review'
+#    404:
+#      description: Review not found
+###
+GET          /:reviewId                                                     dev.pompilius.review.infrastructure.controllers.ReviewController.getMyReview(reviewId: String)
+

@@ -1,7 +1,6 @@
 package dev.pompilius.payment.application
 
 import com.google.inject.ImplementedBy
-import dev.pompilius.customer.domain.CustomerRepository
 import dev.pompilius.gateways.domain.Gateway
 import dev.pompilius.gateways.infrastructure.PaymentGatewayFactory
 import dev.pompilius.payment.domain._

@@ -247,4 +247,7 @@ object ReadsUtil {
 
   def extraInfo(implicit reads: Reads[String]): Reads[String] =
     Reads.maxLength[String](256)
+
+  def rating(implicit reads: Reads[Int]): Reads[Int] =
+    Reads.min(1) keepAnd Reads.max(5)
 }

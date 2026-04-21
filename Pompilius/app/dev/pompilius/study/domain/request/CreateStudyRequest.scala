@@ -23,4 +23,3 @@ case class CreateStudyRequest(
     antecedents: Boolean,
     nameSection: Option[String]
 )
-

@@ -1275,6 +1275,128 @@
     "url": {
       "type": "string"
     }
+  },
+  "Review": {
+    "properties": {
+      "id": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": true,
+        "description": "ID of the review"
+      },
+        "resourceId": {
+            "type": "string",
+            "default": "3gqbdpbym4ua",
+            "required": true,
+            "description": "ID of the resource being reviewed"
+        },
+      "userId": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": true,
+        "description": "ID of the user who created the review"
+      },
+      "rating": {
+        "type": "integer",
+        "format": "int32",
+        "default": 4,
+        "required": true,
+        "description": "Rating given by the user, typically on a scale of 1 to 5"
+      },
+      "comment": {
+        "type": "string",
+        "default": "Great resource, very useful for my research!",
+        "required": false,
+        "description": "Optional comment provided by the user along with the rating"
+      },
+      "updated": {
+        "type": "string",
+        "format": "date-time",
+        "default": "2026-03-30T10:30:00Z",
+        "required": true,
+        "description": "Timestamp when the review was last updated"
+      }}
+    },
+  "CreateReviewRequest": {
+    "properties": {
+      "resourceId": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": true,
+        "description": "ID of the resource being reviewed"
+      },
+      "rating": {
+        "type": "integer",
+        "format": "int32",
+        "default": 4,
+        "required": true,
+        "description": "Rating given by the user, typically on a scale of 1 to 5"
+      },
+      "comment": {
+        "type": "string",
+        "default": "Great resource, very useful for my research!",
+        "required": false,
+        "description": "Optional comment provided by the user along with the rating"
+      }
+    }
+  },
+  "UpdateReviewRequest": {
+    "properties": {
+        "rating": {
+            "type": "integer",
+            "format": "int32",
+            "default": 4,
+            "required": true,
+            "description": "Updated rating given by the user, typically on a scale of 1 to 5"
+        },
+        "comment": {
+            "type": "string",
+            "default": "Updated comment for the review",
+            "required": false,
+            "description": "Optional updated comment provided by the user along with the rating"
+        }
+    }
+  },
+  "ReviewList": {
+    "properties": {
+      "items": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Review"
+        }
+      },
+      "moreItems": {
+        "type": "boolean",
+        "default": false,
+        "required": true,
+        "description": "Indicates if there are more items available beyond the current list"
+      }
+    }
+  },
+  "ResourceStatics": {
+    "properties": {
+      "averageRating": {
+        "type": "number",
+        "format": "float",
+        "default": 4.5,
+        "required": true,
+        "description": "Average rating of the resource based on user reviews"
+      },
+      "reviewCount": {
+        "type": "integer",
+        "format": "int32",
+        "default": 100,
+        "required": true,
+        "description": "Total number of reviews submitted for the resource"
+      },
+      "lastReviewedAt": {
+        "type": "string",
+        "format": "date-time",
+        "default": "2026-03-30T10:30:00Z",
+        "required": true,
+        "description": "Timestamp when the resource was last reviewed"
+      }
+    }
   }
 }
 

@@ -51,31 +51,31 @@ object ScalikeUtil {
   def hour(column: SQLSyntax): SQLSyntax = sqls" hour($column) "
 
   def greatest[A](column: SQLSyntax, value: A)(implicit
-                                               ev: ParameterBinderFactory[A]
+      ev: ParameterBinderFactory[A]
   ): SQLSyntax = sqls" greatest($column, ${ev(value)}) "
 
   def addMonth[A](column: SQLSyntax, value: A)(implicit
-                                               ev: ParameterBinderFactory[A]
+      ev: ParameterBinderFactory[A]
   ): SQLSyntax = sqls" date_add($column, interval ${ev(value)} month) "
 
   def addDay[A](column: SQLSyntax, value: A)(implicit
-                                             ev: ParameterBinderFactory[A]
+      ev: ParameterBinderFactory[A]
   ): SQLSyntax = sqls" date_add($column, interval ${ev(value)} day) "
 
   def div[A](column: SQLSyntax, value: A)(implicit
-                                          ev: ParameterBinderFactory[A]
+      ev: ParameterBinderFactory[A]
   ): SQLSyntax = sqls" $column / ${ev(value)} "
 
   def mul[A](column: SQLSyntax, value: A)(implicit
-                                          ev: ParameterBinderFactory[A]
+      ev: ParameterBinderFactory[A]
   ): SQLSyntax = sqls" $column * ${ev(value)} "
 
   def plus[A](column: SQLSyntax, value: A)(implicit
-                                           ev: ParameterBinderFactory[A]
+      ev: ParameterBinderFactory[A]
   ): SQLSyntax = sqls" $column + ${ev(value)} "
 
   def minus[A](column: SQLSyntax, value: A)(implicit
-                                            ev: ParameterBinderFactory[A]
+      ev: ParameterBinderFactory[A]
   ): SQLSyntax = sqls" $column - ${ev(value)} "
 
   def jsonContains[A](column: SQLSyntax, value: String): SQLSyntax = {
@@ -83,26 +83,26 @@ object ScalikeUtil {
   }
 
   def when[A, B, C, D, E](
-                           column: SQLSyntax,
-                           option1: A,
-                           value1: B,
-                           option2: C,
-                           value2: D,
-                           default: E
-                         )(implicit
-                           evA: ParameterBinderFactory[A],
-                           evB: ParameterBinderFactory[B],
-                           evC: ParameterBinderFactory[C],
-                           evD: ParameterBinderFactory[D],
-                           evE: ParameterBinderFactory[E]
-                         ): SQLSyntax =
+      column: SQLSyntax,
+      option1: A,
+      value1: B,
+      option2: C,
+      value2: D,
+      default: E
+  )(implicit
+      evA: ParameterBinderFactory[A],
+      evB: ParameterBinderFactory[B],
+      evC: ParameterBinderFactory[C],
+      evD: ParameterBinderFactory[D],
+      evE: ParameterBinderFactory[E]
+  ): SQLSyntax =
     sqls" case $column when ${evA(option1)} then ${evB(value1)} when ${evC(
       option2
     )} then ${evD(value2)}  else ${evE(default)} end "
 
   def ?[A, B](column: SQLSyntax, value1: A, value2: B)(implicit
-                                                       evA: ParameterBinderFactory[A],
-                                                       evB: ParameterBinderFactory[B]
+      evA: ParameterBinderFactory[A],
+      evB: ParameterBinderFactory[B]
   ): SQLSyntax = {
     sqls" if($column, ${evA(value1)}, ${evB(value2)}) "
   }
@@ -111,7 +111,7 @@ object ScalikeUtil {
     if (syntax.isEmpty) sqls.where(part) else syntax.and(part)
 
   def safeEq[A](column: SQLSyntax, value: A)(implicit
-                                             ev: ParameterBinderFactory[A]
+      ev: ParameterBinderFactory[A]
   ): SQLSyntax = sqls" $column <=> ${ev(value)} "
 
   def pag(p: Pagination)(implicit ev: ParameterBinderFactory[Int]): SQLSyntax = {

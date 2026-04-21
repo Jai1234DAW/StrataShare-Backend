@@ -1,7 +1,7 @@
 package dev.pompilius.resource.infrastructure.repositories
 
 import dev.pompilius.resource.domain._
-import dev.pompilius.shared.domain.{Pagination, Visibility}
+import dev.pompilius.shared.domain.{Clock, Pagination, Visibility}
 import dev.pompilius.shared.infrastructure.ScalikeUtil
 import dev.pompilius.shared.infrastructure.contexts.DbExecutionContext
 import org.apache.pekko.Done
@@ -14,7 +14,7 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
 
 @Singleton
-class ResourceMySqlRepository @Inject() (
+class ResourceMySqlRepository @Inject()(clock: Clock) (
 )(implicit dbExecutionContext: DbExecutionContext)
     extends ResourceRepository
     with SQLSyntaxSupport[Resource] {
@@ -48,7 +48,7 @@ class ResourceMySqlRepository @Inject() (
           column.resourceType -> resource.resourceType.toString,
           column.visibility -> resource.visibility.toString,
           column.created -> resource.created,
-          column.updated -> resource.updated,
+          column.updated -> clock.now,
           column.localization -> resource.localization,
           column.observations -> resource.observations,
           column.summary -> resource.summary,
