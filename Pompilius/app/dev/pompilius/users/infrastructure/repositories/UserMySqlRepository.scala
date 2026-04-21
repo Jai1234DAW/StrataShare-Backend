@@ -38,6 +38,8 @@ class UserMySqlRepository @Inject() (
       country = Country.withNameInsensitiveOption(rs.get[String](u.country)).getOrElse(Country.XX),
       enabled = rs.get(u.enabled),
       email = rs.get(u.email),
+      interests=rs.get[Option[String]](u.interests)
+        .map(_.split(",").map(_.trim).filter(_.nonEmpty).toList),
       firstName = rs.get(u.firstName),
       lastName = rs.get(u.lastName),
       phone = rs.get(u.phone),
@@ -165,6 +167,7 @@ class UserMySqlRepository @Inject() (
           column.username -> user.username,
           column.passwordHash -> user.passwordHash,
           column.email -> user.email,
+          column.interests -> user.interests.mkString(","),
           column.phone -> user.phone,
           column.enabled -> user.enabled,
           column.firstName -> user.firstName,
