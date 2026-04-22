@@ -4,11 +4,11 @@ import org.apache.pekko.Done
 import scalikejdbc._
 import scalikejdbc.jodatime.JodaParameterBinderFactory._
 import scalikejdbc.jodatime.JodaTypeBinder._
-import dev.pompilius.auth.domain.{Session, SessionId, SessionRepository, SessionFilter}
+import dev.pompilius.auth.domain.{Session, SessionFilter, SessionId, SessionRepository}
 import dev.pompilius.country.domain.Country
 import dev.pompilius.shared.infrastructure.contexts.DbExecutionContext
 import dev.pompilius.users.domain.UserId
-import dev.pompilius.shared.domain.Pagination
+import dev.pompilius.shared.domain.{Clock, Pagination}
 import dev.pompilius.shared.infrastructure.ScalikeUtil
 
 import java.time.ZoneId
@@ -16,7 +16,7 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
 
 @Singleton
-class SessionMySqlRepository @Inject() (implicit dbExecutionContext: DbExecutionContext)
+class SessionMySqlRepository @Inject() (clock: Clock)(implicit dbExecutionContext: DbExecutionContext)
     extends SessionRepository
     with SQLSyntaxSupport[Session] {
 
@@ -109,7 +109,7 @@ class SessionMySqlRepository @Inject() (implicit dbExecutionContext: DbExecution
 
   override def save(session: Session): Future[Done] =
     Future {
-      DB.localTx { implicit dBsession =>
+      DB.localTx { implicit dbSession =>
         val values = List(
           column.userId -> session.userId.id,
           column.id -> session.id.id,
@@ -118,7 +118,7 @@ class SessionMySqlRepository @Inject() (implicit dbExecutionContext: DbExecution
           column.address -> session.address,
           column.userAgent -> session.userAgent,
           column.country -> session.country.map(_.toString),
-          column.updatedAt -> session.updatedAt
+          column.updatedAt -> clock.now
         )
 
         withSQL {
@@ -131,8 +131,6 @@ class SessionMySqlRepository @Inject() (implicit dbExecutionContext: DbExecution
       Done
 
     }
-
-
 
   override def closeAllSessions(userId: UserId, keep: Option[SessionId]): Future[Done] =
     Future {

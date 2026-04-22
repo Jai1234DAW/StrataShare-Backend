@@ -59,20 +59,25 @@ class AuthController @Inject() (
     }
 
   // Cierra la sesión y la marca como borrada
+
   def logout: Action[AnyContent] =
     Action.async { implicit request =>
       for {
         currentSession <- findCurrentSession
         _ <- currentSession match {
           case Some(session) =>
-            sessionRepository.save(session.copy(deleted = true))
-          case _ =>
+            sessionRepository.save(
+              session.copy(deleted = true)
+            )
+
+          case None =>
             Future.unit
         }
       } yield {
         Ok.removingFromSession(Strings.sessionId)
       }
     }
+
 
   // Permite a un usuario iniciar sesión con un nombre de usuario y contraseña
   def login: Action[AnyContent] =
@@ -109,7 +114,7 @@ class AuthController @Inject() (
           Ok(userSessionJson)
             .addingToSession(
               //Recordar que play cifra las cookies, por lo que no es un gran problema guardar el userId en la sesión, y nos ahorramos tener que hacer una consulta a la base de datos para obtenerlo cada vez que el usuario hace una petición
-              Strings.userId -> session.userId.toString,
+              //Strings.userId -> session.userId.toString,
               Strings.sessionId -> session.id.toString
             )
         }
