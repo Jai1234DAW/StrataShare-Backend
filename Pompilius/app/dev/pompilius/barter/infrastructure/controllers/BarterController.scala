@@ -39,7 +39,7 @@ class BarterController @Inject() (
     transactionService: TransactionService,
     barterWriter: BarterWriter,
     mailTokenWriter: MailTokenWriter,
-    mailSmtpRepository: MailSmtpRepository
+    mailSmtpRepository: MailSmtpRepository,
 )(implicit val ec: ExecutionContext)
     extends BaseController {
 

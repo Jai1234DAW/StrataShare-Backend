@@ -1,24 +1,17 @@
 package dev.pompilius.sample.infrastructure.controllers
 
+import dev.pompilius.badge.application.BadgeService
+import dev.pompilius.event.domain.EventU
 import dev.pompilius.resource.domain.exceptions.ResourceNotFoundException
-import dev.pompilius.resource.domain.{
-  Resource,
-  ResourceAccessLevel,
-  ResourceId,
-  ResourceRepository,
-  ResourceType,
-  ResourceUser,
-  ResourceUserRepository,
-  ResourceUserType
-}
+import dev.pompilius.resource.domain._
 import dev.pompilius.resource.infrastructure.ResourceAccessValidator
+import dev.pompilius.resource.infrastructure.writers.ResourceWriter
 import dev.pompilius.sample.domain.{Sample, SampleFilter, SampleId, SampleRepository}
 import dev.pompilius.sample.infrastructure.parsers.{CreateSampleRequestParser, UpdateSampleRequestParser}
-import dev.pompilius.resource.infrastructure.writers.ResourceWriter
 import dev.pompilius.shared.domain.{Paginated, Pagination, Visibility}
-import dev.pompilius.users.domain.{Role, UserId}
 import dev.pompilius.shared.infrastructure.BaseController
 import dev.pompilius.shared.infrastructure.writers.PaginatedWriter
+import dev.pompilius.users.domain.{Role, UserId}
 import play.api.Logger
 import play.api.mvc.{Action, AnyContent}
 
@@ -33,7 +26,8 @@ class SampleController @Inject() (
     resourceUserRepository: ResourceUserRepository,
     resourceAccessValidator: ResourceAccessValidator,
     resourceWriter: ResourceWriter,
-    paginatedWriter: PaginatedWriter
+    paginatedWriter: PaginatedWriter,
+    badgeService: BadgeService
 )(implicit val ec: ExecutionContext)
     extends BaseController {
 
@@ -52,7 +46,7 @@ class SampleController @Inject() (
           // Crear el Resource (datos comunes)
           val newResource = Resource(
             id = resourceId,
-            name= createSampleRequest.name,
+            name = createSampleRequest.name,
             resourceType = ResourceType.SAMPLE,
             visibility = createSampleRequest.visibility,
             created = clock.now,
@@ -98,6 +92,16 @@ class SampleController @Inject() (
                 created = clock.now
               )
             )
+            //Llamo aquí a lo de eventos.
+            // Registrar evento
+            samplesBadges <- badgeService.registerEventAndCheckBadges(user.id, EventU.SAMPLE_UPLOADED)
+
+            _ = if (samplesBadges.nonEmpty) {
+              logger.info(
+                s"Buyer ${user.id} earned ${samplesBadges.length} badge(s) after barter: ${samplesBadges.map(_.name).mkString(", ")}"
+              )
+            }
+
             // 4. Retornar JSON
             json <- resourceWriter.asPublic(newResource, Some(newSample), None)
           } yield {
@@ -223,7 +227,7 @@ class SampleController @Inject() (
           for {
             samples <- sampleRepository.find(
               SampleFilter(
-                name= name,
+                name = name,
                 sampleType = sampleType,
                 rockType = rockType,
                 isFresh = isFresh,

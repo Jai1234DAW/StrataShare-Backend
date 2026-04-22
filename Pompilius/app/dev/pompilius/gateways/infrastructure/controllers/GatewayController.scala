@@ -5,6 +5,8 @@ import com.stripe.model.checkout.Session
 import com.stripe.model.{Charge, PaymentIntent => StripePaymentIntent}
 import com.stripe.net.Webhook
 import dev.pompilius.Strings
+import dev.pompilius.badge.application.BadgeService
+import dev.pompilius.event.domain.EventU
 import dev.pompilius.gateways.domain.Gateway
 import dev.pompilius.payment.domain._
 import dev.pompilius.payment.domain.exceptions.PaymentNotFoundException
@@ -27,6 +29,7 @@ class GatewayController @Inject() (
     paymentRepository: PaymentRepository,
     transactionRepository: TransactionRepository,
     resourceUserRepository: ResourceUserRepository,
+    badgeService: BadgeService,
     clock: Clock,
     configuration: Configuration,
 )(implicit val ec: ExecutionContext)
@@ -419,6 +422,15 @@ class GatewayController @Inject() (
               created = clock.now
             )
           )
+
+          // Registrar evento y verificar badges para el comprador. Esto es para lo de los logros
+          earnedBadges <- badgeService.registerEventAndCheckBadges(transaction.buyerId, EventU.PURCHASE_COMPLETED)
+
+          _ = if (earnedBadges.nonEmpty) {
+            logger.info(
+              s"User ${transaction.buyerId.id} earned ${earnedBadges.length} badge(s) after purchase: ${earnedBadges.map(_.name).mkString(", ")}"
+            )
+          }
           _ = logger.info(
             s"Purchase reconciled successfully for transaction=${transaction.id}, payment=${payment.id}, session=$sessionId"
           )

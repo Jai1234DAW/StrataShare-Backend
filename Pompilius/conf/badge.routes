@@ -1,0 +1,60 @@
+###
+#  summary: List badges of the current user
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL"]}
+#  responses:
+#    200:
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/BadgeUserList'
+#       description: Success
+###
+GET     /my                                 dev.pompilius.badge.infrastructure.controllers.BadgeController.myBadges
+
+###
+#  summary: List all badges (admin)
+#  roles: {"required": "any", "roles": ["ADMIN"]}
+#  responses:
+#    200:
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/BadgeAdminList'
+#       description: Success
+###
+GET     /admin/all                          dev.pompilius.badge.infrastructure.controllers.BadgeController.allBadges
+
+###
+#  summary: Upload an image to a badge
+#  roles: {"required": "any", "roles": ["ADMIN"]}
+#  requestBody:
+#      required: true
+#      content:
+#       multipart/form-data:
+#        schema:
+#         type: object
+#         properties:
+#          file:
+#           type: array
+#           items:
+#            type: string
+#            format: binary
+#  responses:
+#    200:
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/BadgeAdmin'
+#      description: Success
+###
+PUT     /admin/:badgeType/image             dev.pompilius.badge.infrastructure.controllers.BadgeController.updateBadgeImage(badgeType: String)
+
+###
+#  summary: Remove badge image
+#  roles: {"required": "any", "roles": ["ADMIN"]}
+#  responses:
+#    200:
+#      description: Success
+###
+DELETE  /admin/:badgeType/image             dev.pompilius.badge.infrastructure.controllers.BadgeController.removeBadgeImage(badgeType: String)
+

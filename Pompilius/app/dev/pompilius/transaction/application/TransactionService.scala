@@ -1,8 +1,10 @@
 package dev.pompilius.transaction.application
 
 import com.google.inject.ImplementedBy
+import dev.pompilius.badge.application.BadgeService
 import dev.pompilius.barter.domain.exception.BarterNotAllowException
 import dev.pompilius.barter.domain.{Barter, BarterData}
+import dev.pompilius.event.domain.EventU
 import dev.pompilius.resource.domain._
 import dev.pompilius.resource.domain.exceptions.{ResourceNotAllowedException, ResourceNotFoundException}
 import dev.pompilius.resource.infrastructure.ResourceAccessValidator
@@ -13,6 +15,7 @@ import dev.pompilius.transaction.domain.{Transaction, TransactionFilter, Transac
 import dev.pompilius.users.domain.exceptions.UserNotFoundException
 import dev.pompilius.users.domain.{User, UserId, UserRepository}
 import org.apache.pekko.Done
+import play.api.Logger
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -32,9 +35,12 @@ class TransactionServImpl @Inject() (
     resourceUserRepository: ResourceUserRepository,
     resourceAccessValidator: ResourceAccessValidator,
     userRepository: UserRepository,
+    badgeService: BadgeService,
     clock: Clock
 )(implicit ec: ExecutionContext)
     extends TransactionService {
+
+  private val logger = Logger(this.getClass)
 
   override def verifyNotPendingTransaction(resourceId: ResourceId, userId: UserId): Future[Unit] = {
     val transactionFilter = TransactionFilter(
@@ -131,8 +137,9 @@ class TransactionServImpl @Inject() (
   }
 
   override def transactionTrans(transaction: Transaction, barter: Barter): Future[Done] = {
-    resourceUserRepository
-      .save(
+    for {
+      // Guardar acceso al recurso solicitado para el comprador
+      _ <- resourceUserRepository.save(
         ResourceUser(
           resourceId = transaction.resourceId,
           userId = transaction.buyerId,
@@ -141,8 +148,8 @@ class TransactionServImpl @Inject() (
         )
       )
 
-    resourceUserRepository
-      .save(
+      // Guardar acceso al recurso ofrecido para el vendedor
+      _ <- resourceUserRepository.save(
         ResourceUser(
           resourceId = barter.offeredResourceId,
           userId = transaction.sellerId,
@@ -151,7 +158,28 @@ class TransactionServImpl @Inject() (
         )
       )
 
-    transactionRepository.updateStatus(transaction.id, TransactionStatus.COMPLETED)
+      // Actualizar el estado de la transacción a COMPLETADO
+      _ <- transactionRepository.updateStatus(transaction.id, TransactionStatus.COMPLETED)
+
+      // Registrar evento y verificar badges para el comprador (quien propuso el trueque)
+      buyerBadges <- badgeService.registerEventAndCheckBadges(transaction.buyerId, EventU.BARTER_COMPLETED)
+
+      // Registrar evento y verificar badges para el vendedor (quien aceptó el trueque)
+      sellerBadges <- badgeService.registerEventAndCheckBadges(transaction.sellerId, EventU.BARTER_COMPLETED)
+
+      _ = if (buyerBadges.nonEmpty) {
+        logger.info(
+          s"Buyer ${transaction.buyerId.id} earned ${buyerBadges.length} badge(s) after barter: ${buyerBadges.map(_.name).mkString(", ")}"
+        )
+      }
+
+      _ = if (sellerBadges.nonEmpty) {
+        logger.info(
+          s"Seller ${transaction.sellerId.id} earned ${sellerBadges.length} badge(s) after barter: ${sellerBadges.map(_.name).mkString(", ")}"
+        )
+      }
+
+    } yield Done
   }
 
   override def isAbleToPurchase(resourceId: ResourceId, buyer: User): Future[(Resource, User)] = {

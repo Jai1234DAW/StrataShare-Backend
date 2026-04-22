@@ -1,18 +1,25 @@
 package dev.pompilius.study.infrastructure.controllers
 
+import dev.pompilius.badge.application.BadgeService
+import dev.pompilius.event.domain.EventU
 import dev.pompilius.resource.domain.exceptions.ResourceNotFoundException
 import dev.pompilius.resource.domain._
 import dev.pompilius.resource.infrastructure.ResourceAccessValidator
 import dev.pompilius.resource.infrastructure.writers.ResourceWriter
 import dev.pompilius.sample.domain.{SampleId, SampleRepository}
 import dev.pompilius.shared.domain.exceptions.ForbiddenException
-import dev.pompilius.shared.domain.{Paginated, Pagination, Visibility}
+import dev.pompilius.shared.domain.{Clock, Paginated, Pagination, Visibility}
 import dev.pompilius.shared.infrastructure.BaseController
 import dev.pompilius.shared.infrastructure.writers.PaginatedWriter
 import dev.pompilius.study.domain._
-import dev.pompilius.study.infrastructure.parsers.{AddSamplesToStudyRequestParser, CreateStudyRequestParser, UpdateStudyRequestParser}
+import dev.pompilius.study.infrastructure.parsers.{
+  AddSamplesToStudyRequestParser,
+  CreateStudyRequestParser,
+  UpdateStudyRequestParser
+}
 import dev.pompilius.study.infrastructure.writers.StudySampleWriter
 import dev.pompilius.users.domain.{Role, UserId}
+import play.api.Logger
 import play.api.mvc.{Action, AnyContent}
 
 import javax.inject._
@@ -29,10 +36,12 @@ class StudyController @Inject() (
     resourceWriter: ResourceWriter,
     resourceAccessValidator: ResourceAccessValidator,
     paginatedWriter: PaginatedWriter,
-    studySampleWriter: StudySampleWriter
+    studySampleWriter: StudySampleWriter,
+    badgeService: BadgeService,
+    clock: Clock
 )(implicit val ec: ExecutionContext)
-    extends BaseController
-   {
+    extends BaseController {
+  private val logger = Logger(this.getClass)
 
   def create: Action[AnyContent] =
     Action.async { implicit request =>
@@ -93,6 +102,16 @@ class StudyController @Inject() (
             )
 
             json <- resourceWriter.asPublic(newResource, None, Some(newStudy))
+
+            //Llamo aquí a lo de eventos.
+            // Registrar evento
+            studiesBadges <- badgeService.registerEventAndCheckBadges(user.id, EventU.STUDY_UPLOADED)
+
+            _ = if (studiesBadges.nonEmpty) {
+              logger.info(
+                s"Buyer ${user.id} earned ${studiesBadges.length} badge(s) after barter: ${studiesBadges.map(_.name).mkString(", ")}"
+              )
+            }
           } yield {
             Ok(json)
           }
@@ -158,7 +177,6 @@ class StudyController @Inject() (
 
             json <- accessLevel match {
               case ResourceAccessLevel.FULL_ACCESS =>
-
                 resourceWriter.asPublic(resource, None, Some(study))
 
               case _ =>
@@ -268,14 +286,16 @@ class StudyController @Inject() (
             _ <- Future.sequence(addSamplesRequest.sampleIds.map { sampleId =>
               for {
                 // Verificar que la muestra existe
-                sample <- sampleRepository
-                  .findById(sampleId)
-                  .map(_.getOrElse(throw new ResourceNotFoundException(s"Sample $sampleId not found")))
+                sample <-
+                  sampleRepository
+                    .findById(sampleId)
+                    .map(_.getOrElse(throw new ResourceNotFoundException(s"Sample $sampleId not found")))
 
                 // Obtener el recurso asociado a la muestra
-                sampleResource <- resourceRepository
-                  .findById(sample.resourceId)
-                  .map(_.getOrElse(throw new ResourceNotFoundException(s"Resource not found for sample $sampleId")))
+                sampleResource <-
+                  resourceRepository
+                    .findById(sample.resourceId)
+                    .map(_.getOrElse(throw new ResourceNotFoundException(s"Resource not found for sample $sampleId")))
 
                 // Verificar que el usuario es propietario de la muestra
                 _ <- resourceAccessValidator.verifyOwnership(sampleResource.id, user.id)
