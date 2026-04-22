@@ -174,6 +174,7 @@ class UserController @Inject() (
 
             updatedUser = currentUser.copy(
               username = updateUserRequest.username,
+              interests = updateUserRequest.interests,
               phone = updateUserRequest.phone,
               firstName = updateUserRequest.firstName,
               lastName = updateUserRequest.lastName,

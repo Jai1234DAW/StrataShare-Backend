@@ -1462,7 +1462,114 @@
         "description": "Short biography or description of the user"
       }
     }
-  }
+  },
+  "BadgeUser": {
+    "properties": {
+      "id": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": true,
+        "description": "ID of the badge"
+      },
+      "badgeType": {
+        "type": "string",
+        "default": "SEDIMENT COLLECTOR",
+        "required": true,
+        "description": "Type of the badge (e.g., SEDIMENT COLLECTOR, CRYSTAL SEEKER)"
+      },
+      "name": {
+        "type": "string",
+        "default": "Badge name",
+        "required": true,
+        "description": "Name of the badge"
+      },
+      "description": {
+        "type": "string",
+        "default": "Description of the badge",
+        "required": false,
+        "description": "Description of the badge and how it can be earned"
+      },
+      "imageUrl": {
+        "type": "string",
+        "default": "https://example.com/badge-icon.png",
+        "required": false,
+        "description": "URL of the badge icon image"
+      }
+    }
+  },
+  "BadgeUserList": {
+    "properties": {
+      "items": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/BadgeUser"
+        }
+      },
+      "moreItems": {
+        "type": "boolean",
+        "default": false,
+        "required": true,
+        "description": "Indicates if there are more items available beyond the current list"
+      }
+    }
+  },
+  "BadgeAdmin": {
+    "properties": {
+      "id": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": true,
+        "description": "ID of the badge"
+      },
+      "badgeType": {
+        "type": "string",
+        "default": "SEDIMENT COLLECTOR",
+        "required": true,
+        "description": "Type of the badge (e.g., SEDIMENT COLLECTOR, CRYSTAL SEEKER)"
+      },
+      "name": {
+        "type": "string",
+        "default": "Badge name",
+        "required": true,
+        "description": "Name of the badge"
+      },
+      "description": {
+        "type": "string",
+        "default": "Description of the badge",
+        "required": false,
+        "description": "Description of the badge and how it can be earned"
+      },
+      "imageUrl": {
+        "type": "string",
+        "default": "https://example.com/badge-icon.png",
+        "required": false,
+        "description": "URL of the badge icon image"
+      },
+      "created": {
+        "type": "string",
+        "format": "date-time",
+        "default": "2026-03-30T10:30:00Z",
+        "required": true,
+        "description": "Timestamp when the badge was created"
+      }
+    }
+    },
+    "BadgeAdminList": {
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/BadgeAdmin"
+          }
+        },
+        "moreItems": {
+          "type": "boolean",
+          "default": false,
+          "required": true,
+          "description": "Indicates if there are more items available beyond the current list"
+        }
+      }
+    }
 }
 
 

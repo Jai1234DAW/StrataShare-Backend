@@ -33,3 +33,4 @@ GET        /api/assets/*file                           controllers.Assets.versio
 ->         /api/payments                                payment.Routes
 ->         /api/gateways                               gateways.Routes
 ->         /api/reviews                                 review.Routes
+->         /api/badges                                  badge.Routes
