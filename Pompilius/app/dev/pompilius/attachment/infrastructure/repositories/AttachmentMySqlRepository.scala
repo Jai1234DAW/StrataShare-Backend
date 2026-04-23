@@ -37,7 +37,8 @@ class AttachmentMySqlRepository @Inject() (implicit ec: DbExecutionContext)
       createdAt = rs.get(att.createdAt),
       deleted = rs.get(att.deleted),
       metadata = rs.get(att.metadata),
-      resourceId = rs.getOpt[Long](att.resourceId).map(ResourceId(_))
+      resourceId = rs.getOpt[Long](att.resourceId).map(ResourceId(_)),
+      previewImage = rs.get(att.previewImage)
     )
 
   private val att = this.syntax("att")
@@ -65,7 +66,8 @@ class AttachmentMySqlRepository @Inject() (implicit ec: DbExecutionContext)
           column.createdAt -> attachment.createdAt,
           column.deleted -> attachment.deleted,
           column.metadata -> attachment.metadata,
-          column.resourceId -> attachment.resourceId.map(_.id)
+          column.resourceId -> attachment.resourceId.map(_.id),
+          column.previewImage -> attachment.previewImage
         )
 
         withSQL {
@@ -105,4 +107,36 @@ class AttachmentMySqlRepository @Inject() (implicit ec: DbExecutionContext)
       }
     }
 
+  override def findPreviewImageByResourceId(resourceId: ResourceId): Future[Option[Attachment]] = {
+    Future {
+      DB.localTx { implicit session =>
+        withSQL {
+          selectFrom(this as att).where
+            .eq(att.resourceId, resourceId.id)
+            .and
+            .eq(att.deleted, false)
+            .and
+            .eq(att.previewImage, true)
+            .orderBy(att.createdAt)
+            .desc
+        }.map(apply(att.resultName)(_)).single()
+      }
+    }
+  }
+
+  override def setPreviewImageByResourceId(resourceId: ResourceId, attachmentId: AttachmentId): Future[Done] = {
+    Future {
+      DB.localTx { implicit session =>
+        withSQL {
+          update(this as att)
+            .set(column.previewImage -> true)
+            .where
+            .eq(att.resourceId, resourceId.id)
+            .and
+            .eq(att.deleted, false)
+        }.update()
+      }
+      Done
+    }
+  }
 }

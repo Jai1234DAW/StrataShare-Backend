@@ -49,6 +49,9 @@ class UserMySqlRepository @Inject() (
       language = rs.get[Option[String]](u.language).flatMap(lang => Try(Lang(lang)).toOption),
       notes = rs.get(u.notes),
       bio = rs.get(u.bio)
+//      institution = rs.get(u.institution),
+//      website=rs.get(u.website),
+//      experience=rs.get(u.experience)
     )
 
   private val u = this.syntax("u")

@@ -263,7 +263,7 @@
   "UpdateUserRequest": {
     "properties": {
       "username": {
-        "type": "array",
+        "type": "string",
         "default": "user",
         "required": true
       },
@@ -272,6 +272,7 @@
         "items": {
           "type": "string"
         },
+        "nullable": true,
         "default": ["Geology", "Mineralogy"]
       },
       "phone": {

@@ -1,7 +1,6 @@
 # Creación de tablas para el sistema de badges y eventos
 
 # --- !Ups
--- Tabla de eventos de usuario (relación N:M entre usuarios y eventos)
 CREATE TABLE `users_events` (
    `id` BIGINT NOT NULL,
    `user_id` BIGINT NOT NULL,
@@ -17,7 +16,6 @@ CREATE TABLE `users_events` (
            ON DELETE RESTRICT
 ) CHARSET=utf8mb4;
 
--- Tabla de badges (insignias geológicas)
 CREATE TABLE `badge` (
     `id` BIGINT NOT NULL,
     `badge_type` ENUM(
@@ -33,7 +31,6 @@ CREATE TABLE `badge` (
   UNIQUE KEY `uk_badge_type` (`badge_type`)
 ) CHARSET=utf8mb4;
 
--- Tabla relacional N:M entre usuarios y badges (PK compuesta)
 CREATE TABLE `users_badge` (
    `user_id` BIGINT NOT NULL,
    `badge_id` BIGINT NOT NULL,

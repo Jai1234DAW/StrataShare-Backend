@@ -14,4 +14,6 @@ trait AttachmentRepository {
   def save(attachment: Attachment): Future[Done]
   def delete(id: AttachmentId): Future[Done]
   def findByResourceId(resourceId: ResourceId, pag:Pagination): Future[List[Attachment]]
+  def findPreviewImageByResourceId(resourceId: ResourceId): Future[Option[Attachment]]
+  def setPreviewImageByResourceId(resourceId: ResourceId, attachmentId: AttachmentId): Future[Done]
 }

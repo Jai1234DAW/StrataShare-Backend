@@ -1,5 +1,6 @@
 package dev.pompilius.resource.domain
 
+import dev.pompilius.attachment.domain.AttachmentId
 import dev.pompilius.shared.domain.Visibility
 import org.joda.time.DateTime
 
@@ -14,5 +15,5 @@ case class Resource(
     observations: Option[String],
     summary: Option[String],
     price: Option[BigDecimal] = None,
-    isBarter: Boolean = false
+    isBarter: Boolean = false,
 )
