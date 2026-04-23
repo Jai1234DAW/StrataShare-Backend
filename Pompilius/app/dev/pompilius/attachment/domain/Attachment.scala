@@ -15,5 +15,6 @@ case class Attachment(
     createdAt: DateTime,
     deleted: Boolean = false,
     metadata: Option[String],
-    resourceId: Option[ResourceId] = None
+    resourceId: Option[ResourceId] = None,
+    previewImage:Boolean=false
 )

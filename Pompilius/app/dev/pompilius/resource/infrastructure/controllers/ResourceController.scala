@@ -17,6 +17,7 @@ import play.api.mvc.{Action, AnyContent, MultipartFormData}
 import javax.imageio.ImageIO
 import javax.inject._
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Random.nextInt
 
 @Singleton
 class ResourceController @Inject() (
@@ -102,6 +103,75 @@ class ResourceController @Inject() (
 
             } yield Ok(response)
           }
+      }
+    }
+
+  def getPreviewImage(resourceId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      withAuthenticatedUser {
+        case (_, user, _) =>
+          val rid = ResourceId(resourceId)
+
+          for {
+            _ <-
+              resourceRepository
+                .findById(rid)
+                .map(_.getOrElse(throw new ResourceNotFoundException(s"Resource $rid not found")))
+
+            previewImage <-
+              attachmentRepository
+                .findPreviewImageByResourceId(rid)
+                .map(
+                  _.getOrElse(throw new ResourceNotFoundException(s"No preview image found for resource $rid"))
+                )
+            result <- download(Some(user), previewImage.id)
+          } yield result
+      }
+    }
+
+  def setPreviewImage(resourceId: String, attachmentId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      withAuthenticatedUser {
+        case (_, user, _) =>
+          val rid = ResourceId(resourceId)
+          val aid = AttachmentId(attachmentId)
+
+          for {
+            _ <-
+              resourceRepository
+                .findById(rid)
+                .map(_.getOrElse(throw new ResourceNotFoundException(s"Resource $rid not found")))
+
+            attachment <-
+              attachmentRepository
+                .findById(aid)
+                .map(_.getOrElse(throw new AttachmentNotFoundException(s"Attachment $aid not found")))
+
+            // Validar que el attachment pertenece al recurso indicado
+            _ <- attachment.resourceId match {
+              case Some(attachmentResourceId) if attachmentResourceId == rid =>
+                Future.successful(())
+              case Some(other) =>
+                Future.failed(new AttachmentNotFoundException(s"Attachment $aid does not belong to resource $rid"))
+              case None =>
+                Future.failed(new AttachmentNotFoundException("This attachment is not associated with a resource"))
+            }
+
+            _ <- resourceAccessValidator.verifyOwnership(rid, user.id)
+
+            _<-attachmentRepository.findPreviewImageByResourceId(rid).flatMap {
+              case Some(existingPreview) if existingPreview.id != aid =>
+
+                // Si ya hay una imagen de preview diferente, quitarle el flag
+                val updatedExisting = existingPreview.copy(previewImage = false)
+                attachmentRepository.save(updatedExisting)
+              case _ =>
+                Future.successful(())
+            }
+
+            _ <- attachmentRepository.setPreviewImageByResourceId(rid, aid)
+
+          } yield Ok
       }
     }
 

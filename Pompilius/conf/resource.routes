@@ -131,3 +131,29 @@ PUT          /:resourceId/attachment/:attachmentId/metadata      dev.pompilius.r
 ###
 DELETE       /:resourceId/attachment/:attachmentId               dev.pompilius.resource.infrastructure.controllers.ResourceController.deleteFile(resourceId: String, attachmentId: String)
 
+###
+#  summary: Get a previewImage of a resource
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL","AMATEUR"]}
+#  responses:
+#    200:
+#      description: Preview image
+#      content:
+#       application/octet-stream:
+#        schema:
+#         type: string
+#         format: binary
+#    404:
+#      description: Resource or preview image not found
+###
+GET          /:resourceId/previewImage                             dev.pompilius.resource.infrastructure.controllers.ResourceController.getPreviewImage(resourceId: String)
+
+###
+#  summary: Set a previewImage for a resource
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL"]}
+#  responses:
+#    200:
+#      description: Preview image set successfully
+#    404:
+#      description: Resource not found
+###
+POST         /:resourceId/previewImage                             dev.pompilius.resource.infrastructure.controllers.ResourceController.setPreviewImage(resourceId: String, attachmentId:String)
