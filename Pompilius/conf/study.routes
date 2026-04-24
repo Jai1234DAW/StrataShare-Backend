@@ -53,7 +53,7 @@ PUT          /:studyId                                      dev.pompilius.study.
 #         $ref: '#/components/schemas/StudyList'
 #      description: List of studies for the user
 ###
-GET          /                                               dev.pompilius.study.infrastructure.controllers.StudyController.getAll(name:Option[String], year: Option[Int], area: Option[String], authors: Option[String], search: Option[String], visibility: Option[String], localization: Option[String],  userId: Option[String], pag:Pagination)
+GET          /                                               dev.pompilius.study.infrastructure.controllers.StudyController.getAll(name:Option[String], year: Option[Int], area: Option[String], authors: Option[String], search: Option[String], visibility: Option[String], location: Option[String],  userId: Option[String], pag:Pagination)
 
 ###
 #  summary: Get a study by ID

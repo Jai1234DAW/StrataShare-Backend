@@ -1,6 +1,7 @@
 package dev.pompilius.users.infrastructure.controllers
 
 import dev.pompilius.Strings
+import dev.pompilius.attachment.domain.exceptions.AttachmentNotFoundException
 import dev.pompilius.attachment.domain.{AttachmentCheck, AttachmentRepository}
 import dev.pompilius.attachment.infrastructure.Attachments
 import dev.pompilius.attachment.infrastructure.parsers.UploadedAttachmentRequestParser
@@ -13,16 +14,8 @@ import dev.pompilius.shared.domain.exceptions.{BadRequestException, NotFoundExce
 import dev.pompilius.shared.domain.{Paginated, Pagination}
 import dev.pompilius.shared.infrastructure.writers.PaginatedWriter
 import dev.pompilius.users.domain._
-import dev.pompilius.users.domain.exceptions.{
-  EmailAlreadyInUseException,
-  UserNotFoundException,
-  UsernameAlreadyInUseException
-}
-import dev.pompilius.users.infrastructure.parsers.{
-  ChangeUserPasswordRequestParser,
-  RegisterUserRequestParser,
-  UpdateUserRequestParser
-}
+import dev.pompilius.users.domain.exceptions.{EmailAlreadyInUseException, UserNotFoundException, UsernameAlreadyInUseException}
+import dev.pompilius.users.infrastructure.parsers.{ChangeUserPasswordRequestParser, RegisterUserRequestParser, UpdateUserRequestParser}
 import dev.pompilius.users.infrastructure.writers.UserWriter
 import play.api.libs.Files
 import play.api.libs.json.{JsValue, Json}
@@ -64,7 +57,7 @@ class UserController @Inject() (
         passwordHash = UserPassword(createUserRequest.password).hash,
         enabled = true,
         email = createUserRequest.email,
-        interests=null,
+        interests=None,
         country = createUserRequest.country,
         firstName = createUserRequest.firstName,
         lastName = createUserRequest.lastName,
@@ -73,6 +66,7 @@ class UserController @Inject() (
         created = clock.now,
         updated = clock.now,
         avatar = None,
+        coverPhoto = None,
         notes = createUserRequest.notes,
         bio = createUserRequest.bio
       )
@@ -148,6 +142,29 @@ class UserController @Inject() (
                 )
 
             attachmentId = user.avatar.getOrElse(throw new NotFoundException(s"User with id $userId has no avatar"))
+
+            result <- download(Some(user), attachmentId)
+
+          } yield {
+            result
+          }
+      }
+    }
+
+  def downloadCoverPhoto(userId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      withAuthenticatedUser {
+        case (_, _, _) =>
+          val pid = UserId(userId)
+          for {
+            user <-
+              userRepository
+                .findById(pid)
+                .map(
+                  _.getOrElse(throw new UserNotFoundException(s"User with id $userId not found"))
+                )
+
+            attachmentId = user.coverPhoto.getOrElse(throw new AttachmentNotFoundException(s"User with id $userId has no cover Photo"))
 
             result <- download(Some(user), attachmentId)
 
@@ -238,6 +255,32 @@ class UserController @Inject() (
             updateUser = user.copy(
               updated = clock.now,
               avatar = Some(attachment.id)
+            )
+            _ <- userRepository.save(updateUser)
+
+            _ <- userAttachment.save(UserAttachment(user.id, attachment.id))
+            updatedUserJson <- userWriter.toJson(updateUser)
+          } yield {
+            Ok(updatedUserJson)
+          }
+      }
+    }
+
+  def uploadMyCoverPhoto(): Action[MultipartFormData[Files.TemporaryFile]] =
+    Action.async(parse.multipartFormData) { implicit request =>
+      withAuthenticatedUser {
+        case (_, user, _) =>
+          for {
+            attachment <- uploadImage(
+              user = user,
+              body = request.body,
+              //Modificar esto para que se puedan configurar las dimensiones máximas de las cover photos, igual que con los avatares
+              maxWidth = configuration.attachments.avatars.maxWidth,
+              maxHeight = configuration.attachments.avatars.maxHeight
+            )
+            updateUser = user.copy(
+              updated = clock.now,
+              coverPhoto = Some(attachment.id)
             )
             _ <- userRepository.save(updateUser)
 
