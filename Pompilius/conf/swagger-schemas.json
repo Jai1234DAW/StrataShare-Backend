@@ -25,6 +25,10 @@
         "$ref": "#/components/schemas/Attachment",
         "required": false
       },
+      "coverPhoto": {
+        "$ref": "#/components/schemas/Attachment",
+        "required": false
+      },
       "firstName": {
         "type": "string",
         "default": "John",
@@ -376,9 +380,9 @@
         "default": "public",
         "required": true
       },
-      "localization": {
+      "location": {
         "type": "string",
-        "default": "Sample localization",
+        "default": "Sample location",
         "required": true
       },
       "observations": {
@@ -390,6 +394,17 @@
         "type": "string",
         "default": "Sample summary",
         "required": false
+      },
+      "price": {
+        "type": "number",
+        "format": "float",
+        "default": 100.00,
+        "required": false
+      },
+      "isBarter": {
+        "type": "boolean",
+        "default": false,
+        "required": true
       },
       "minerals": {
         "type": "string",
@@ -451,9 +466,9 @@
         "default": "public",
         "required": true
       },
-      "localization": {
+      "location": {
         "type": "string",
-        "default": "Sample localization",
+        "default": "Sample location",
         "required": true
       },
       "observations": {
@@ -478,13 +493,23 @@
         "default": "2026-03-30T10:30:00Z",
         "required": true
       },
+      "price": {
+        "type": "number",
+        "format": "float",
+        "default": 100.00,
+        "required": false
+      },
+      "isBarter": {
+        "type": "boolean",
+        "default": false,
+        "required": true
+      },
       "sampleId": {
         "type": "string",
         "default": "sample123456",
         "required": true,
         "description": "Sample ID"
       },
-
       "minerals": {
         "type": "string",
         "default": "Sample minerals",
@@ -534,9 +559,9 @@
         "default": "public",
         "required": true
       },
-      "localization": {
+      "location": {
         "type": "string",
-        "default": "Study localization",
+        "default": "Study location",
         "required": true
       },
       "observations": {
@@ -626,9 +651,9 @@
         "default": "public",
         "required": true
       },
-      "localization": {
+      "location": {
         "type": "string",
-        "default": "Study localization",
+        "default": "Study location",
         "required": true
       },
       "observations": {
@@ -700,9 +725,9 @@
         "default": "public",
         "required": true
       },
-      "localization": {
+      "location": {
         "type": "string",
-        "default": "Study localization",
+        "default": "Study location",
         "required": true
       },
       "observations": {
@@ -756,9 +781,9 @@
         "default": "public",
         "required": true
       },
-      "localization": {
+      "location": {
         "type": "string",
-        "default": "Sample localization",
+        "default": "Sample location",
         "required": true
       },
       "observations": {
@@ -771,6 +796,17 @@
         "default": "Sample summary",
         "required": false
       },
+      "price": {
+        "type": "number",
+        "format": "float",
+        "default": 100.00,
+        "required": false
+      },
+        "isBarter": {
+            "type": "boolean",
+            "default": false,
+            "required": true
+        },
       "minerals": {
         "type": "string",
         "default": "Sample minerals",

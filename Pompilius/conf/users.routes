@@ -7,6 +7,14 @@
 ###
 GET           /:userId/avatar                             dev.pompilius.users.infrastructure.controllers.UserController.downloadAvatar(userId: String)
 
+###
+#  summary: Get user cover photo
+#  roles: {"required": "none", "roles": []}
+#  responses:
+#    200:
+#      description: User avatar
+###
+GET           /:userId/coverPhoto                             dev.pompilius.users.infrastructure.controllers.UserController.downloadCoverPhoto(userId: String)
 
 ###
 #  summary: Register a new user
@@ -79,6 +87,29 @@ PUT       /me/password                               dev.pompilius.users.infrast
 #            $ref: '#/components/schemas/Attachment'
 ###
 POST    /me/avatar                                     dev.pompilius.users.infrastructure.controllers.UserController.uploadMyAvatar()
+
+###
+#  summary: Upload user cover photo
+#  roles: {"required": "any", "roles": ["ADMIN", "PROFESSIONAL", "AMATEUR", "STUDENT"]}
+#  requestBody:
+#    required: true
+#    content:
+#     multipart/form-data:
+#       schema:
+#         type: object
+#         properties:
+#           file:
+#             type: string
+#             format: binary
+#  responses:
+#    200:
+#      description: Success
+#      content:
+#        application/json:
+#          schema:
+#            $ref: '#/components/schemas/Attachment'
+###
+POST    /me/coverPhoto                                     dev.pompilius.users.infrastructure.controllers.UserController.uploadMyCoverPhoto()
 
 ###
 #  summary: Delete my avatar

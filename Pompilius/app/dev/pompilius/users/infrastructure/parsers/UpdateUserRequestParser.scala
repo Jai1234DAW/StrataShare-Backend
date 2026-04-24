@@ -31,5 +31,4 @@ object UpdateUserRequestParser {
         throw new BadRequestException("Expecting text/json or application/json body")
     }
   }
-
 }

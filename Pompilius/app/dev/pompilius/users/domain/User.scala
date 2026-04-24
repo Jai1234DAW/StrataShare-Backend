@@ -21,6 +21,7 @@ case class User(
     created: DateTime,
     updated: DateTime,
     avatar: Option[AttachmentId],
+    coverPhoto: Option[AttachmentId],
     notes: Option[String],
     bio: Option[String]
 ) {

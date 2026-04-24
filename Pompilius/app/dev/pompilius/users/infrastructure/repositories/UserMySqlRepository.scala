@@ -46,6 +46,7 @@ class UserMySqlRepository @Inject() (
       created = rs.get(u.created),
       updated = rs.get(u.updated),
       avatar = rs.get[Option[Long]](u.avatar).map(AttachmentId(_)),
+      coverPhoto=rs.get[Option[Long]](u.coverPhoto).map(AttachmentId(_)),
       language = rs.get[Option[String]](u.language).flatMap(lang => Try(Lang(lang)).toOption),
       notes = rs.get(u.notes),
       bio = rs.get(u.bio)
@@ -181,7 +182,8 @@ class UserMySqlRepository @Inject() (
           column.bio -> user.bio,
           column.created -> user.created,
           column.updated -> user.updated,
-          column.avatar -> user.avatar.map(_.id)
+          column.avatar -> user.avatar.map(_.id),
+            column.coverPhoto -> user.coverPhoto.map(_.id)
         )
 
         withSQL {
