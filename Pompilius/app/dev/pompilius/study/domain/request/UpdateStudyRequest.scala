@@ -8,7 +8,7 @@ case class UpdateStudyRequest(
     // Datos comunes (Resource)
     name: Option[String] = None,
     visibility: Option[Visibility] = None,
-    localization: Option[String] = None,
+    location: Option[String] = None,
     observations: Option[String] = None,
     summary: Option[String] = None,
     // Datos específicos (Study)

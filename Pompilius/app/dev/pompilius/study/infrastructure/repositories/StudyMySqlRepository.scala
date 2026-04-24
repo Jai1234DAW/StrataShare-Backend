@@ -178,7 +178,7 @@ class StudyMySqlRepository @Inject() (
       )
     }
 
-    val localizationFilter = filter.localization.map { localization =>
+    val locationFilter = filter.location.map { location =>
       val r = resourceMySqlRepository.syntax("r")
       sqls.exists(
         select(sqls"1")
@@ -186,7 +186,7 @@ class StudyMySqlRepository @Inject() (
           .where
           .eq(r.id, st.resourceId)
           .and
-          .eq(sqls.lower(r.localization), localization.toLowerCase)
+          .eq(sqls.lower(r.location), location.toLowerCase)
           .toSQLSyntax
       )
     }
@@ -209,7 +209,7 @@ class StudyMySqlRepository @Inject() (
       searchFilter,
       userFilter,
       visibilityFilter,
-      localizationFilter
+      locationFilter
     ).flatten
 
     if (filters.nonEmpty) Some(sqls.joinWithAnd(filters: _*)) else None

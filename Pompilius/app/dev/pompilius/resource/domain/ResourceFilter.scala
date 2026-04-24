@@ -11,6 +11,6 @@ case class ResourceFilter(
     visibility: Option[Visibility] = None,
     createdFrom: Option[DateTime] = None,
     createdTo: Option[DateTime] = None,
-    localization: Option[String] = None
+    location: Option[String] = None
 )
 

@@ -10,6 +10,6 @@ case class StudyFilter(
     authors: Option[String] = None,
     search: Option[String] = None,
     visibility: Option[Visibility] = None,
-    localization: Option[String] = None,
+    location: Option[String] = None,
     userId: Option[UserId] = None
 )

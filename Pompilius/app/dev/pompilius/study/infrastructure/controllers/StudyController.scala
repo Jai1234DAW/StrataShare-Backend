@@ -60,7 +60,7 @@ class StudyController @Inject() (
             visibility = createStudyRequest.visibility,
             created = clock.now,
             updated = clock.now,
-            localization = createStudyRequest.localization,
+            location = createStudyRequest.location,
             observations = createStudyRequest.observations,
             summary = createStudyRequest.summary
           )
@@ -134,7 +134,7 @@ class StudyController @Inject() (
             updatedResource = resource.copy(
               name = updateStudyRequest.name.getOrElse(resource.name),
               visibility = updateStudyRequest.visibility.getOrElse(resource.visibility),
-              localization = updateStudyRequest.localization.getOrElse(resource.localization),
+              location = updateStudyRequest.location.getOrElse(resource.location),
               observations = updateStudyRequest.observations.orElse(resource.observations),
               summary = updateStudyRequest.summary.orElse(resource.summary),
               updated = clock.now
@@ -223,7 +223,7 @@ class StudyController @Inject() (
       authors: Option[String],
       search: Option[String],
       visibility: Option[String],
-      localization: Option[String],
+      location: Option[String],
       userId: Option[String],
       pag: Pagination
   ): Action[AnyContent] =
@@ -240,7 +240,7 @@ class StudyController @Inject() (
                 authors = authors,
                 search = search,
                 visibility = visibility.map(Visibility.withNameInsensitive),
-                localization = localization,
+                location = location,
                 userId = userId.map(UserId(_)) // ← Opcional: si es None, busca en todos
               ),
               pag.oneMore

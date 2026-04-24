@@ -33,7 +33,7 @@ class ResourceMySqlRepository @Inject() (clock: Clock)(
       visibility = Visibility.withNameInsensitive(rs.get[String](r.visibility)),
       created = rs.get(r.created),
       updated = rs.get(r.updated),
-      localization = rs.get[String](r.localization),
+      location = rs.get[String](r.location),
       observations = rs.get[Option[String]](r.observations),
       summary = rs.get[Option[String]](r.summary),
       price = rs.get[Option[BigDecimal]](r.price),
@@ -52,7 +52,7 @@ class ResourceMySqlRepository @Inject() (clock: Clock)(
           column.visibility -> resource.visibility.toString,
           column.created -> resource.created,
           column.updated -> clock.now,
-          column.localization -> resource.localization,
+          column.location -> resource.location,
           column.observations -> resource.observations,
           column.summary -> resource.summary,
           column.price -> resource.price,
@@ -98,8 +98,8 @@ class ResourceMySqlRepository @Inject() (clock: Clock)(
       sqls.le(r.created, ct)
     }
 
-    val localizationFilter = filter.localization.map { loc =>
-      sqls.like(sqls.lower(r.localization), s"%${loc.toLowerCase}%")
+    val locationFilter = filter.location.map { loc =>
+      sqls.like(sqls.lower(r.location), s"%${loc.toLowerCase}%")
     }
 
     val filters = List(
@@ -108,7 +108,7 @@ class ResourceMySqlRepository @Inject() (clock: Clock)(
       visibilityFilter,
       createdFromFilter,
       createdToFilter,
-      localizationFilter
+      locationFilter
     ).flatten
 
     if (filters.nonEmpty) Some(sqls.joinWithAnd(filters: _*)) else None

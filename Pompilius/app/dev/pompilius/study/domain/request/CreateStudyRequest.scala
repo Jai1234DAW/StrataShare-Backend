@@ -8,7 +8,7 @@ case class CreateStudyRequest(
     // Datos comunes (Resource)
     name: String,
     visibility: Visibility,
-    localization: String,
+    location: String,
     observations: Option[String],
     summary: Option[String],
     // Datos específicos (Study)
