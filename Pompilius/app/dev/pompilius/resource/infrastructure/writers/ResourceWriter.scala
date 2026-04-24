@@ -29,7 +29,7 @@ class ResourceWriterImpl @Inject() ()(implicit val ec: ExecutionContext) extends
           toJsValueWrapper(Strings.resourceType, resource.resourceType.toString),
           toJsValueWrapper(Strings.name, resource.name),
           toJsValueWrapper(Strings.visibility, resource.visibility.toString),
-          toJsValueWrapper(Strings.localization, resource.localization),
+          toJsValueWrapper(Strings.location, resource.location),
           toJsValueWrapper(Strings.observations, resource.observations),
           toJsValueWrapper(Strings.summary, resource.summary),
           toJsValueWrapper(Strings.created, resource.created),

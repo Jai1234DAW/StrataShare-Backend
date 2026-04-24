@@ -38,7 +38,7 @@ class SessionMySqlRepository @Inject() (clock: Clock)(implicit dbExecutionContex
       updatedAt = rs.get[Option[org.joda.time.DateTime]](s.updatedAt)
     )
 
-  val s = this.syntax("s")
+ private val s = this.syntax("s")
 
   override def findById(sessionId: SessionId): Future[Option[Session]] =
     Future {
@@ -138,12 +138,12 @@ class SessionMySqlRepository @Inject() (clock: Clock)(implicit dbExecutionContex
         withSQL {
           update(this)
             .set(column.deleted -> true)
-            .where
-            .eq(column.userId, userId.id)
-            .and(keep.map(id => sqls.ne(column.id, id.id)))
+            .where.eq(column.userId, userId.id)
+            .and(keep.map(id => sqls.ne(column.id, id.toString)))
         }.update()
       }
       Done
     }
+
 
 }

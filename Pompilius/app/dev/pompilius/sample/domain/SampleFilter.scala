@@ -9,6 +9,6 @@ case class SampleFilter(
     rockType: Option[String] = None,
     isFresh: Option[Boolean] = None,
     visibility: Option[Visibility] = None,
-    localization: Option[String] = None,
+    location: Option[String] = None,
     userId: Option[UserId] = None
 )

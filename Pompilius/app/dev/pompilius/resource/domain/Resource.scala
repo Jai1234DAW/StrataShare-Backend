@@ -11,7 +11,7 @@ case class Resource(
     visibility: Visibility,
     created: DateTime,
     updated: DateTime,
-    localization: String,
+    location: String,
     observations: Option[String],
     summary: Option[String],
     price: Option[BigDecimal] = None,

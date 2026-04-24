@@ -51,7 +51,7 @@ class SampleController @Inject() (
             visibility = createSampleRequest.visibility,
             created = clock.now,
             updated = clock.now,
-            localization = createSampleRequest.localization,
+            location = createSampleRequest.location,
             observations = createSampleRequest.observations,
             summary = createSampleRequest.summary
           )
@@ -127,7 +127,7 @@ class SampleController @Inject() (
             updatedResource = resource.copy(
               name = updateSampleRequest.name.getOrElse(resource.name),
               visibility = updateSampleRequest.visibility.getOrElse(resource.visibility),
-              localization = updateSampleRequest.localization.getOrElse(resource.localization),
+              location = updateSampleRequest.location.getOrElse(resource.location),
               observations = updateSampleRequest.observations.orElse(resource.observations),
               summary = updateSampleRequest.summary.orElse(resource.summary),
               updated = clock.now
@@ -217,7 +217,7 @@ class SampleController @Inject() (
       rockType: Option[String],
       isFresh: Option[Boolean],
       visibility: Option[String],
-      localization: Option[String],
+      location: Option[String],
       userId: Option[String],
       pag: Pagination
   ): Action[AnyContent] =
@@ -232,7 +232,7 @@ class SampleController @Inject() (
                 rockType = rockType,
                 isFresh = isFresh,
                 visibility = visibility.map(Visibility.withNameInsensitive),
-                localization = localization,
+                location = location,
                 userId = userId.map(UserId(_))
               ),
               pag.oneMore
