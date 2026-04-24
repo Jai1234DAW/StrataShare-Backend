@@ -109,6 +109,13 @@ class UserWriterImpl @Inject() (
           Map("hash" -> avatar.toString) // Cambiamos la url si cambia el avatar (para evitar la caché)
         )
       }
+
+      coverPhotoJs = user.coverPhoto.map { coverPhoto=>
+        UrlUtil.addQueryParameters(
+          dev.pompilius.users.infrastructure.controllers.routes.UserController.downloadAvatar(user.id.toString).url,
+          Map("hash" -> coverPhoto.toString) // Cambiamos la url si cambia el avatar (para evitar la caché)
+        )
+      }
       roles<- userRoleRepository.getAllByUserId(user.id).map(_.map(_.role))
 
     } yield {
@@ -116,7 +123,9 @@ class UserWriterImpl @Inject() (
       val finalJson = Json.obj(
         List(
           toJsValueWrapper(Strings.username, user.username),
-          toJsValueWrapper(Strings.avatar, avatarJs), // se usa aquí usamos el avatar resuelto
+          toJsValueWrapper(Strings.avatar, avatarJs),
+          toJsValueWrapper(Strings.coverPhoto,coverPhotoJs),
+          toJsValueWrapper(Strings.interests,user.interests),// se usa aquí usamos el avatar resuelto
           toJsValueWrapper(Strings.firstName, user.firstName),
           toJsValueWrapper(Strings.lastName, user.lastName),
           toJsValueWrapper(Strings.country, countryJson), // usamos aquí country resuelto
