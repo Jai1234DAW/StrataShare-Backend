@@ -11,6 +11,9 @@ case class CreateStudyRequest(
     location: String,
     observations: Option[String],
     summary: Option[String],
+    price: Option[BigDecimal],
+    isBarter: Boolean,
+
     // Datos específicos (Study)
 
     startDate: DateTime,
