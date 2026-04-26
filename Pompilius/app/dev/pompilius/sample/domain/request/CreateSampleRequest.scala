@@ -9,6 +9,8 @@ case class CreateSampleRequest(
     location: String,
     observations: Option[String],
     summary: Option[String],
+    price: Option[BigDecimal],
+    isBarter: Boolean,
 
     // Datos específicos (Sample)
 

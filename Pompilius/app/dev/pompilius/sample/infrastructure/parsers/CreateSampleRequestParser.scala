@@ -17,6 +17,10 @@ object CreateSampleRequestParser {
       (__ \ Strings.location).read[String] and
       (__ \ Strings.observations).readNullable[String].map(_.map(StringUtil.stripTags)) and
       (__ \ Strings.summary).readNullable[String].map(_.map(StringUtil.stripTags)) and
+      (__ \ Strings.price).readNullable[BigDecimal] and
+      (__ \ Strings.isBarter).read[Boolean] and
+
+
       (__ \ Strings.minerals).readNullable[String] and
       (__ \ Strings.collectionMethods).readNullable[String] and
       (__ \ Strings.isFresh).read[Boolean] and

@@ -574,6 +574,17 @@
         "default": "Study summary",
         "required": false
       },
+      "price": {
+        "type": "number",
+        "format": "float",
+        "default": 100.00,
+        "required": false
+      },
+      "isBarter": {
+        "type": "boolean",
+        "default": false,
+        "required": true
+      },
       "startDate": {
         "type": "string",
         "format": "date-time",

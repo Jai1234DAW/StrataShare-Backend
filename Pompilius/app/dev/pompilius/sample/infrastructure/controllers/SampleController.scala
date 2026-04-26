@@ -53,7 +53,9 @@ class SampleController @Inject() (
             updated = clock.now,
             location = createSampleRequest.location,
             observations = createSampleRequest.observations,
-            summary = createSampleRequest.summary
+            summary = createSampleRequest.summary,
+            price=createSampleRequest.price,
+            isBarter=createSampleRequest.isBarter
           )
 
           // Crear el Sample (datos específicos)
