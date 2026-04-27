@@ -207,7 +207,7 @@ object ReadsUtil {
   def materialsUsed(implicit reads: Reads[String]): Reads[String] =
     Reads.maxLength[String](512)
 
-  def rockType(implicit reads: Reads[String]): Reads[String] =
+  def sampleCategory(implicit reads: Reads[String]): Reads[String] =
     Reads.maxLength[String](256)
 
   def geologicalProcesses(implicit reads: Reads[String]): Reads[String] =
