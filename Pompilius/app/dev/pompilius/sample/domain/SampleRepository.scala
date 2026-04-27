@@ -21,4 +21,6 @@ trait SampleRepository {
   def save(sample: Sample): Future[Done]
 
   def delete(id: SampleId): Future[Done]
+
+  def getMyAllSamplesAsOwner(userId:UserId, pag: Pagination): Future[List[Sample]]
 }

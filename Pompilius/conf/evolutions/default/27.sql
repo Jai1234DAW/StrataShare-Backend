@@ -1,6 +1,8 @@
-# Scripts de insert into para pruebas
+# Scripts de insert into para pruebas y modificacion de columna rock_type a sample_category
 
 # --- !Ups
+ALTER TABLE `Sample` RENAME COLUMN `rock_type` TO `sample_category`;
+
 INSERT INTO `users` (
     `id`, `username`, `password_hash`, `enabled`, `email`, `interests`, `country`,
     `first_name`, `last_name`, `phone`, `avatar`, `cover_photo`, `language`,
@@ -96,7 +98,7 @@ INSERT INTO `resource` (
 
 INSERT INTO `sample` (
     `id`, `resource_id`, `minerals`, `collection_methods`,
-    `is_fresh`, `sample_type`, `materials_used`, `rock_type`, `geological_processes`
+    `is_fresh`, `sample_type`, `materials_used`, `sample_category`, `geological_processes`
 ) VALUES
       (835125411154233001, 835125411154232001,
        'Olivine, Pyroxene (Augite), Plagioclase, Magnetite',

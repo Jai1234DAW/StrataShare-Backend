@@ -10,7 +10,7 @@ case class CreateSampleRequest(
     observations: Option[String],
     summary: Option[String],
     price: Option[BigDecimal],
-    isBarter: Boolean,
+    isBarter: Boolean=false,
 
     // Datos específicos (Sample)
 

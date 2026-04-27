@@ -377,7 +377,7 @@
       },
       "visibility": {
         "type": "string",
-        "default": "public",
+        "default": "private",
         "required": true
       },
       "location": {
@@ -556,7 +556,7 @@
       },
       "visibility": {
         "type": "string",
-        "default": "public",
+        "default": "private",
         "required": true
       },
       "location": {
