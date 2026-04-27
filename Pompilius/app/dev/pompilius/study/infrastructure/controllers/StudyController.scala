@@ -62,7 +62,9 @@ class StudyController @Inject() (
             updated = clock.now,
             location = createStudyRequest.location,
             observations = createStudyRequest.observations,
-            summary = createStudyRequest.summary
+            summary = createStudyRequest.summary,
+            price= createStudyRequest.price,
+            isBarter= createStudyRequest.isBarter
           )
 
           // Crear el Study (datos específicos)

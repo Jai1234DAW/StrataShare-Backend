@@ -32,7 +32,13 @@ object CreateStudyRequestParser {
       (__ \ Strings.section).read[Boolean] and
       (__ \ Strings.antecedents).read[Boolean] and
       (__ \ Strings.nameSection).readNullable[String]
-  )(CreateStudyRequest.apply _)
+  )(CreateStudyRequest.apply _).filter(JsonValidationError("Invalid price/barter/visibility combination")) { req =>
+    req.visibility != Visibility.PUBLIC &&
+    (
+      (req.price.isDefined && !req.isBarter) ||
+      (req.price.isEmpty && req.isBarter)
+    )
+  }
 
   def parse[A](request: Request[A]): CreateStudyRequest = {
     request.body match {
@@ -60,4 +66,3 @@ object CreateStudyRequestParser {
   }
 
 }
-
