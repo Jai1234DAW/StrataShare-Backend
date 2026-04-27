@@ -431,7 +431,7 @@
         "default": "Sample materials used",
         "required": false
       },
-      "rockType": {
+      "sampleCategory": {
         "type": "string",
         "default": "Sample rock type",
         "required": false
@@ -535,7 +535,7 @@
         "default": "Sample materials used",
         "required": false
       },
-      "rockType": {
+      "sampleCategory": {
         "type": "string",
         "default": "Sample rock type",
         "required": false
@@ -843,7 +843,7 @@
         "default": "Sample materials used",
         "required": false
       },
-      "rockType": {
+      "sampleCategory": {
         "type": "string",
         "default": "Sample rock type",
         "required": false

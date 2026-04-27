@@ -58,7 +58,7 @@ PUT          /:sampleId                                     dev.pompilius.sample
 #      required: false
 #      schema:
 #        type: string
-#    - name: rockType
+#    - name: sampleCategory
 #      in: query
 #      description: Rock type of the sample (e.g., "granite", "limestone", "shale")
 #      required: false
@@ -78,7 +78,7 @@ PUT          /:sampleId                                     dev.pompilius.sample
 #         $ref: '#/components/schemas/SampleList'
 #      description: List of studies for the user  or all samples matching the search criteria
 ###
-GET        /                                              dev.pompilius.sample.infrastructure.controllers.SampleController.getAll(name: Option[String], sampleType:Option[String], rockType: Option[String], isFresh:Option[Boolean], visibility: Option[String], location: Option[String], userId: Option[String], pag: Pagination)
+GET        /                                              dev.pompilius.sample.infrastructure.controllers.SampleController.getAll(name: Option[String], sampleType:Option[String], sampleCategory: Option[String], isFresh:Option[Boolean], visibility: Option[String], location: Option[String], userId: Option[String], pag: Pagination)
 
 ###
 #  summary: Get a sample by ID
