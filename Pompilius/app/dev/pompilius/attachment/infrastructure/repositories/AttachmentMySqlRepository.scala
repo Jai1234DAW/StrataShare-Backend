@@ -133,6 +133,8 @@ class AttachmentMySqlRepository @Inject() (implicit ec: DbExecutionContext)
             .where
             .eq(att.resourceId, resourceId.id)
             .and
+            .eq(att.id, attachmentId.id)
+            .and
             .eq(att.deleted, false)
         }.update()
       }
