@@ -19,16 +19,20 @@ object CreateSampleRequestParser {
       (__ \ Strings.summary).readNullable[String].map(_.map(StringUtil.stripTags)) and
       (__ \ Strings.price).readNullable[BigDecimal] and
       (__ \ Strings.isBarter).read[Boolean] and
-
-
       (__ \ Strings.minerals).readNullable[String] and
       (__ \ Strings.collectionMethods).readNullable[String] and
       (__ \ Strings.isFresh).read[Boolean] and
       (__ \ Strings.sampleType).readNullable[String] and
       (__ \ Strings.materialsUsed).readNullable[String] and
-      (__ \ Strings.rockType).readNullable[String] and
+      (__ \ Strings.sampleCategory).readNullable[String] and
       (__ \ Strings.geologicalProcesses).readNullable[String]
-  )(CreateSampleRequest.apply _)
+  )(CreateSampleRequest.apply _).filter(JsonValidationError("Invalid price/barter/visibility combination")) { req =>
+    req.visibility != Visibility.PUBLIC &&
+      (
+        (req.price.isDefined && !req.isBarter) ||
+          (req.price.isEmpty && req.isBarter)
+        )
+  }
 
   def parse[A](request: Request[A]): CreateSampleRequest = {
     request.body match {
