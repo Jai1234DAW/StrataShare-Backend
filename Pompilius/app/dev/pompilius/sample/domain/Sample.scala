@@ -11,6 +11,6 @@ case class Sample (
   isFresh: Boolean = false,
   sampleType: Option[String] = None,
   materialsUsed: Option[String] = None,
-  rockType: Option[String] = None,
+  sampleCategory: Option[String] = None,
   geologicalProcesses: Option[String] = None
 )

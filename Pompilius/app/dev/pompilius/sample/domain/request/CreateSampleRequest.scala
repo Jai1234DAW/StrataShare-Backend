@@ -19,7 +19,7 @@ case class CreateSampleRequest(
     isFresh: Boolean,
     sampleType: Option[String],
     materialsUsed: Option[String],
-    rockType: Option[String],
+    sampleCategory: Option[String],
     geologicalProcesses: Option[String]
 )
 

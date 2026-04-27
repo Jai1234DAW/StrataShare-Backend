@@ -6,7 +6,7 @@ import dev.pompilius.users.domain.UserId
 case class SampleFilter(
     name: Option[String],
     sampleType: Option[String] = None,
-    rockType: Option[String] = None,
+    sampleCategory: Option[String] = None,
     isFresh: Option[Boolean] = None,
     visibility: Option[Visibility] = None,
     location: Option[String] = None,

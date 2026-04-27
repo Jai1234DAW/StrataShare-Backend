@@ -54,8 +54,8 @@ class SampleController @Inject() (
             location = createSampleRequest.location,
             observations = createSampleRequest.observations,
             summary = createSampleRequest.summary,
-            price=createSampleRequest.price,
-            isBarter=createSampleRequest.isBarter
+            price = createSampleRequest.price,
+            isBarter = createSampleRequest.isBarter
           )
 
           // Crear el Sample (datos específicos)
@@ -67,7 +67,7 @@ class SampleController @Inject() (
             isFresh = createSampleRequest.isFresh,
             sampleType = createSampleRequest.sampleType,
             materialsUsed = createSampleRequest.materialsUsed,
-            rockType = createSampleRequest.rockType,
+            sampleCategory = createSampleRequest.sampleCategory,
             geologicalProcesses = createSampleRequest.geologicalProcesses
           )
 
@@ -142,7 +142,7 @@ class SampleController @Inject() (
               isFresh = updateSampleRequest.isFresh.getOrElse(sample.isFresh),
               sampleType = updateSampleRequest.sampleType.orElse(sample.sampleType),
               materialsUsed = updateSampleRequest.materialsUsed.orElse(sample.materialsUsed),
-              rockType = updateSampleRequest.rockType.orElse(sample.rockType),
+              sampleCategory = updateSampleRequest.sampleCategory.orElse(sample.sampleCategory),
               geologicalProcesses = updateSampleRequest.geologicalProcesses.orElse(sample.geologicalProcesses)
             )
 
@@ -216,7 +216,7 @@ class SampleController @Inject() (
   def getAll(
       name: Option[String],
       sampleType: Option[String],
-      rockType: Option[String],
+      sampleCategory: Option[String],
       isFresh: Option[Boolean],
       visibility: Option[String],
       location: Option[String],
@@ -231,7 +231,7 @@ class SampleController @Inject() (
               SampleFilter(
                 name = name,
                 sampleType = sampleType,
-                rockType = rockType,
+                sampleCategory = sampleCategory,
                 isFresh = isFresh,
                 visibility = visibility.map(Visibility.withNameInsensitive),
                 location = location,

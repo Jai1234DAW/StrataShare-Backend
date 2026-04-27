@@ -23,7 +23,7 @@ object UpdateSampleRequestParser {
       (__ \ Strings.isFresh).readNullable[Boolean] and
       (__ \ Strings.sampleType).readNullable[String] and
       (__ \ Strings.materialsUsed).readNullable[String].map(_.map(StringUtil.stripTags)) and
-      (__ \ Strings.rockType).readNullable[String] and
+      (__ \ Strings.sampleCategory).readNullable[String] and
       (__ \ Strings.geologicalProcesses).readNullable[String].map(_.map(StringUtil.stripTags))
   )(UpdateSampleRequest.apply _)
 

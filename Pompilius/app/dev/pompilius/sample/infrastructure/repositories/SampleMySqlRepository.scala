@@ -35,7 +35,7 @@ class SampleMySqlRepository @Inject() (
       isFresh = rs.get(s.isFresh),
       sampleType = rs.get(s.sampleType),
       materialsUsed = rs.get(s.materialsUsed),
-      rockType = rs.get(s.rockType),
+      sampleCategory= rs.get(s.sampleCategory),
       geologicalProcesses = rs.get(s.geologicalProcesses)
     )
 
@@ -130,8 +130,8 @@ class SampleMySqlRepository @Inject() (
       sqls.eq(sqls.lower(s.sampleType), sampleType.toLowerCase)
     }
 
-    val rockTypeFilter = filter.rockType.map { rockType =>
-      sqls.eq(sqls.lower(s.rockType), rockType.toLowerCase)
+    val sampleCategoryFilter = filter.sampleCategory.map { sampleCategory =>
+      sqls.eq(sqls.lower(s.sampleCategory), sampleCategory.toLowerCase)
     }
 
     val isFreshFilter = filter.isFresh.map { isFresh =>
@@ -156,7 +156,7 @@ class SampleMySqlRepository @Inject() (
     val filters = List(
       nameFilter,
       sampleTypeFilter,
-      rockTypeFilter,
+      sampleCategoryFilter,
       isFreshFilter,
       userFilter
     ).flatten
@@ -208,7 +208,7 @@ class SampleMySqlRepository @Inject() (
           column.isFresh -> sample.isFresh,
           column.sampleType -> sample.sampleType,
           column.materialsUsed -> sample.materialsUsed,
-          column.rockType -> sample.rockType,
+          column.sampleCategory -> sample.sampleCategory,
           column.geologicalProcesses -> sample.geologicalProcesses
         )
         withSQL {
