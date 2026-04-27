@@ -27,11 +27,16 @@ object CreateSampleRequestParser {
       (__ \ Strings.sampleCategory).readNullable[String] and
       (__ \ Strings.geologicalProcesses).readNullable[String]
   )(CreateSampleRequest.apply _).filter(JsonValidationError("Invalid price/barter/visibility combination")) { req =>
-    req.visibility != Visibility.PUBLIC &&
-      (
-        (req.price.isDefined && !req.isBarter) ||
-          (req.price.isEmpty && req.isBarter)
-        )
+    req.visibility match {
+      case Visibility.PUBLIC =>
+        req.price.isEmpty && !req.isBarter
+
+      case Visibility.PRIVATE =>
+        !(req.price.isDefined && req.isBarter)
+
+      case _ =>
+        false
+    }
   }
 
   def parse[A](request: Request[A]): CreateSampleRequest = {

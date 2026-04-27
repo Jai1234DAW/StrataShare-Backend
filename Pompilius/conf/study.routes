@@ -37,6 +37,20 @@ POST         /create                                        dev.pompilius.study.
 PUT          /:studyId                                      dev.pompilius.study.infrastructure.controllers.StudyController.update(studyId: String)
 
 ###
+#  summary: Get all studies for a current User
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL","AMATEUR"]}
+#  parameters:
+#  responses:
+#    200:
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/StudyList'
+#      description: List of studies for the user  or all samples matching the search criteria
+###
+GET        /mine                                                      dev.pompilius.study.infrastructure.controllers.StudyController.getAllMyStudies(pag: Pagination)
+
+###
 #  summary: Get all studies by filters
 #  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL","AMATEUR"]}
 #  parameters:

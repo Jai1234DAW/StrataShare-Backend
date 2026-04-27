@@ -4,6 +4,7 @@ import com.google.inject.ImplementedBy
 import dev.pompilius.resource.domain.ResourceId
 import dev.pompilius.shared.domain.Pagination
 import dev.pompilius.study.infrastructure.repositories.StudyMySqlRepository
+import dev.pompilius.users.domain.UserId
 import org.apache.pekko.Done
 
 import scala.concurrent.Future
@@ -20,5 +21,7 @@ trait StudyRepository {
   def save(study: Study): Future[Done]
 
   def delete(id: StudyId): Future[Done]
+
+  def getAllMyStudiesAsOwner(userId:UserId, pag: Pagination): Future[List[Study]]
 
 }

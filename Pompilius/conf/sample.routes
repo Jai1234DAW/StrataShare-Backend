@@ -80,6 +80,22 @@ PUT          /:sampleId                                     dev.pompilius.sample
 ###
 GET        /                                              dev.pompilius.sample.infrastructure.controllers.SampleController.getAll(name: Option[String], sampleType:Option[String], sampleCategory: Option[String], isFresh:Option[Boolean], visibility: Option[String], location: Option[String], userId: Option[String], pag: Pagination)
 
+
+###
+#  summary: Get all sample for a current User
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL","AMATEUR"]}
+#  parameters:
+#  responses:
+#    200:
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/SampleList'
+#      description: List of studies for the user  or all samples matching the search criteria
+###
+GET        /mine                                                      dev.pompilius.sample.infrastructure.controllers.SampleController.getAllMySamples(pag: Pagination)
+
+
 ###
 #  summary: Get a sample by ID
 #  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL","AMATEUR"]}

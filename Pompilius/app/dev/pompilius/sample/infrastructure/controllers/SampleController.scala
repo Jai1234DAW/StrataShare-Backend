@@ -214,15 +214,15 @@ class SampleController @Inject() (
     }
 
   def getAll(
-      name: Option[String],
-      sampleType: Option[String],
-      sampleCategory: Option[String],
-      isFresh: Option[Boolean],
-      visibility: Option[String],
-      location: Option[String],
-      userId: Option[String],
-      pag: Pagination
-  ): Action[AnyContent] =
+              name: Option[String],
+              sampleType: Option[String],
+              sampleCategory: Option[String],
+              isFresh: Option[Boolean],
+              visibility: Option[String],
+              location: Option[String],
+              userId: Option[String],
+              pag: Pagination
+            ): Action[AnyContent] =
     Action.async { implicit request =>
       withAuthenticatedUser {
         case (_, user, _) =>
@@ -279,4 +279,33 @@ class SampleController @Inject() (
     } yield (sample, resource)
   }
 
+  def getAllMySamples(
+                       pag: Pagination
+                     ): Action[AnyContent] =
+    Action.async { implicit request =>
+      withAuthenticatedUser {
+        case (_, user, _) =>
+          for {
+            samples <- sampleRepository.getMyAllSamplesAsOwner(
+                userId = user.id,
+            pag.oneMore)
+
+            json <- paginatedWriter.toJson(Paginated(samples, pag)) { sample =>
+              for {
+                resource <- resourceRepository
+                  .findById(sample.resourceId)
+                  .map(
+                    _.getOrElse(
+                      throw new ResourceNotFoundException(
+                        s"Resource not found for sample ${sample.id}"
+                      )
+                    )
+                  )
+
+                json <- resourceWriter.asPublic(resource, Some(sample), None)
+              } yield json
+            }
+          } yield Ok(json)
+      }
+    }
 }

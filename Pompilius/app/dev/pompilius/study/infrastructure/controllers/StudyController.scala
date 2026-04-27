@@ -267,6 +267,36 @@ class StudyController @Inject() (
       }
     }
 
+  def getAllMyStudies(
+                       pag: Pagination
+                     ): Action[AnyContent] =
+    Action.async { implicit request =>
+      withAuthenticatedUser {
+        case (_, user, _) =>
+          for {
+            studies <- studyRepository.getAllMyStudiesAsOwner(
+              userId = user.id,
+              pag.oneMore)
+
+            json <- paginatedWriter.toJson(Paginated(studies, pag)) { study =>
+              for {
+                resource <- resourceRepository
+                  .findById(study.resourceId)
+                  .map(
+                    _.getOrElse(
+                      throw new ResourceNotFoundException(
+                        s"Resource not found for sample ${study.id}"
+                      )
+                    )
+                  )
+
+                json <- resourceWriter.asPublic(resource,None, Some(study))
+              } yield json
+            }
+          } yield Ok(json)
+      }
+    }
+
   //Para añadir muestras a un estudio
   def addSamples(studyId: String): Action[AnyContent] =
     Action.async { implicit request =>

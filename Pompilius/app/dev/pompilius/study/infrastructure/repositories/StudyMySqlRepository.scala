@@ -1,12 +1,13 @@
 package dev.pompilius.study.infrastructure.repositories
 
 import dev.pompilius.Strings
-import dev.pompilius.resource.domain.ResourceId
+import dev.pompilius.resource.domain.{ResourceId, ResourceUserType}
 import dev.pompilius.resource.infrastructure.repositories.{ResourceMySqlRepository, ResourceUserMySqlRepository}
 import dev.pompilius.shared.domain.Pagination
 import dev.pompilius.shared.infrastructure.ScalikeUtil
 import dev.pompilius.shared.infrastructure.contexts.DbExecutionContext
 import dev.pompilius.study.domain.{Area, Study, StudyFilter, StudyId, StudyRepository}
+import dev.pompilius.users.domain.UserId
 import org.apache.pekko.Done
 import org.joda.time.DateTime
 import scalikejdbc._
@@ -89,18 +90,20 @@ class StudyMySqlRepository @Inject() (
         defaultOrderBy
 
       case seq =>
-        seq.flatMap { field =>
+        val orderBy = seq.flatMap { field =>
           val desc = field.startsWith("-")
+          val cleanField = field.stripPrefix("-")
 
-          field.stripPrefix("-") match {
-
+          cleanField match {
             case Strings.created =>
               Some(if (desc) r.created.desc else r.created.asc)
 
             case _ =>
               None
           }
-        } match {
+        }
+
+        orderBy match {
           case Nil =>
             defaultOrderBy
 
@@ -214,6 +217,33 @@ class StudyMySqlRepository @Inject() (
 
     if (filters.nonEmpty) Some(sqls.joinWithAnd(filters: _*)) else None
   }
+
+  override def getAllMyStudiesAsOwner(
+                                       userId: UserId,
+                                       pag: Pagination
+                                     ): Future[List[Study]] =
+    Future {
+      val r = resourceMySqlRepository.syntax("r")
+      val ru = resourceUserMySqlRepository.syntax("ru")
+      val orderBy: Seq[SQLSyntax] = buildOrderBy(pag)
+
+      DB.localTx { implicit session =>
+        withSQL {
+          select(st.result.*)
+            .from(this as st)
+            .innerJoin(resourceMySqlRepository as r)
+            .on(st.resourceId, r.id)
+            .innerJoin(resourceUserMySqlRepository as ru)
+            .on(r.id, ru.resourceId)
+            .where
+            .eq(ru.userId, userId.id)
+            .and
+            .eq(ru.resourceUserType, ResourceUserType.OWNER.toString)
+            .orderBy(orderBy: _*)
+            .append(ScalikeUtil.pag(pag))
+        }.map(apply(st.resultName)(_)).list()
+      }
+    }
 
   override def save(study: Study): Future[Done] =
     Future {
