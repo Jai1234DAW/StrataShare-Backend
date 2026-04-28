@@ -10,6 +10,8 @@ import dev.pompilius.shared.infrastructure.contexts.DbExecutionContext
 import dev.pompilius.users.domain.UserId
 import org.apache.pekko.Done
 import scalikejdbc._
+import scalikejdbc.jodatime.JodaParameterBinderFactory._
+import scalikejdbc.jodatime.JodaTypeBinder._
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
@@ -31,12 +33,13 @@ class SampleMySqlRepository @Inject() (
     Sample(
       id = SampleId(rs.get[Long](s.id)),
       resourceId = ResourceId(rs.get[Long](s.resourceId)),
+      collectedDate = rs.get(s.collectedDate),
       minerals = rs.get(s.minerals),
       collectionMethods = rs.get(s.collectionMethods),
       isFresh = rs.get(s.isFresh),
       sampleType = rs.get(s.sampleType),
       materialsUsed = rs.get(s.materialsUsed),
-      sampleCategory= rs.get(s.sampleCategory),
+      sampleCategory = rs.get(s.sampleCategory),
       geologicalProcesses = rs.get(s.geologicalProcesses)
     )
 
@@ -101,9 +104,9 @@ class SampleMySqlRepository @Inject() (
     }
 
   override def getMyAllSamplesAsOwner(
-                                       userId: UserId,
-                                       pag: Pagination
-                                     ): Future[List[Sample]] =
+      userId: UserId,
+      pag: Pagination
+  ): Future[List[Sample]] =
     Future {
       val r = resourceMySqlRepository.syntax("r")
       val ru = resourceUserMySqlRepository.syntax("ru")
@@ -152,7 +155,6 @@ class SampleMySqlRepository @Inject() (
           .toSQLSyntax
       )
     }
-
 
     val sampleTypeFilter = filter.sampleType.map { sampleType =>
       sqls.eq(sqls.lower(s.sampleType), sampleType.toLowerCase)
@@ -233,6 +235,7 @@ class SampleMySqlRepository @Inject() (
         val sampleValues = List(
           column.id -> sample.id.id,
           column.resourceId -> sample.resourceId.id,
+          column.collectedDate -> sample.collectedDate,
           column.minerals -> sample.minerals,
           column.collectionMethods -> sample.collectionMethods,
           column.isFresh -> sample.isFresh,

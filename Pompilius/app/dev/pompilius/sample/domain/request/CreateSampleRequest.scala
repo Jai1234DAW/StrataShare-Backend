@@ -1,6 +1,7 @@
 package dev.pompilius.sample.domain.request
 
 import dev.pompilius.shared.domain.Visibility
+import org.joda.time.DateTime
 
 case class CreateSampleRequest(
     // Datos comunes (Resource)
@@ -14,6 +15,7 @@ case class CreateSampleRequest(
 
     // Datos específicos (Sample)
 
+    collectedDate: DateTime,
     minerals: Option[String],
     collectionMethods: Option[String],
     isFresh: Boolean,

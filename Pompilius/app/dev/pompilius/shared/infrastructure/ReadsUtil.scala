@@ -4,6 +4,8 @@ import dev.pompilius.Strings
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import dev.pompilius.country.domain.Country
+import dev.pompilius.shared.domain.Clock
+import org.joda.time.{DateTime, DateTimeZone}
 
 object ReadsUtil {
 
@@ -235,7 +237,6 @@ object ReadsUtil {
   def buyerReference(implicit reads: Reads[String]): Reads[String] =
     Reads.maxLength[String](255)
 
-
   def paymentInstrument(implicit reads: Reads[String]): Reads[String] =
     Reads.maxLength[String](255)
 
@@ -250,4 +251,6 @@ object ReadsUtil {
 
   def rating(implicit reads: Reads[Int]): Reads[Int] =
     Reads.min(1) keepAnd Reads.max(5)
+
+
 }

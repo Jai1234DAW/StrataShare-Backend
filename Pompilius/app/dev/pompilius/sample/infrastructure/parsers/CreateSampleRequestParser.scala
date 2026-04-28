@@ -4,7 +4,9 @@ import dev.pompilius.Strings
 import dev.pompilius.sample.domain.request.CreateSampleRequest
 import dev.pompilius.shared.domain.exceptions.BadRequestException
 import dev.pompilius.shared.domain.Visibility
-import dev.pompilius.shared.infrastructure.StringUtil
+import dev.pompilius.shared.infrastructure.{ReadsUtil, StringUtil}
+import dev.pompilius.shared.infrastructure.JsUtils.JodaDateTimeReads
+import org.joda.time.{DateTime, DateTimeZone}
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 import play.api.mvc.{AnyContentAsJson, Request}
@@ -13,12 +15,19 @@ object CreateSampleRequestParser {
 
   implicit val jsonReads: Reads[CreateSampleRequest] = (
     (__ \ Strings.name).read[String] and
-    (__ \ Strings.visibility).read[String].map(Visibility.withNameInsensitive) and
+      (__ \ Strings.visibility).read[String].map(Visibility.withNameInsensitive) and
       (__ \ Strings.location).read[String] and
       (__ \ Strings.observations).readNullable[String].map(_.map(StringUtil.stripTags)) and
       (__ \ Strings.summary).readNullable[String].map(_.map(StringUtil.stripTags)) and
       (__ \ Strings.price).readNullable[BigDecimal] and
       (__ \ Strings.isBarter).read[Boolean] and
+      (__ \ Strings.collectedDate)
+        .read[DateTime]
+        .map(_.withZone(DateTimeZone.UTC).withTimeAtStartOfDay())
+        .filter(JsonValidationError("error.date.future")) { collectedDate =>
+          val today = DateTime.now(DateTimeZone.UTC).withTimeAtStartOfDay()
+          !collectedDate.isAfter(today)
+        } and
       (__ \ Strings.minerals).readNullable[String] and
       (__ \ Strings.collectionMethods).readNullable[String] and
       (__ \ Strings.isFresh).read[Boolean] and
@@ -48,4 +57,3 @@ object CreateSampleRequestParser {
     }
   }
 }
-

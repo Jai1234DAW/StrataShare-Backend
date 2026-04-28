@@ -34,6 +34,7 @@ object Strings {
   val code = "code"
   val comment = "comment"
   val completedAt = "completedAt"
+  val collectedDate= "collectedDate"
   val collectionMethods = "collectionMethods"
   val contentType = "contentType"
   val coordinates = "coordinates"
