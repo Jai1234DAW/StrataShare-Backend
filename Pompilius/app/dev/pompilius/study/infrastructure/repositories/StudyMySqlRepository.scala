@@ -62,7 +62,6 @@ class StudyMySqlRepository @Inject() (
       val r = resourceMySqlRepository.syntax("r")
       val orderBy: Seq[SQLSyntax] = buildOrderBy(pag)
 
-
       DB.localTx { implicit session =>
         withSQL {
           select(st.result.*)
@@ -118,7 +117,9 @@ class StudyMySqlRepository @Inject() (
     val searchFilter = filter.search.map { search =>
       val normalizedSearch = ScalikeUtil.normalizeSearch(search)
       sqls.roundBracket(
-        sqls.like(st.description, normalizedSearch).or
+        sqls
+          .like(st.description, normalizedSearch)
+          .or
           .like(st.authors, normalizedSearch)
       )
     }
@@ -219,9 +220,9 @@ class StudyMySqlRepository @Inject() (
   }
 
   override def getAllMyStudiesAsOwner(
-                                       userId: UserId,
-                                       pag: Pagination
-                                     ): Future[List[Study]] =
+      userId: UserId,
+      pag: Pagination
+  ): Future[List[Study]] =
     Future {
       val r = resourceMySqlRepository.syntax("r")
       val ru = resourceUserMySqlRepository.syntax("ru")

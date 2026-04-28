@@ -62,6 +62,7 @@ class SampleController @Inject() (
           val newSample = Sample(
             id = sampleId,
             resourceId = resourceId,
+            collectedDate=createSampleRequest.collectedDate,
             minerals = createSampleRequest.minerals,
             collectionMethods = createSampleRequest.collectionMethods,
             isFresh = createSampleRequest.isFresh,

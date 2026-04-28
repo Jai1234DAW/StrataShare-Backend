@@ -406,6 +406,12 @@
         "default": false,
         "required": true
       },
+      "collectedDate": {
+        "type": "string",
+        "format": "date-time",
+        "default": "2024-01-01T12:30:00Z",
+        "required": false
+      },
       "minerals": {
         "type": "string",
         "default": "Sample minerals",
@@ -510,6 +516,12 @@
         "required": true,
         "description": "Sample ID"
       },
+    "collectedDate": {
+      "type": "string",
+      "format": "date-time",
+      "default": "2026-03-30T10:30:00Z",
+      "required": true
+    },
       "minerals": {
         "type": "string",
         "default": "Sample minerals",
@@ -789,7 +801,7 @@
       },
       "visibility": {
         "type": "string",
-        "default": "public",
+        "default": "private",
         "required": true
       },
       "location": {
@@ -818,6 +830,12 @@
             "default": false,
             "required": true
         },
+      "collectedDate": {
+        "type": "string",
+        "format": "date-time",
+        "default": "2024-01-01T12:30:00Z",
+        "required": false
+      },
       "minerals": {
         "type": "string",
         "default": "Sample minerals",
