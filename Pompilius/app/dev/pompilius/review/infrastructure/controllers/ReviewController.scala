@@ -114,7 +114,6 @@ class ReviewController @Inject() (
     }
 
   /* Eliminar una review */
-
   def delete(reviewId: String): Action[AnyContent] =
     Action.async { implicit request =>
       withAuthenticatedUser {
@@ -176,13 +175,16 @@ class ReviewController @Inject() (
               resourceRepository
                 .findById(rid)
                 .map(_.getOrElse(throw new ResourceNotFoundException(s"Resource $resourceId not found")))
-            avgRating <- reviewRepository.getAverageRating(rid).map(_.getOrElse(0.0))
+
+            avgRating <- reviewRepository.getAverageRating(rid)
             count <- reviewRepository.getReviewCount(rid)
+            comments <- reviewRepository.getCommentsCount(rid)
           } yield Ok(
             Json.obj(
               "resourceId" -> resourceId,
               "averageRating" -> avgRating,
-              "reviewCount" -> count
+              "reviewCount" -> count,
+              "commentCount" -> comments
             )
           )
       }

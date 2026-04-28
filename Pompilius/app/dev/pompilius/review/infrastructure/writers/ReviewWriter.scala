@@ -2,7 +2,7 @@ package dev.pompilius.review.infrastructure.writers
 
 import com.google.inject.ImplementedBy
 import dev.pompilius.Strings
-import dev.pompilius.review.domain.Review
+import dev.pompilius.review.domain.{GeneralReview, Review}
 import dev.pompilius.shared.infrastructure.JsUtils.toJsValueWrapper
 import play.api.libs.json.{JsObject, JsValue, Json}
 

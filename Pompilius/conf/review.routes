@@ -59,7 +59,7 @@ DELETE       /:reviewId                                                     dev.
 GET          /resource/:resourceId                                         dev.pompilius.review.infrastructure.controllers.ReviewController.getByResource(resourceId: String, pag: Pagination)
 
 ###
-#  summary: Get a resource statics for a resource
+#  summary: Get a resource stats for a resource
 #  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL","AMATEUR"]}
 #  responses:
 #    200:
