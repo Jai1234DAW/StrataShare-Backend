@@ -85,5 +85,4 @@ object CreateSampleRequestParser {
         throw new BadRequestException(message)
     }
   }
-
 }
