@@ -8,9 +8,10 @@ import dev.pompilius.shared.domain.Visibility
 import dev.pompilius.shared.infrastructure.StringUtil
 import dev.pompilius.shared.infrastructure.JsUtils.JodaDateTimeReads
 import org.joda.time.{DateTime, DateTimeZone}
+import play.api.libs.Files
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
-import play.api.mvc.{AnyContentAsJson, Request}
+import play.api.mvc.{AnyContentAsJson, MultipartFormData, Request}
 
 object CreateStudyRequestParser {
 
@@ -58,26 +59,39 @@ object CreateStudyRequestParser {
   def parse[A](request: Request[A]): CreateStudyRequest = {
     request.body match {
       case AnyContentAsJson(json) =>
-        val createStudyRequest = json.as[CreateStudyRequest]
-
-        // Validar que startDate no sea más reciente que hoy
-        val today = DateTime.now.withTimeAtStartOfDay()
-        if (createStudyRequest.startDate.isAfter(today)) {
-          throw new BadRequestException("Start date cannot be in the future (must be today or earlier)")
-        }
-
-        // Validar que endDate (si existe) no sea menor que startDate
-        if (
-          createStudyRequest.endDate.isDefined &&
-          createStudyRequest.endDate.get.isBefore(createStudyRequest.startDate)
-        ) {
-          throw new BadRequestException("End date cannot be before start date")
-        }
-
-        createStudyRequest
+        parseJson(json)
       case _ =>
         throw new BadRequestException("Expecting text/json or application/json body")
     }
   }
+
+  def parseMultipart(body: MultipartFormData[Files.TemporaryFile]): CreateStudyRequest = {
+    val json = body.dataParts
+      .get("data")
+      .flatMap(_.headOption)
+      .map(Json.parse)
+      .getOrElse(throw new BadRequestException("Missing data field"))
+
+    parseJson(json)
+  }
+
+  private def parseJson(json: JsValue): CreateStudyRequest = {
+    json.validate[CreateStudyRequest] match {
+      case JsSuccess(value, _) =>
+        value
+
+      case JsError(errors) =>
+        val message = errors
+          .map {
+            case (path, validationErrors) =>
+              val msgs = validationErrors.map(_.message).mkString(", ")
+              s"${path.toJsonString}: $msgs"
+          }
+          .mkString("; ")
+
+        throw new BadRequestException(message)
+    }
+  }
+
 
 }

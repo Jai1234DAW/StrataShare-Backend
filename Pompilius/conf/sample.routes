@@ -1,4 +1,23 @@
 ###
+#  summary: Update a sample
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL"]}
+#  requestBody:
+#      required: true
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/UpdateSampleRequest'
+#  responses:
+#    200:
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/SampleResource'
+#      description: Success
+###
+PUT          /:sampleId                                     dev.pompilius.sample.infrastructure.controllers.SampleController.update(sampleId: String)
+
+###
 #  summary: Create a new sample
 #  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL"]}
 #  requestBody:
@@ -18,14 +37,22 @@
 POST         /create                                        dev.pompilius.sample.infrastructure.controllers.SampleController.create
 
 ###
-#  summary: Update a sample
+#  summary: Create a new full sample with attachments
 #  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL"]}
 #  requestBody:
 #      required: true
 #      content:
-#       application/json:
+#       multipart/form-data:
 #        schema:
-#         $ref: '#/components/schemas/UpdateSampleRequest'
+#         type: object
+#         properties:
+#          data:
+#           $ref: '#/components/schemas/CreateSampleRequest'
+#          files:
+#           type: array
+#           items:
+#            type: string
+#            format: binary
 #  responses:
 #    200:
 #      content:
@@ -34,7 +61,7 @@ POST         /create                                        dev.pompilius.sample
 #         $ref: '#/components/schemas/SampleResource'
 #      description: Success
 ###
-PUT          /:sampleId                                     dev.pompilius.sample.infrastructure.controllers.SampleController.update(sampleId: String)
+POST         /fullCreate                                        dev.pompilius.sample.infrastructure.controllers.SampleController.createWithAttachments
 
 ###
 #  summary: Get all sample by search criteria (name, type, rock type, freshness) and/or user ID

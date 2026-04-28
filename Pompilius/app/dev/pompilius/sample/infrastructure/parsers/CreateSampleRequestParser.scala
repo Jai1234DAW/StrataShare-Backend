@@ -2,14 +2,15 @@ package dev.pompilius.sample.infrastructure.parsers
 
 import dev.pompilius.Strings
 import dev.pompilius.sample.domain.request.CreateSampleRequest
-import dev.pompilius.shared.domain.exceptions.BadRequestException
 import dev.pompilius.shared.domain.Visibility
-import dev.pompilius.shared.infrastructure.{ReadsUtil, StringUtil}
+import dev.pompilius.shared.domain.exceptions.BadRequestException
 import dev.pompilius.shared.infrastructure.JsUtils.JodaDateTimeReads
+import dev.pompilius.shared.infrastructure.StringUtil
 import org.joda.time.{DateTime, DateTimeZone}
-import play.api.libs.json._
+import play.api.libs.Files
 import play.api.libs.functional.syntax._
-import play.api.mvc.{AnyContentAsJson, Request}
+import play.api.libs.json._
+import play.api.mvc.{AnyContentAsJson, MultipartFormData, Request}
 
 object CreateSampleRequestParser {
 
@@ -56,4 +57,33 @@ object CreateSampleRequestParser {
         throw new BadRequestException("Expecting text/json or application/json body")
     }
   }
+
+  def parseMultipart(body: MultipartFormData[Files.TemporaryFile]): CreateSampleRequest = {
+    val json = body.dataParts
+      .get("data")
+      .flatMap(_.headOption)
+      .map(Json.parse)
+      .getOrElse(throw new BadRequestException("Missing data field"))
+
+    parseJson(json)
+  }
+
+  private def parseJson(json: JsValue): CreateSampleRequest = {
+    json.validate[CreateSampleRequest] match {
+      case JsSuccess(value, _) =>
+        value
+
+      case JsError(errors) =>
+        val message = errors
+          .map {
+            case (path, validationErrors) =>
+              val msgs = validationErrors.map(_.message).mkString(", ")
+              s"${path.toJsonString}: $msgs"
+          }
+          .mkString("; ")
+
+        throw new BadRequestException(message)
+    }
+  }
+
 }

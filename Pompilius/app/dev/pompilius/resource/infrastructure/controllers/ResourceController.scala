@@ -17,7 +17,6 @@ import play.api.mvc.{Action, AnyContent, MultipartFormData}
 import javax.imageio.ImageIO
 import javax.inject._
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.Random.nextInt
 
 @Singleton
 class ResourceController @Inject() (

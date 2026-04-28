@@ -1,5 +1,6 @@
 package dev.pompilius.study.infrastructure.controllers
 
+import dev.pompilius.attachment.infrastructure.Attachments
 import dev.pompilius.badge.application.BadgeService
 import dev.pompilius.event.domain.EventU
 import dev.pompilius.resource.domain.exceptions.ResourceNotFoundException
@@ -20,7 +21,8 @@ import dev.pompilius.study.infrastructure.parsers.{
 import dev.pompilius.study.infrastructure.writers.StudySampleWriter
 import dev.pompilius.users.domain.{Role, UserId}
 import play.api.Logger
-import play.api.mvc.{Action, AnyContent}
+import play.api.libs.Files
+import play.api.mvc.{Action, AnyContent, MultipartFormData}
 
 import javax.inject._
 import scala.concurrent.{ExecutionContext, Future}
@@ -40,7 +42,8 @@ class StudyController @Inject() (
     badgeService: BadgeService,
     clock: Clock
 )(implicit val ec: ExecutionContext)
-    extends BaseController {
+    extends BaseController
+    with Attachments {
   private val logger = Logger(this.getClass)
 
   def create: Action[AnyContent] =
@@ -63,8 +66,8 @@ class StudyController @Inject() (
             location = createStudyRequest.location,
             observations = createStudyRequest.observations,
             summary = createStudyRequest.summary,
-            price= createStudyRequest.price,
-            isBarter= createStudyRequest.isBarter
+            price = createStudyRequest.price,
+            isBarter = createStudyRequest.isBarter
           )
 
           // Crear el Study (datos específicos)
@@ -117,6 +120,94 @@ class StudyController @Inject() (
           } yield {
             Ok(json)
           }
+      }
+    }
+
+  def createWithAttachments: Action[MultipartFormData[Files.TemporaryFile]] =
+    Action.async(parse.multipartFormData) { implicit request =>
+      withAnyOfThisRoles(Seq(Role.STUDENT, Role.PROFESSIONAL)) {
+        case (_, user, _, _) =>
+          val createStudyRequest =
+            CreateStudyRequestParser.parseMultipart(request.body)
+
+          val files = request.body.files
+
+          val resourceId = ResourceId.gen(configuration.nodeId)
+          val studyId = StudyId.gen(configuration.nodeId)
+
+          val newResource = Resource(
+            id = resourceId,
+            name = createStudyRequest.name,
+            resourceType = ResourceType.SAMPLE,
+            visibility = createStudyRequest.visibility,
+            created = clock.now,
+            updated = clock.now,
+            location = createStudyRequest.location,
+            observations = createStudyRequest.observations,
+            summary = createStudyRequest.summary,
+            price = createStudyRequest.price,
+            isBarter = createStudyRequest.isBarter
+          )
+
+          // Crear el Study (datos específicos)
+          val newStudy = Study(
+            id = studyId,
+            resourceId = resourceId,
+            startDate = createStudyRequest.startDate,
+            endDate = createStudyRequest.endDate,
+            description = createStudyRequest.description,
+            coordinates = createStudyRequest.coordinates,
+            area = createStudyRequest.area,
+            methods = createStudyRequest.methods,
+            authors = createStudyRequest.authors,
+            section = createStudyRequest.section,
+            antecedents = createStudyRequest.antecedents,
+            nameSection = createStudyRequest.nameSection
+          )
+
+          for {
+            _ <- resourceRepository.save(newResource)
+
+            _ <- studyRepository.save(newStudy).recoverWith {
+              case NonFatal(e) =>
+                resourceRepository.delete(resourceId).map(_ => throw e)
+            }
+
+            _ <- resourceUserRepository.save(
+              ResourceUser(
+                resourceId = resourceId,
+                userId = user.id,
+                resourceUserType = ResourceUserType.OWNER,
+                created = clock.now
+              )
+            )
+            attachments <- Future.sequence {
+              request.body.files.map { filePart =>
+                saveAsAttachment(
+                  user = user,
+                  id = None,
+                  resourceId = Some(resourceId),
+                  file = filePart.ref.path.toFile,
+                  originalFilename = filePart.filename,
+                  description = filePart.contentType.map { ct =>
+                    if (ct.startsWith("image/")) "image" else "file"
+                  },
+                  contentType = filePart.contentType
+                )
+              }
+            }
+
+            studyBadges <- badgeService.registerEventAndCheckBadges(user.id, EventU.STUDY_UPLOADED)
+
+            _ = if (studyBadges.nonEmpty) {
+              logger.info(
+                s"User ${user.id} earned ${studyBadges.length} badge(s): ${studyBadges.map(_.name).mkString(", ")}"
+              )
+            }
+
+            json <- resourceWriter.asPublic(newResource, None, Some(newStudy))
+
+          } yield Ok(json)
       }
     }
 
@@ -268,29 +359,28 @@ class StudyController @Inject() (
     }
 
   def getAllMyStudies(
-                       pag: Pagination
-                     ): Action[AnyContent] =
+      pag: Pagination
+  ): Action[AnyContent] =
     Action.async { implicit request =>
       withAuthenticatedUser {
         case (_, user, _) =>
           for {
-            studies <- studyRepository.getAllMyStudiesAsOwner(
-              userId = user.id,
-              pag.oneMore)
+            studies <- studyRepository.getAllMyStudiesAsOwner(userId = user.id, pag.oneMore)
 
             json <- paginatedWriter.toJson(Paginated(studies, pag)) { study =>
               for {
-                resource <- resourceRepository
-                  .findById(study.resourceId)
-                  .map(
-                    _.getOrElse(
-                      throw new ResourceNotFoundException(
-                        s"Resource not found for sample ${study.id}"
+                resource <-
+                  resourceRepository
+                    .findById(study.resourceId)
+                    .map(
+                      _.getOrElse(
+                        throw new ResourceNotFoundException(
+                          s"Resource not found for sample ${study.id}"
+                        )
                       )
                     )
-                  )
 
-                json <- resourceWriter.asPublic(resource,None, Some(study))
+                json <- resourceWriter.asPublic(resource, None, Some(study))
               } yield json
             }
           } yield Ok(json)
