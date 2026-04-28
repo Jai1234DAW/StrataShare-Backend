@@ -56,54 +56,97 @@ class ResourceController @Inject() (
       }
     }
 
+// Este método solo quedará para redimensioanr
+//  def uploadImages(resourceId: String): Action[MultipartFormData[Files.TemporaryFile]] =
+//    Action.async(parse.multipartFormData) { implicit request =>
+//      withAnyOfThisRoles(Seq(Role.PROFESSIONAL, Role.STUDENT)) {
+//        case (_, user, _, _) =>
+//          val rid = ResourceId(resourceId)
+//          val body = request.body
+//
+//          // Filtrar solo imágenes
+//          val imageFiles = body.files.filter(_.contentType.exists(_.startsWith("image/")))
+//
+//          if (imageFiles.isEmpty) {
+//            Future.failed(new BadRequestException("No image files uploaded"))
+//          } else {
+//            for {
+//              _ <-
+//                resourceRepository
+//                  .findById(rid)
+//                  .map(_.getOrElse(throw new ResourceNotFoundException(s"Resource not found")))
+//
+//              _ <- resourceAccessValidator.verifyOwnership(rid, user.id)
+//
+//              attachments <- Future.sequence {
+//                imageFiles.map { file =>
+//                  val singleBody = MultipartFormData(
+//                    dataParts = body.dataParts,
+//                    files = Seq(file),
+//                    badParts = Seq.empty
+//                  )
+//
+//                  uploadImage(
+//                    user = user,
+//                    body = singleBody,
+//                    maxWidth = 1920,
+//                    maxHeight = 1080
+//                  ).map { attachment =>
+//                    // Asociar el attachment al resourceId
+//                    val updated = attachment.copy(resourceId = Some(rid))
+//                    attachmentRepository.save(updated).map(_ => updated)
+//                  }.flatten
+//                }
+//              }
+//
+//              response <- attachmentWriter.asList(attachments.toList)
+//
+//            } yield Ok(response)
+//          }
+//      }
+//    }
+
+
   def uploadImages(resourceId: String): Action[MultipartFormData[Files.TemporaryFile]] =
-    Action.async(parse.multipartFormData) { implicit request =>
-      withAnyOfThisRoles(Seq(Role.PROFESSIONAL, Role.STUDENT)) {
-        case (_, user, _, _) =>
-          val rid = ResourceId(resourceId)
-          val body = request.body
+  Action.async(parse.multipartFormData) { implicit request =>
+    withAnyOfThisRoles(Seq(Role.PROFESSIONAL, Role.STUDENT)) {
+      case (_, user, _, _) =>
+        val rid = ResourceId(resourceId)
+        val body = request.body
 
-          // Filtrar solo imágenes
-          val imageFiles = body.files.filter(_.contentType.exists(_.startsWith("image/")))
+        val imageFiles =
+          body.files.filter(_.contentType.exists(_.startsWith("image/")))
 
-          if (imageFiles.isEmpty) {
-            Future.failed(new BadRequestException("No image files uploaded"))
-          } else {
-            for {
-              _ <-
-                resourceRepository
-                  .findById(rid)
-                  .map(_.getOrElse(throw new ResourceNotFoundException(s"Resource not found")))
+        if (imageFiles.isEmpty) {
+          Future.failed(new BadRequestException("No image files uploaded"))
+        } else {
+          for {
+            _ <- resourceRepository
+              .findById(rid)
+              .map(_.getOrElse(throw new ResourceNotFoundException("Resource not found")))
 
-              _ <- resourceAccessValidator.verifyOwnership(rid, user.id)
+            _ <- resourceAccessValidator.verifyOwnership(rid, user.id)
 
-              attachments <- Future.sequence {
-                imageFiles.map { file =>
-                  val singleBody = MultipartFormData(
-                    dataParts = body.dataParts,
-                    files = Seq(file),
-                    badParts = Seq.empty
-                  )
-
-                  uploadImage(
-                    user = user,
-                    body = singleBody,
-                    maxWidth = 1920,
-                    maxHeight = 1080
-                  ).map { attachment =>
-                    // Asociar el attachment al resourceId
-                    val updated = attachment.copy(resourceId = Some(rid))
-                    attachmentRepository.save(updated).map(_ => updated)
-                  }.flatten
-                }
+            attachments <- Future.sequence {
+              imageFiles.map { filePart =>
+                saveAsAttachment(
+                  user = user,
+                  id = None,
+                  resourceId = Some(rid),
+                  file = filePart.ref.path.toFile,
+                  originalFilename = filePart.filename,
+                  description = Some("image"),
+                  contentType = filePart.contentType
+                )
               }
+            }
 
-              response <- attachmentWriter.asList(attachments.toList)
+            response <- attachmentWriter.asList(attachments.toList)
 
-            } yield Ok(response)
-          }
-      }
+          } yield Ok(response)
+        }
     }
+  }
 
   def getPreviewImage(resourceId: String): Action[AnyContent] =
     Action.async { implicit request =>
