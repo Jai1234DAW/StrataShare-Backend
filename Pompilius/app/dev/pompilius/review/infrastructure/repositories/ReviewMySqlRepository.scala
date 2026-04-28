@@ -98,12 +98,12 @@ class ReviewMySqlRepository @Inject()(implicit ec: DbExecutionContext)
     }
   }
 
-  override def getAverageRating(resourceId: ResourceId): Future[Option[Double]] = {
+  override def getAverageRating(resourceId: ResourceId): Future[Double] = {
     Future {
       DB.localTx { implicit session =>
         withSQL {
           select(sqls.avg(r.rating)).from(this as r).where.eq(r.resourceId, resourceId.id)
-        }.map(_.double(1)).single()
+        }.map(_.doubleOpt(1)).single().flatten.getOrElse(0.0)
       }
     }
   }
@@ -115,6 +115,19 @@ class ReviewMySqlRepository @Inject()(implicit ec: DbExecutionContext)
           select(sqls.count).from(this as r).where.eq(r.resourceId, resourceId.id)
         }.map(_.int(1)).single().getOrElse(0)
       }
+    }
+  }
+
+  override def getCommentsCount(resourceId: ResourceId): Future[Int] = {
+    Future{
+        DB.localTx { implicit session =>
+            withSQL {
+            select(sqls.count).from(this as r).where
+                .eq(r.resourceId, resourceId.id)
+                .and
+                .isNotNull(r.comment)
+            }.map(_.int(1)).single().getOrElse(0)
+        }
     }
   }
 
