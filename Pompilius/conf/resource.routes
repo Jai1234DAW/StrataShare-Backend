@@ -93,6 +93,16 @@ GET          /:resourceId/attachments                             dev.pompilius.
 GET          /:resourceId/attachment/:attachmentId               dev.pompilius.resource.infrastructure.controllers.ResourceController.downloadFile(resourceId: String, attachmentId: String)
 
 ###
+#  summary: Check if a Current user is owner of a resource
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL"]}
+#  responses:
+#    200:
+#      description: User is owner of the resource
+###
+GET          /:resourceId/ownership                                dev.pompilius.resource.infrastructure.controllers.ResourceController.isOwner(resourceId: String)
+
+
+###
 #  summary: Update file metadata (name and description)
 #  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL"]}
 #  requestBody:
