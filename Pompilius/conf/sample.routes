@@ -81,13 +81,13 @@ POST         /fullCreate                                        dev.pompilius.sa
 #        type: string
 #    - name: sampleType
 #      in: query
-#      description: Type of the sample (e.g., "sedimentary", "igneous", "metamorphic")
+#      description: Type of the sample (e.g., "hand", "laminar", "microscopic")
 #      required: false
 #      schema:
 #        type: string
 #    - name: sampleCategory
 #      in: query
-#      description: Rock type of the sample (e.g., "granite", "limestone", "shale")
+#      description: Category of the sample (e.g., "rock", "fossil", "mineral")
 #      required: false
 #      schema:
 #        type: string

@@ -5,13 +5,14 @@ import dev.pompilius.attachment.domain.{Attachment, AttachmentId, AttachmentRepo
 import dev.pompilius.attachment.infrastructure.Attachments
 import dev.pompilius.attachment.infrastructure.writers.AttachmentWriter
 import dev.pompilius.resource.domain.exceptions.ResourceNotFoundException
-import dev.pompilius.resource.domain.{ResourceAccessLevel, ResourceId, ResourceRepository}
+import dev.pompilius.resource.domain.{ResourceAccessLevel, ResourceId, ResourceRepository, ResourceUserRepository}
 import dev.pompilius.resource.infrastructure.ResourceAccessValidator
 import dev.pompilius.shared.domain.Pagination
 import dev.pompilius.shared.domain.exceptions.{BadRequestException, ForbiddenException}
 import dev.pompilius.shared.infrastructure.BaseController
 import dev.pompilius.users.domain.Role
 import play.api.libs.Files
+import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MultipartFormData}
 
 import javax.imageio.ImageIO
@@ -23,7 +24,8 @@ class ResourceController @Inject() (
     resourceRepository: ResourceRepository,
     attachmentRepository: AttachmentRepository,
     resourceAccessValidator: ResourceAccessValidator,
-    attachmentWriter: AttachmentWriter
+    attachmentWriter: AttachmentWriter,
+    resourceUserRepository:ResourceUserRepository
 )(implicit val ec: ExecutionContext)
     extends BaseController
     with Attachments {
@@ -261,6 +263,36 @@ class ResourceController @Inject() (
             result <- download(Some(user), aid)
 
           } yield result
+      }
+    }
+
+  def isOwner(resourceId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      withAuthenticatedUser {
+        case (_, user, _) =>
+          val rid = ResourceId(resourceId)
+
+          for {
+            resource <-
+              resourceRepository
+                .findById(rid)
+                .map(_.getOrElse(
+                  throw new ResourceNotFoundException(s"Resource $rid not found")
+                ))
+
+            owner <-
+              resourceUserRepository
+                .findOwnerByResource(rid)
+                .map(_.getOrElse(
+                  throw new ResourceNotFoundException(s"Owner not found for resource $rid")
+                ))
+
+          } yield {
+            if (owner.id == user.id)
+              Ok(Json.obj("isOwner" -> "True"))
+            else
+              Ok(Json.obj("isOwner" -> "False"))
+          }
       }
     }
 
