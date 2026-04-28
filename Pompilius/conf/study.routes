@@ -18,6 +18,33 @@
 POST         /create                                        dev.pompilius.study.infrastructure.controllers.StudyController.create
 
 ###
+#  summary: Create a new full study with attachments
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL"]}
+#  requestBody:
+#      required: true
+#      content:
+#       multipart/form-data:
+#        schema:
+#         type: object
+#         properties:
+#          data:
+#           $ref: '#/components/schemas/CreateStudyRequest'
+#          files:
+#           type: array
+#           items:
+#            type: string
+#            format: binary
+#  responses:
+#    200:
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/StudyResource'
+#      description: Success
+###
+POST         /fullCreate                                        dev.pompilius.study.infrastructure.controllers.StudyController.createWithAttachments
+
+###
 #  summary: Update a study
 #  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL"]}
 #  requestBody:
