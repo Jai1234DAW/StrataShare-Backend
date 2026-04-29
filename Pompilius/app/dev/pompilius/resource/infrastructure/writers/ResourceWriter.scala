@@ -170,6 +170,7 @@ class ResourceWriterImpl @Inject() ()(implicit val ec: ExecutionContext) extends
       List(
         toJsValueWrapper(Strings.id, sample.id.toString),
         toJsValueWrapper(Strings.isFresh, sample.isFresh),
+        toJsValueWrapper(Strings.collectedDate, sample.collectedDate),
         toJsValueWrapper(Strings.sampleType, sample.sampleType),
         toJsValueWrapper(Strings.sampleCategory, sample.sampleCategory)
       ).flatten: _*
@@ -181,6 +182,7 @@ class ResourceWriterImpl @Inject() ()(implicit val ec: ExecutionContext) extends
       List(
         toJsValueWrapper(Strings.id, sample.id.toString),
         toJsValueWrapper(Strings.isFresh, sample.isFresh),
+        toJsValueWrapper(Strings.collectedDate, sample.collectedDate),
         toJsValueWrapper(Strings.minerals, sample.minerals),
         toJsValueWrapper(Strings.collectionMethods, sample.collectionMethods),
         toJsValueWrapper(Strings.sampleType, sample.sampleType),

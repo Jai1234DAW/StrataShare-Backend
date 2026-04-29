@@ -151,17 +151,17 @@ class SampleMySqlRepository @Inject() (
           .where
           .eq(r.id, s.resourceId)
           .and
-          .eq(r.name, name)
+          .like(sqls.lower(r.name), s"%${name.toLowerCase}%")
           .toSQLSyntax
       )
     }
 
     val sampleTypeFilter = filter.sampleType.map { sampleType =>
-      sqls.eq(sqls.lower(s.sampleType), sampleType.toLowerCase)
+      sqls.like(sqls.lower(s.sampleType), sampleType.toLowerCase)
     }
 
     val sampleCategoryFilter = filter.sampleCategory.map { sampleCategory =>
-      sqls.eq(sqls.lower(s.sampleCategory), sampleCategory.toLowerCase)
+      sqls.like(sqls.lower(s.sampleCategory), sampleCategory.toLowerCase)
     }
 
     val isFreshFilter = filter.isFresh.map { isFresh =>
