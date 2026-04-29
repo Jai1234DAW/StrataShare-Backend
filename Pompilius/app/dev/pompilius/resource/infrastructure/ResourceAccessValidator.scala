@@ -88,27 +88,22 @@ class ResourceAccessValidatorImpl @Inject() (
   def getAccessLevel(resourceId: ResourceId, userId: UserId): Future[ResourceAccessLevel] = {
     resourceRepository.findById(resourceId).flatMap {
       case Some(resource) =>
-        resource.visibility match {
-          // Si es PÚBLICO → Acceso completo para todos
-          case Visibility.PUBLIC =>
-            Future.successful(ResourceAccessLevel.FULL_ACCESS)
+        resourceUserRepository.findByResourceAndUser(resource.id, userId).map {
+          case Some(ru) if !ru.deleted && ru.resourceUserType == ResourceUserType.OWNER =>
+            ResourceAccessLevel.OWNER
 
-          // Si es PRIVADO → Verificar relación del usuario con el recurso
-          case Visibility.PRIVATE =>
-            resourceUserRepository.findByResourceAndUser(resource.id, userId).map {
-              case Some(ru) if !ru.deleted && ru.resourceUserType == ResourceUserType.OWNER =>
-                // Es el propietario → Acceso completo (puede modificar, vender, eliminar)
-                ResourceAccessLevel.OWNER
+          case Some(ru)
+            if !ru.deleted &&
+              (ru.resourceUserType == ResourceUserType.PURCHASED ||
+                ru.resourceUserType == ResourceUserType.ACCEPTED_AS_PAYMENT) =>
+            ResourceAccessLevel.FULL_ACCESS
 
-              case Some(ru)
-                  if !ru.deleted &&
-                    (ru.resourceUserType == ResourceUserType.PURCHASED ||
-                      ru.resourceUserType == ResourceUserType.ACCEPTED_AS_PAYMENT) =>
-                // Lo compró o recibió como pago tiene acceso completo
+          case _ =>
+            resource.visibility match {
+              case Visibility.PUBLIC =>
                 ResourceAccessLevel.FULL_ACCESS
 
-              case _ =>
-                // No tiene acceso especial → Solo preview (sin attachments)
+              case Visibility.PRIVATE =>
                 ResourceAccessLevel.PREVIEW_ONLY
             }
         }

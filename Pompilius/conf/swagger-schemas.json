@@ -451,20 +451,20 @@
   },
   "SampleResource": {
     "properties": {
-      "id": {
+      "resourceId": {
         "type": "string",
         "default": "3gqbdpbym4ua",
         "required": true,
         "description": "Resource ID"
       },
-      "name": {
-        "type": "string",
-        "default": "Sample name",
-        "required": true
-      },
       "resourceType": {
         "type": "string",
         "default": "SAMPLE",
+        "required": true
+      },
+      "name": {
+        "type": "string",
+        "default": "Sample name",
         "required": true
       },
       "visibility": {
@@ -522,11 +522,16 @@
         "required": true,
         "description": "ID of the user who owns the resource"
       },
-      "sampleId": {
+      "id": {
         "type": "string",
         "default": "sample123456",
         "required": true,
         "description": "Sample ID"
+      },
+      "isFresh": {
+        "type": "boolean",
+        "default": true,
+        "required": true
       },
     "collectedDate": {
       "type": "string",
@@ -543,11 +548,6 @@
         "type": "string",
         "default": "Sample collection methods",
         "required": false
-      },
-      "isFresh": {
-        "type": "boolean",
-        "default": true,
-        "required": true
       },
       "sampleType": {
         "type": "string",
