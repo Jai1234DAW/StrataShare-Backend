@@ -296,46 +296,6 @@ class BarterController @Inject() (
       }
     }
 
-  def getAllSuccessfulBarters(pag: Pagination): Action[AnyContent] =
-    Action.async { implicit request =>
-      withAnyOfThisRoles(Seq(Role.STUDENT, Role.PROFESSIONAL)) {
-        case (_, user, _, _) =>
-          for {
-            transactions <- transactionRepository.find(
-              TransactionFilter(
-                buyerId = None,
-                sellerId = Some(user.id),
-                resourceId = None,
-                transactionType = None,
-                transactionStatus = None
-              ),
-              pag.oneMore
-            )
-
-            barters <- Future.sequence(
-              transactions.map { t =>
-                barterRepository.findByTransactionId(t.id).map(_.get)
-              }
-            )
-
-            successfulBarters = barters.filter { b =>
-              transactions
-                .find(t => t.id == b.transactionId)
-                .exists(_.transactionStatus == TransactionStatus.COMPLETED)
-            }
-
-            jsons <- Future.sequence(
-              successfulBarters.map { b =>
-                transactionRepository
-                  .findById(b.transactionId)
-                  .map(_.get)
-                  .flatMap(t => barterWriter.asSeller(t, b))
-              }
-            )
-          } yield Ok(Json.toJson(jsons))
-      }
-    }
-
   //Esto es para cancelar un trueque antes de que el vendedor lo acepte.
   def cancel(transactionId: String, barterId: String): Action[AnyContent] =
     Action.async { implicit request =>
@@ -374,6 +334,76 @@ class BarterController @Inject() (
             //Se puede enviar una notificacion al vendedor, pero esto no es critico
 
           } yield Ok(Json.obj("message" -> "Barter cancelled successfully"))
+      }
+    }
+
+  def getMyRequestSuccessfulBarters(pag: Pagination): Action[AnyContent] =
+    Action.async { implicit request =>
+      withAnyOfThisRoles(Seq(Role.STUDENT, Role.PROFESSIONAL)) {
+        case (_, user, _, _) =>
+          for {
+            transactions <- transactionRepository.find(
+              TransactionFilter(
+                buyerId = Some(user.id),
+                sellerId = None,
+                resourceId = None,
+                transactionType = Some(TransactionType.BARTER),
+                transactionStatus = Some(TransactionStatus.COMPLETED)
+              ),
+              pag.oneMore
+            )
+
+            bartersWithTransactions <- Future.sequence(
+              transactions.map { transaction =>
+                barterRepository
+                  .findByTransactionId(transaction.id)
+                  .map(_.get)
+                  .map(barter => transaction -> barter)
+              }
+            )
+
+            jsons <- Future.sequence(
+              bartersWithTransactions.map {
+                case (transaction, barter) =>
+                  barterWriter.asBuyer(transaction, barter)
+              }
+            )
+          } yield Ok(Json.toJson(jsons))
+      }
+    }
+
+  def getMySalesSuccessfulBarters(pag: Pagination): Action[AnyContent] =
+    Action.async { implicit request =>
+      withAnyOfThisRoles(Seq(Role.STUDENT, Role.PROFESSIONAL)) {
+        case (_, user, _, _) =>
+          for {
+            transactions <- transactionRepository.find(
+              TransactionFilter(
+                buyerId = None,
+                sellerId = Some(user.id),
+                resourceId = None,
+                transactionType = Some(TransactionType.BARTER),
+                transactionStatus = Some(TransactionStatus.COMPLETED)
+              ),
+              pag.oneMore
+            )
+
+            bartersWithTransactions <- Future.sequence(
+              transactions.map { transaction =>
+                barterRepository
+                  .findByTransactionId(transaction.id)
+                  .map(_.get)
+                  .map(barter => transaction -> barter)
+              }
+            )
+
+            jsons <- Future.sequence(
+              bartersWithTransactions.map {
+                case (transaction, barter) =>
+                  barterWriter.asSeller(transaction, barter)
+              }
+            )
+          } yield Ok(Json.toJson(jsons))
       }
     }
 

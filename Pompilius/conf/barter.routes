@@ -57,18 +57,31 @@ POST         /deny                                dev.pompilius.barter.infrastru
 DELETE       /:barterId/cancel                              dev.pompilius.barter.infrastructure.controllers.BarterController.cancel(transactionId : String, barterId: String)
 
 ###
-#  summary: Get all successful barters for the current user
+#  summary: Get all successfully barter requests for the current user
 #  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL"]}
 #  responses:
 #    200:
-#      description: List of successful barters
+#      description: List of successful barter
 #      content:
 #       application/json:
 #        schema:
 #         type: array
 #         items:
-#          $ref: '#/components/schemas/Barter'
+#          $ref: '#/components/schemas/BarterRequestResponse'
 ###
-GET          /successful                                    dev.pompilius.barter.infrastructure.controllers.BarterController.getAllSuccessfulBarters(pag:Pagination)
+GET          /successful/requests                          dev.pompilius.barter.infrastructure.controllers.BarterController.getMyRequestSuccessfulBarters(uestpag:Pagination)
 
-
+###
+#  summary: Get all successful barters where the current id was seller
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL"]}
+#  responses:
+#    200:
+#      description: List of successful barter where the current user was the seller
+#      content:
+#       application/json:
+#        schema:
+#         type: array
+#         items:
+#          $ref: '#/components/schemas/BarterRequestResponse'
+###
+GET          /successful/sales                             dev.pompilius.barter.infrastructure.controllers.BarterController.getMySalesSuccessfulBarters(pag:Pagination)
