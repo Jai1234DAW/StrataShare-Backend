@@ -25,12 +25,12 @@ POST         /create                                        dev.pompilius.barter
 #      content:
 #       application/json:
 #        schema:
-#         $ref: '#/components/schemas/AcceptBarterRequest'
+#         $ref: '#/components/schemas/MailBarterRequest'
 #  responses:
 #    200:
 #      description: Barter accepted successfully
 ###
-POST         /:barterId/accept                              dev.pompilius.barter.infrastructure.controllers.BarterController.acceptBarter(barterId: String)
+POST         /accept                              dev.pompilius.barter.infrastructure.controllers.BarterController.acceptBarter
 
 ###
 #  summary: Reject a barter request
@@ -40,12 +40,12 @@ POST         /:barterId/accept                              dev.pompilius.barter
 #      content:
 #       application/json:
 #        schema:
-#         $ref: '#/components/schemas/AcceptBarterRequest'
+#         $ref: '#/components/schemas/MailBarterRequest'
 #  responses:
 #    200:
 #      description: Barter rejected successfully
 ###
-POST         /:barterId/deny                                dev.pompilius.barter.infrastructure.controllers.BarterController.denyBarter(barterId: String)
+POST         /deny                                dev.pompilius.barter.infrastructure.controllers.BarterController.denyBarter
 
 ###
 #  summary: Cancel a barter before it's accepted
