@@ -16,8 +16,10 @@ trait TransactionRepository {
 
   def find(filter: TransactionFilter, pag: Pagination): Future[List[Transaction]]
 
-  def updateStatus(id: TransactionId, status: TransactionStatus): Future[Done]
+  def updateStatusCompleted(id: TransactionId, status: TransactionStatus): Future[Done]
 
   def delete(id: TransactionId): Future[Done]
+
+  def updateStatusRejectedCancelled(id: TransactionId, status: TransactionStatus): Future[Done]
 }
 

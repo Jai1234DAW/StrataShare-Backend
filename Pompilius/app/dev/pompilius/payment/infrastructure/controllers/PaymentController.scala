@@ -73,8 +73,8 @@ class PaymentController @Inject() (
               created = clock.now,
               updated = clock.now,
               metadata = None,
-              completedAt = None,
-              cancelledAt = None
+              completedSuccessfullyAt = None,
+              cancelledRejectedAt = None
             )
 
             // Guardar Transaction

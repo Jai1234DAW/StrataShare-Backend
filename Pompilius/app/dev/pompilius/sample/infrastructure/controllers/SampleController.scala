@@ -13,9 +13,9 @@ import dev.pompilius.shared.domain.{Paginated, Pagination, Visibility}
 import dev.pompilius.shared.infrastructure.BaseController
 import dev.pompilius.shared.infrastructure.writers.PaginatedWriter
 import dev.pompilius.users.domain.{Role, UserId}
+import play.api.Logger
 import play.api.libs.Files
 import play.api.mvc.{Action, AnyContent, MultipartFormData}
-import play.api.{Configuration, Logger}
 
 import javax.inject._
 import scala.concurrent.{ExecutionContext, Future}
@@ -95,7 +95,8 @@ class SampleController @Inject() (
                 resourceId = resourceId,
                 userId = user.id,
                 resourceUserType = ResourceUserType.OWNER,
-                created = clock.now
+                created = clock.now,
+                updated = clock.now
               )
             )
             //Llamo aquí a lo de eventos.
@@ -110,7 +111,7 @@ class SampleController @Inject() (
             }
 
             // 4. Retornar JSON
-            json <- resourceWriter.asPublic(newResource, Some(newSample), None)
+            json <- resourceWriter.asPublic(newResource, ResourceAccessLevel.OWNER, user.id, Some(newSample), None)
           } yield {
             Ok(json)
           }
@@ -156,7 +157,8 @@ class SampleController @Inject() (
             _ <- sampleRepository.save(updatedSample)
 
             // Retornar JSON actualizado
-            json <- resourceWriter.asPublic(updatedResource, Some(updatedSample), None)
+            json <-
+              resourceWriter.asPublic(updatedResource, ResourceAccessLevel.OWNER, user.id, Some(updatedSample), None)
           } yield {
             Ok(json)
           }
@@ -167,7 +169,6 @@ class SampleController @Inject() (
     Action.async(parse.multipartFormData) { implicit request =>
       withAnyOfThisRoles(Seq(Role.STUDENT, Role.PROFESSIONAL)) {
         case (_, user, _, _) =>
-
           val createSampleRequest =
             CreateSampleRequestParser.parseMultipart(request.body)
 
@@ -216,7 +217,8 @@ class SampleController @Inject() (
                 resourceId = resourceId,
                 userId = user.id,
                 resourceUserType = ResourceUserType.OWNER,
-                created = clock.now
+                created = clock.now,
+                updated = clock.now
               )
             )
             attachments <- Future.sequence {
@@ -243,7 +245,7 @@ class SampleController @Inject() (
               )
             }
 
-            json <- resourceWriter.asPublic(newResource, Some(newSample), None)
+            json <- resourceWriter.asPublic(newResource, ResourceAccessLevel.OWNER, user.id, Some(newSample), None)
 
           } yield Ok(json)
       }
@@ -261,13 +263,25 @@ class SampleController @Inject() (
             // Obtener el nivel de acceso del usuario
             accessLevel <- resourceAccessValidator.getAccessLevel(resource.id, user.id)
 
+            ownerId <-
+              resourceUserRepository
+                .findOwnerByResource(resource.id)
+                .map(
+                  _.map(_.id).getOrElse(
+                    throw new ResourceNotFoundException(s"Owner not found for resource ${resource.id}")
+                  )
+                )
+
             json <- accessLevel match {
               case ResourceAccessLevel.FULL_ACCESS =>
-                resourceWriter.asPublic(resource, Some(sample), None)
+                resourceWriter.asPublic(resource, accessLevel, ownerId, Some(sample), None)
+
+              case ResourceAccessLevel.OWNER =>
+                resourceWriter.asPublic(resource, accessLevel, ownerId, Some(sample), None)
 
               case _ =>
                 // PREVIEW_ONLY → Solo preview
-                resourceWriter.asPrivate(resource, Some(sample), None)
+                resourceWriter.asPrivate(resource, accessLevel, ownerId, Some(sample), None)
 
             }
 
@@ -288,15 +302,7 @@ class SampleController @Inject() (
             _ <- resourceAccessValidator.verifyOwnership(resource.id, user.id)
 
             // Marcar ResourceUser como eliminado (soft delete)
-            _ <- resourceUserRepository.save(
-              ResourceUser(
-                resourceId = resource.id,
-                userId = user.id,
-                resourceUserType = ResourceUserType.OWNER,
-                created = clock.now,
-                deleted = true
-              )
-            )
+            _ <- resourceUserRepository.deleteRelation(resource.id, user.id)
 
           } yield {
             Ok
@@ -339,9 +345,19 @@ class SampleController @Inject() (
                     .map(
                       _.getOrElse(throw new ResourceNotFoundException(s"Resource not found for study ${sample.id}"))
                     )
+
+                ownerId <-
+                  resourceUserRepository
+                    .findOwnerByResource(resource.id)
+                    .map(
+                      _.map(_.id).getOrElse(
+                        throw new ResourceNotFoundException(s"Owner not found for resource ${resource.id}")
+                      )
+                    )
                 // Siempre devolver preview (datos básicos para el listado)
                 //Luego se pordá acceder con más datos a cada uno de ellos.
-                json <- resourceWriter.asPrivate(resource, Some(sample), None)
+                json <-
+                  resourceWriter.asPrivate(resource, ResourceAccessLevel.PREVIEW_ONLY, ownerId, Some(sample), None)
               } yield json
             }
 
@@ -391,8 +407,16 @@ class SampleController @Inject() (
                         )
                       )
                     )
+                ownerId <-
+                  resourceUserRepository
+                    .findOwnerByResource(resource.id)
+                    .map(
+                      _.map(_.id).getOrElse(
+                        throw new ResourceNotFoundException(s"Owner not found for resource ${resource.id}")
+                      )
+                    )
 
-                json <- resourceWriter.asPublic(resource, Some(sample), None)
+                json <- resourceWriter.asPublic(resource, ResourceAccessLevel.OWNER, ownerId, Some(sample), None)
               } yield json
             }
           } yield Ok(json)

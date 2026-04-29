@@ -7,7 +7,6 @@ import dev.pompilius.users.domain.UserId
 case class BarterFilter(
     transactionId: Option[TransactionId] = None,
     offeredResourceId: Option[ResourceId] = None,
-    rejected: Option[Boolean] = None,
     userBuyer: Option[UserId] = None,
     userSeller: Option[UserId] = None
 )

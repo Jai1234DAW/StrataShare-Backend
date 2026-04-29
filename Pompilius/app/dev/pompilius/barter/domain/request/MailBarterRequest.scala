@@ -1,7 +1,8 @@
 package dev.pompilius.barter.domain.request
 
-case class AcceptMailBarterRequest(
+case class MailBarterRequest(
     token: String,
     transactionId: String,
-    email: String
+    email: String,
+    barterId: String
 )

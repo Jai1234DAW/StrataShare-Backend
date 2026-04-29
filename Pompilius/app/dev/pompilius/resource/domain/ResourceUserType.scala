@@ -24,5 +24,9 @@ object ResourceUserType extends Enum[ResourceUserType] with PlayJsonEnum[Resourc
     override def value: String = "ACCEPTED_AS_PAYMENT"
   }
 
+  @SuppressWarnings(Array("ObjectNames"))
+  case object BARTERED extends ResourceUserType {
+    override def value: String = "BARTERED"
+  }
 }
 

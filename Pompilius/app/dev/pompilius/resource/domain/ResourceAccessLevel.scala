@@ -20,10 +20,14 @@ object ResourceAccessLevel extends Enum[ResourceAccessLevel] with PlayJsonEnum[R
   }
 
   @SuppressWarnings(Array("ObjectNames"))
+    case object OWNER extends ResourceAccessLevel {
+    override def value: String = "OWNER"
+  }
+
+  @SuppressWarnings(Array("ObjectNames"))
   case object NO_ACCESS extends ResourceAccessLevel {
     override def value: String = "NO_ACCESS"
   }
-
 }
 
 

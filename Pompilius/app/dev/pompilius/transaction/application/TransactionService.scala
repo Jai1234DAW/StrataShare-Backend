@@ -143,8 +143,9 @@ class TransactionServImpl @Inject() (
         ResourceUser(
           resourceId = transaction.resourceId,
           userId = transaction.buyerId,
-          resourceUserType = ResourceUserType.PURCHASED,
-          created = clock.now
+          resourceUserType = ResourceUserType.BARTERED,
+          created = clock.now,
+          updated = clock.now
         )
       )
 
@@ -154,12 +155,14 @@ class TransactionServImpl @Inject() (
           resourceId = barter.offeredResourceId,
           userId = transaction.sellerId,
           resourceUserType = ResourceUserType.ACCEPTED_AS_PAYMENT,
-          created = clock.now
+          created = clock.now,
+          updated = clock.now
         )
       )
 
       // Actualizar el estado de la transacción a COMPLETADO
-      _ <- transactionRepository.updateStatus(transaction.id, TransactionStatus.COMPLETED)
+      _ <- transactionRepository.updateStatusCompleted(transaction.id, TransactionStatus.COMPLETED)
+
 
       // Registrar evento y verificar badges para el comprador (quien propuso el trueque)
       buyerBadges <- badgeService.registerEventAndCheckBadges(transaction.buyerId, EventU.BARTER_COMPLETED)
@@ -178,7 +181,6 @@ class TransactionServImpl @Inject() (
           s"Seller ${transaction.sellerId.id} earned ${sellerBadges.length} badge(s) after barter: ${sellerBadges.map(_.name).mkString(", ")}"
         )
       }
-
     } yield Done
   }
 

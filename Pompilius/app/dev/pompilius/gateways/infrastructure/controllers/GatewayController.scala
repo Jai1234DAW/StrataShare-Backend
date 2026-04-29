@@ -324,7 +324,7 @@ class GatewayController @Inject() (
         case Some(pi) =>
           for {
             _ <- paymentIntentRepository.updateStatus(pi.paymentId, PaymentIntentStatus.CANCELED)
-            _ <- transactionRepository.updateStatus(pi.transactionId, TransactionStatus.CANCELED)
+            _ <- transactionRepository.updateStatusRejectedCancelled(pi.transactionId, TransactionStatus.CANCELLED)
           } yield ()
 
         case None =>
@@ -412,14 +412,15 @@ class GatewayController @Inject() (
         )
 
         for {
-          _ <- transactionRepository.updateStatus(transaction.id, TransactionStatus.COMPLETED)
+          _ <- transactionRepository.updateStatusCompleted(transaction.id, TransactionStatus.COMPLETED)
           _ <- paymentRepository.create(payment)
           _ <- resourceUserRepository.save(
             ResourceUser(
               resourceId = transaction.resourceId,
               userId = transaction.buyerId,
               resourceUserType = ResourceUserType.PURCHASED,
-              created = clock.now
+              created = clock.now,
+              updated = clock.now
             )
           )
 

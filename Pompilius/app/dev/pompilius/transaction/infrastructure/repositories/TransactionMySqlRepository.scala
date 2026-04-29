@@ -1,6 +1,6 @@
 package dev.pompilius.transaction.infrastructure.repositories
 
-import dev.pompilius.shared.domain.Pagination
+import dev.pompilius.shared.domain.{Clock, Pagination}
 import dev.pompilius.shared.infrastructure.ScalikeUtil
 import dev.pompilius.shared.infrastructure.contexts.DbExecutionContext
 import dev.pompilius.transaction.domain.{
@@ -24,7 +24,7 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
 
 @Singleton
-class TransactionMySqlRepository @Inject() ()(implicit dbExecutionContext: DbExecutionContext)
+class TransactionMySqlRepository @Inject() (clock: Clock)(implicit dbExecutionContext: DbExecutionContext)
     extends TransactionRepository
     with SQLSyntaxSupport[Transaction] {
 
@@ -46,8 +46,8 @@ class TransactionMySqlRepository @Inject() ()(implicit dbExecutionContext: DbExe
       created = rs.get[DateTime](t.created),
       updated = rs.get[DateTime](t.updated),
       metadata = rs.get[Option[String]](t.metadata),
-      completedAt = rs.get[Option[DateTime]](t.completedAt),
-      cancelledAt = rs.get[Option[DateTime]](t.cancelledAt)
+      completedSuccessfullyAt = rs.get[Option[DateTime]](t.completedSuccessfullyAt),
+      cancelledRejectedAt = rs.get[Option[DateTime]](t.cancelledRejectedAt)
     )
 
   private val t = this.syntax("t")
@@ -66,8 +66,8 @@ class TransactionMySqlRepository @Inject() ()(implicit dbExecutionContext: DbExe
           column.created -> transaction.created,
           column.updated -> transaction.updated,
           column.metadata -> transaction.metadata,
-          column.completedAt -> transaction.completedAt,
-          column.cancelledAt -> transaction.cancelledAt
+          column.completedSuccessfullyAt -> transaction.completedSuccessfullyAt,
+          column.cancelledRejectedAt -> transaction.cancelledRejectedAt
         )
         withSQL {
           insert
@@ -119,14 +119,32 @@ class TransactionMySqlRepository @Inject() ()(implicit dbExecutionContext: DbExe
     }
   }
 
-  override def updateStatus(id: TransactionId, status: TransactionStatus): Future[Done] =
+  override def updateStatusCompleted(id: TransactionId, status: TransactionStatus): Future[Done] =
     Future {
       DB.localTx { implicit session =>
         withSQL {
           update(this)
             .set(
               column.transactionStatus -> status.toString,
-              column.updated -> DateTime.now()
+              column.updated -> clock.now,
+              column.completedSuccessfullyAt -> clock.now
+            )
+            .where
+            .eq(column.id, id.id)
+        }.update()
+      }
+      Done
+    }
+
+  override def updateStatusRejectedCancelled(id: TransactionId, status: TransactionStatus): Future[Done] =
+    Future {
+      DB.localTx { implicit session =>
+        withSQL {
+          update(this)
+            .set(
+              column.transactionStatus -> status.toString,
+              column.updated -> clock.now,
+              column.cancelledRejectedAt -> clock.now
             )
             .where
             .eq(column.id, id.id)

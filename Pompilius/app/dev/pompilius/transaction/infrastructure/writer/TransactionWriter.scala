@@ -34,8 +34,8 @@ class TransactionWriterImpl @Inject()(implicit val ec: ExecutionContext) extends
               toJsValueWrapper(Strings.created, transaction.created),
               toJsValueWrapper(Strings.updated, transaction.updated),
               toJsValueWrapper(Strings.metadata, transaction.metadata),
-              toJsValueWrapper(Strings.completedAt, transaction.completedAt),
-              toJsValueWrapper(Strings.cancelledAt, transaction.cancelledAt)
+              toJsValueWrapper(Strings.completedAt, transaction.completedSuccessfullyAt),
+              toJsValueWrapper(Strings.cancelledAt, transaction.cancelledRejectedAt)
             ).flatten: _*
           )
         )

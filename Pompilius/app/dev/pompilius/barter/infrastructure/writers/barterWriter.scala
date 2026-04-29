@@ -47,7 +47,7 @@ class BarterWriterImpl @Inject() (implicit ec: ExecutionContext) extends BarterW
         List(
           toJsValueWrapper(Strings.sellerId, transaction.sellerId.toString),
           toJsValueWrapper(Strings.updated, transaction.updated),
-          toJsValueWrapper(Strings.completedAt, transaction.completedAt)
+          toJsValueWrapper(Strings.completedAt, transaction.completedSuccessfullyAt)
         ).flatten: _*
       )
     }
@@ -61,7 +61,7 @@ class BarterWriterImpl @Inject() (implicit ec: ExecutionContext) extends BarterW
         List(
           toJsValueWrapper(Strings.buyerId, transaction.buyerId.toString),
           toJsValueWrapper(Strings.updated, transaction.updated),
-          toJsValueWrapper(Strings.completedAt, transaction.completedAt)
+          toJsValueWrapper(Strings.completedAt, transaction.completedSuccessfullyAt)
         ).flatten: _*
       )
     }
@@ -76,7 +76,7 @@ class BarterWriterImpl @Inject() (implicit ec: ExecutionContext) extends BarterW
           toJsValueWrapper(Strings.sellerId, transaction.sellerId.toString),
           toJsValueWrapper(Strings.buyerId, transaction.buyerId.toString),
           toJsValueWrapper(Strings.updated, transaction.updated),
-          toJsValueWrapper(Strings.completedAt, transaction.completedAt)
+          toJsValueWrapper(Strings.completedAt, transaction.completedSuccessfullyAt)
         ).flatten: _*
       )
     }
