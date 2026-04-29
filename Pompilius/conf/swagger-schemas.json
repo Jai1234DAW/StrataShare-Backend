@@ -510,6 +510,18 @@
         "default": false,
         "required": true
       },
+      "accessLevel": {
+        "type": "string",
+        "default": "OWNER",
+        "required": true,
+        "description": "Access level of the current user for this resource (e.g., OWNER, PREVIEW, FULL_ACCESS)"
+      },
+      "ownerId": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": true,
+        "description": "ID of the user who owns the resource"
+      },
       "sampleId": {
         "type": "string",
         "default": "sample123456",
@@ -700,6 +712,18 @@
         "format": "date-time",
         "default": "2026-03-30T10:30:00Z",
         "required": true
+      },
+      "accessLevel": {
+        "type": "string",
+        "default": "OWNER",
+        "required": true,
+        "description": "Access level of the current user for this resource (e.g., OWNER, PREVIEW, FULL_ACCESS)"
+      },
+      "ownerId": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": true,
+        "description": "ID of the user who owns the resource"
       },
       "studyId": {
         "type": "string",
@@ -1033,6 +1057,34 @@
         "default": "2022-01-01T12:30:00Z",
         "required": true,
         "description": "Timestamp when the barter request was last updated"
+      }
+    }
+  },
+  "MailBarterRequest": {
+    "properties": {
+      "token": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": true,
+        "description": "Token to identify the barter request in the email link"
+      },
+      "transactionId": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": true,
+        "description": "ID of the transaction associated with the barter request"
+      },
+      "email": {
+        "type": "string",
+        "default": "user@example.com",
+        "required": true,
+        "description": "Email address of the user receiving the barter request"
+      },
+      "barterId": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": true,
+        "description": "ID of the barter request"
       }
     }
   },
