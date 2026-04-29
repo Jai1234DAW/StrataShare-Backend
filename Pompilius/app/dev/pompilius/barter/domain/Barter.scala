@@ -8,5 +8,4 @@ case class Barter(
     barterId: BarterId,
     transactionId: TransactionId,
     offeredResourceId: ResourceId,
-    rejectedAt: Option[DateTime] = None
 )

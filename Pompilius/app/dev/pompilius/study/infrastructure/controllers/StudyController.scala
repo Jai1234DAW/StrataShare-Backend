@@ -102,11 +102,12 @@ class StudyController @Inject() (
                 resourceId = resourceId,
                 userId = user.id,
                 resourceUserType = ResourceUserType.OWNER,
-                created = clock.now
+                created = clock.now,
+                updated = clock.now
               )
             )
 
-            json <- resourceWriter.asPublic(newResource, None, Some(newStudy))
+            json <- resourceWriter.asPublic(newResource, ResourceAccessLevel.OWNER, user.id, None, Some(newStudy))
 
             //Llamo aquí a lo de eventos.
             // Registrar evento
@@ -138,7 +139,7 @@ class StudyController @Inject() (
           val newResource = Resource(
             id = resourceId,
             name = createStudyRequest.name,
-            resourceType = ResourceType.SAMPLE,
+            resourceType = ResourceType.STUDY,
             visibility = createStudyRequest.visibility,
             created = clock.now,
             updated = clock.now,
@@ -178,7 +179,8 @@ class StudyController @Inject() (
                 resourceId = resourceId,
                 userId = user.id,
                 resourceUserType = ResourceUserType.OWNER,
-                created = clock.now
+                created = clock.now,
+                updated = clock.now
               )
             )
             attachments <- Future.sequence {
@@ -205,7 +207,7 @@ class StudyController @Inject() (
               )
             }
 
-            json <- resourceWriter.asPublic(newResource, None, Some(newStudy))
+            json <- resourceWriter.asPublic(newResource, ResourceAccessLevel.OWNER, user.id, None, Some(newStudy))
 
           } yield Ok(json)
       }
@@ -251,7 +253,8 @@ class StudyController @Inject() (
             _ <- studyRepository.save(updatedStudy)
 
             // Retornar JSON actualizado
-            json <- resourceWriter.asPublic(updatedResource, None, Some(updatedStudy))
+            json <-
+              resourceWriter.asPublic(updatedResource, ResourceAccessLevel.OWNER, user.id, None, Some(updatedStudy))
           } yield {
             Ok(json)
           }
@@ -268,13 +271,22 @@ class StudyController @Inject() (
             // Obtener el nivel de acceso del usuario
             accessLevel <- resourceAccessValidator.getAccessLevel(resource.id, user.id)
 
+            ownerId <-
+              resourceUserRepository
+                .findOwnerByResource(resource.id)
+                .map(
+                  _.map(_.id).getOrElse(
+                    throw new ResourceNotFoundException(s"Owner not found for resource ${resource.id}")
+                  )
+                )
+
             json <- accessLevel match {
               case ResourceAccessLevel.FULL_ACCESS =>
-                resourceWriter.asPublic(resource, None, Some(study))
+                resourceWriter.asPublic(resource, accessLevel, ownerId, None, Some(study))
 
               case _ =>
                 // PREVIEW_ONLY → Solo preview
-                resourceWriter.asPrivate(resource, None, Some(study))
+                resourceWriter.asPrivate(resource, accessLevel, ownerId, None, Some(study))
             }
 
           } yield {
@@ -294,15 +306,7 @@ class StudyController @Inject() (
             _ <- resourceAccessValidator.verifyOwnership(resource.id, user.id)
 
             // Marcar ResourceUser como eliminado (soft delete)
-            _ <- resourceUserRepository.save(
-              ResourceUser(
-                resourceId = resource.id,
-                userId = user.id,
-                resourceUserType = ResourceUserType.OWNER,
-                created = clock.now,
-                deleted = true
-              )
-            )
+            _ <- resourceUserRepository.deleteRelation(resource.id, user.id)
           } yield {
             Ok
           }
@@ -348,7 +352,16 @@ class StudyController @Inject() (
                       _.getOrElse(throw new ResourceNotFoundException(s"Resource not found for study ${study.id}"))
                     )
 
-                json <- resourceWriter.asPrivate(resource, None, Some(study))
+                ownerId <-
+                  resourceUserRepository
+                    .findOwnerByResource(resource.id)
+                    .map(
+                      _.map(_.id).getOrElse(
+                        throw new ResourceNotFoundException(s"Owner not found for resource ${resource.id}")
+                      )
+                    )
+
+                json <- resourceWriter.asPrivate(resource, ResourceAccessLevel.PREVIEW_ONLY, ownerId, None, Some(study))
               } yield json
             }
 
@@ -375,12 +388,21 @@ class StudyController @Inject() (
                     .map(
                       _.getOrElse(
                         throw new ResourceNotFoundException(
-                          s"Resource not found for sample ${study.id}"
+                          s"Resource not found for study ${study.id}"
                         )
                       )
                     )
 
-                json <- resourceWriter.asPublic(resource, None, Some(study))
+                ownerId <-
+                  resourceUserRepository
+                    .findOwnerByResource(resource.id)
+                    .map(
+                      _.map(_.id).getOrElse(
+                        throw new ResourceNotFoundException(s"Owner not found for resource ${resource.id}")
+                      )
+                    )
+
+                json <- resourceWriter.asPublic(resource, ResourceAccessLevel.OWNER, ownerId, None, Some(study))
               } yield json
             }
           } yield Ok(json)

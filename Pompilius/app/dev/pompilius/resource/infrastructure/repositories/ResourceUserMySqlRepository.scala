@@ -1,7 +1,7 @@
 package dev.pompilius.resource.infrastructure.repositories
 
 import dev.pompilius.resource.domain.{ResourceId, ResourceUser, ResourceUserRepository, ResourceUserType}
-import dev.pompilius.shared.domain.Pagination
+import dev.pompilius.shared.domain.{Clock, Pagination}
 import dev.pompilius.shared.infrastructure.ScalikeUtil
 import dev.pompilius.shared.infrastructure.contexts.DbExecutionContext
 import dev.pompilius.users.domain.{User, UserId}
@@ -16,7 +16,8 @@ import scala.concurrent.Future
 
 @Singleton
 class ResourceUserMySqlRepository @Inject() (
-    userMySqlRepository: UserMySqlRepository
+    userMySqlRepository: UserMySqlRepository,
+    clock:Clock
 )(implicit ec: DbExecutionContext)
     extends ResourceUserRepository
     with SQLSyntaxSupport[ResourceUser] {
@@ -32,6 +33,7 @@ class ResourceUserMySqlRepository @Inject() (
       userId = UserId(rs.get[Long](ru.userId)),
       resourceUserType = ResourceUserType.withNameInsensitive(rs.get[String](ru.resourceUserType)),
       created = rs.get(ru.created),
+      updated= rs.get(ru.updated),
       deleted = rs.get[Boolean](ru.deleted)
     )
 
@@ -55,6 +57,7 @@ class ResourceUserMySqlRepository @Inject() (
           column.userId -> resourceUser.userId.id,
           column.resourceUserType -> resourceUser.resourceUserType.toString,
           column.created -> resourceUser.created,
+          column.updated -> resourceUser.updated,
           column.deleted -> resourceUser.deleted
         )
         withSQL {
@@ -135,6 +138,23 @@ class ResourceUserMySqlRepository @Inject() (
             .set(column.deleted -> true)
             .where
             .eq(ru.userId, userId.id)
+        }.update()
+      }
+      Done
+    }
+  }
+
+  override def deleteRelation(resourceId: ResourceId, userId: UserId): Future[Done] = {
+    Future {
+      DB.localTx { implicit session =>
+        withSQL {
+          update(this as ru)
+            .set(column.deleted -> true)
+            .set(column.updated -> clock.now)
+            .where
+            .eq(ru.userId, userId.id)
+            .and
+            .eq(ru.resourceId, resourceId.id)
         }.update()
       }
       Done

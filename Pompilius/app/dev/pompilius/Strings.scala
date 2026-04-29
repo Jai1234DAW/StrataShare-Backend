@@ -15,6 +15,7 @@ object Strings {
   val dev = "dev"
 
   //Propiedades y parámetros
+  val accessLevel= "accessLevel"
   val address = "address"
   val amount = "amount"
   val antecedents = "antecedents"
@@ -96,6 +97,7 @@ object Strings {
   val offset: String = "offset"
   val oldPassword = "oldPassword"
   val orderBy = "orderBy"
+  val ownerId= "ownerId"
   val parameters = "parameters"
   val password = "password"
   val paymentId = "paymentId"

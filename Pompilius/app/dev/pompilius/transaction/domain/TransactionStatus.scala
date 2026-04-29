@@ -26,7 +26,7 @@ object TransactionStatus extends Enum[TransactionStatus] with PlayJsonEnum[Trans
   }
 
   @SuppressWarnings(Array("ObjectNames"))
-  case object CANCELED extends TransactionStatus {
+  case object CANCELLED extends TransactionStatus {
     override def value: String = "CANCELLED"
   }
 

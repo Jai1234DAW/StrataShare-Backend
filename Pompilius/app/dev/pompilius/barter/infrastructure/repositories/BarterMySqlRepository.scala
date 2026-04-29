@@ -34,8 +34,7 @@ class BarterMySqlRepository @Inject() (
     Barter(
       barterId = BarterId(rs.get[Long](b.barterId)),
       transactionId = TransactionId(rs.get[Long](b.transactionId)),
-      offeredResourceId = ResourceId(rs.get[Long](b.offeredResourceId)),
-      rejectedAt = rs.get[Option[DateTime]](b.rejectedAt)
+      offeredResourceId = ResourceId(rs.get[Long](b.offeredResourceId))
     )
 
   private val b = this.syntax("b")
@@ -47,7 +46,6 @@ class BarterMySqlRepository @Inject() (
           column.barterId -> barter.barterId.id,
           column.transactionId -> barter.transactionId.id,
           column.offeredResourceId -> barter.offeredResourceId.id,
-          column.rejectedAt -> barter.rejectedAt
         )
         withSQL {
           insert
@@ -92,11 +90,6 @@ class BarterMySqlRepository @Inject() (
 
     val offeredResourceId = filter.offeredResourceId.map(rid => sqls.eq(b.offeredResourceId, rid.id))
 
-    val rejected = filter.rejected.map { rejected =>
-      if (rejected) sqls.isNotNull(b.rejectedAt)
-      else sqls.isNull(b.rejectedAt)
-    }
-
     val userBuyer = filter.userBuyer.map { buyerId =>
       val t = transactionMySqlRepository.syntax("t")
       sqls.exists(
@@ -126,7 +119,6 @@ class BarterMySqlRepository @Inject() (
     val filters = List(
       transactionId,
       offeredResourceId,
-      rejected,
       userBuyer,
       userSeller
     ).flatten
@@ -143,7 +135,6 @@ class BarterMySqlRepository @Inject() (
         val result = seq.flatMap {
           case "transactionId"     => Some(b.transactionId)
           case "offeredResourceId" => Some(b.offeredResourceId)
-          case "rejectedAt"        => Some(b.rejectedAt)
           case _                   => None
         }
 

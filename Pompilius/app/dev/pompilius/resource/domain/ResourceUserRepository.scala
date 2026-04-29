@@ -24,4 +24,6 @@ trait ResourceUserRepository {
   def findOwnerByResource(resourceId: ResourceId): Future[Option[User]]
 
   def deleteAllResourceByUserId(userId: UserId): Future[Done]
+
+  def deleteRelation(resourceId: ResourceId, userId: UserId): Future[Done]
 }

@@ -16,6 +16,6 @@ case class Transaction(
     created: DateTime,
     updated: DateTime,
     metadata: Option[String] = None,
-    completedAt: Option[DateTime] = None,
-    cancelledAt: Option[DateTime] = None
+    completedSuccessfullyAt: Option[DateTime] = None,
+    cancelledRejectedAt: Option[DateTime] = None
 )

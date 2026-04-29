@@ -98,7 +98,7 @@ class ResourceAccessValidatorImpl @Inject() (
             resourceUserRepository.findByResourceAndUser(resource.id, userId).map {
               case Some(ru) if !ru.deleted && ru.resourceUserType == ResourceUserType.OWNER =>
                 // Es el propietario → Acceso completo (puede modificar, vender, eliminar)
-                ResourceAccessLevel.FULL_ACCESS
+                ResourceAccessLevel.OWNER
 
               case Some(ru)
                   if !ru.deleted &&

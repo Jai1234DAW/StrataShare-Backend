@@ -8,5 +8,6 @@ case class ResourceUser(
     userId: UserId,
     resourceUserType: ResourceUserType,
     created: DateTime,
+    updated: DateTime,
     deleted: Boolean = false
 )
