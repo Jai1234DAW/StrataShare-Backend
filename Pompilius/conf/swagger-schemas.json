@@ -1051,11 +1051,23 @@
         "required": true,
         "description": "Timestamp when the barter request was created"
       },
+      "sellerId": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": false,
+        "description": "ID of the user who is offering the resource in the barter"
+      },
+      "buyerId": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": false,
+        "description": "ID of the user who is requesting the resource in the barter"
+      },
       "updated": {
         "type": "string",
         "format": "date-time",
         "default": "2022-01-01T12:30:00Z",
-        "required": true,
+        "required": false,
         "description": "Timestamp when the barter request was last updated"
       }
     }
