@@ -317,6 +317,7 @@ class SampleController @Inject() (
       isFresh: Option[Boolean],
       visibility: Option[String],
       location: Option[String],
+      search: Option[String],
       userId: Option[String],
       pag: Pagination
   ): Action[AnyContent] =
@@ -332,6 +333,7 @@ class SampleController @Inject() (
                 isFresh = isFresh,
                 visibility = visibility.map(Visibility.withNameInsensitive),
                 location = location,
+                search = search,
                 userId = userId.map(UserId(_))
               ),
               pag.oneMore

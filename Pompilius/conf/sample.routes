@@ -105,7 +105,7 @@ POST         /fullCreate                                        dev.pompilius.sa
 #         $ref: '#/components/schemas/SampleList'
 #      description: List of studies for the user  or all samples matching the search criteria
 ###
-GET        /                                              dev.pompilius.sample.infrastructure.controllers.SampleController.getAll(name: Option[String], sampleType:Option[String], sampleCategory: Option[String], isFresh:Option[Boolean], visibility: Option[String], location: Option[String], userId: Option[String], pag: Pagination)
+GET        /                                              dev.pompilius.sample.infrastructure.controllers.SampleController.getAll(name: Option[String], sampleType:Option[String], sampleCategory: Option[String], isFresh:Option[Boolean], visibility: Option[String], location: Option[String], search: Option[String], userId: Option[String], pag: Pagination)
 
 
 ###
