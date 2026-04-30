@@ -10,5 +10,6 @@ case class SampleFilter(
     isFresh: Option[Boolean] = None,
     visibility: Option[Visibility] = None,
     location: Option[String] = None,
+    search: Option[String]=None,
     userId: Option[UserId] = None
 )

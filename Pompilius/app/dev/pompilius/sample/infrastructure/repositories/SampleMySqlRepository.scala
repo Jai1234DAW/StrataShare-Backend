@@ -151,21 +151,78 @@ class SampleMySqlRepository @Inject() (
           .where
           .eq(r.id, s.resourceId)
           .and
-          .like(sqls.lower(r.name), s"%${name.toLowerCase}%")
+          .like(sqls.lower(r.name), ScalikeUtil.normalizeSearch(name.toLowerCase))
           .toSQLSyntax
       )
     }
 
     val sampleTypeFilter = filter.sampleType.map { sampleType =>
-      sqls.like(sqls.lower(s.sampleType), sampleType.toLowerCase)
+      sqls.like(sqls.lower(s.sampleType), ScalikeUtil.normalizeSearch(sampleType.toLowerCase))
     }
 
     val sampleCategoryFilter = filter.sampleCategory.map { sampleCategory =>
-      sqls.like(sqls.lower(s.sampleCategory), sampleCategory.toLowerCase)
+      sqls.like(sqls.lower(s.sampleCategory), ScalikeUtil.normalizeSearch(sampleCategory.toLowerCase))
     }
 
     val isFreshFilter = filter.isFresh.map { isFresh =>
       sqls.eq(s.isFresh, isFresh)
+    }
+
+    val locationFilter = filter.location.map { location =>
+      val r = resourceMySqlRepository.syntax("r")
+      sqls.exists(
+        select(sqls"1")
+          .from(resourceMySqlRepository as r)
+          .where
+          .eq(r.id, s.resourceId)
+          .and
+          .like(sqls.lower(r.location), ScalikeUtil.normalizeSearch(location.toLowerCase))
+          .toSQLSyntax
+      )
+    }
+
+    val visibilityFilter = filter.visibility.map { visibility =>
+      val r = resourceMySqlRepository.syntax("r")
+      sqls.exists(
+        select(sqls"1")
+          .from(resourceMySqlRepository as r)
+          .where
+          .eq(r.id, s.resourceId)
+          .and
+          .eq(r.visibility, visibility.toString)
+          .toSQLSyntax
+      )
+    }
+
+    val searchFilter = filter.search.map { search =>
+      val r = resourceMySqlRepository.syntax("r")
+      val value = ScalikeUtil.normalizeSearch(search.toLowerCase)
+
+      sqls.roundBracket(
+        SQLSyntax.joinWithOr(
+          Seq(
+            sqls.exists(
+              select(sqls"1")
+                .from(resourceMySqlRepository as r)
+                .where
+                .eq(r.id, s.resourceId)
+                .and
+                .like(sqls.lower(r.name), value)
+                .toSQLSyntax
+            ),
+            sqls.exists(
+              select(sqls"1")
+                .from(resourceMySqlRepository as r)
+                .where
+                .eq(r.id, s.resourceId)
+                .and
+                .like(sqls.lower(r.location), value)
+                .toSQLSyntax
+            ),
+            sqls.like(sqls.lower(s.sampleCategory), value)
+          ):_*
+        )
+      )
     }
 
     val userFilter = filter.userId.map { userId =>
@@ -190,6 +247,9 @@ class SampleMySqlRepository @Inject() (
       sampleTypeFilter,
       sampleCategoryFilter,
       isFreshFilter,
+      visibilityFilter,
+      locationFilter,
+      searchFilter,
       userFilter
     ).flatten
 
