@@ -162,13 +162,17 @@ class ResourceController @Inject() (
                 .findById(rid)
                 .map(_.getOrElse(throw new ResourceNotFoundException(s"Resource $rid not found")))
 
-            previewImage <-
+            previewImageOpt <-
               attachmentRepository
                 .findPreviewImageByResourceId(rid)
-                .map(
-                  _.getOrElse(throw new ResourceNotFoundException(s"No preview image found for resource $rid"))
-                )
-            result <- download(Some(user), previewImage.id)
+
+            result <- previewImageOpt match {
+              case Some(previewImage) =>
+                download(Some(user), previewImage.id)
+
+              case None =>
+                Future.successful(NoContent)
+            }
           } yield result
       }
     }
@@ -251,6 +255,9 @@ class ResourceController @Inject() (
             accessLevel <- resourceAccessValidator.getAccessLevel(rid, user.id)
             _ <- accessLevel match {
               case ResourceAccessLevel.FULL_ACCESS =>
+                // Puede descargar attachments
+                Future.successful(())
+              case ResourceAccessLevel.OWNER =>
                 // Puede descargar attachments
                 Future.successful(())
               case _ =>
@@ -351,6 +358,11 @@ class ResourceController @Inject() (
               case ResourceAccessLevel.FULL_ACCESS =>
                 // Tiene acceso completo → Buscar attachments
                 attachmentRepository.findByResourceId(rid, pag.oneMore)
+
+              case ResourceAccessLevel.OWNER =>
+                // Tiene acceso completo → Buscar attachments
+                attachmentRepository.findByResourceId(rid, pag.oneMore)
+
               case _ =>
                 // Solo tiene preview → No puede ver attachments
                 Future.failed(
@@ -502,4 +514,56 @@ class ResourceController @Inject() (
       }
     byMime || byExtension || byContent
   }
+
+  //def getMyPurchasedResources()
+//  def getMyLibrary(pag: Pagination): Action[AnyContent] =
+//    Action.async { implicit request =>
+//      withAuthenticatedUser {
+//        case (_, user, _) =>
+//          for {
+//            relations <- resourceUserRepository.find
+//
+//            json <- paginatedWriter.toJson(Paginated(relations, pag)) { relation =>
+//              for {
+//                resource <- resourceRepository
+//                  .findById(relation.resourceId)
+//                  .map(_.getOrElse(throw new ResourceNotFoundException(s"Resource not found ${relation.resourceId}")))
+//
+//                sampleOpt <-
+//                  if (resource.resourceType == ResourceType.SAMPLE)
+//                    sampleRepository.findByResourceId(resource.id).map(Some(_).flatten)
+//                  else
+//                    Future.successful(None)
+//
+//                studyOpt <-
+//                  if (resource.resourceType == ResourceType.STUDY)
+//                    studyRepository.findByResourceId(resource.id).map(Some(_).flatten)
+//                  else
+//                    Future.successful(None)
+//
+//                ownerId <- resourceUserRepository
+//                  .findOwnerByResource(resource.id)
+//                  .map(_.map(_.id).getOrElse(user.id))
+//
+//                accessLevel = relation.resourceUserType match {
+//                  case ResourceUserType.OWNER => ResourceAccessLevel.OWNER
+//                  case _                      => ResourceAccessLevel.FULL_ACCESS
+//                }
+//
+//                baseJson <- resourceWriter.asPublic(
+//                  resource,
+//                  accessLevel,
+//                  ownerId,
+//                  sampleOpt,
+//                  studyOpt
+//                )
+//
+//              } yield {
+//                baseJson.as[play.api.libs.json.JsObject] +
+//                  ("relationType" -> play.api.libs.json.Json.toJson(relation.resourceUserType.toString))
+//              }
+//            }
+//          } yield Ok(json)
+//      }
+//    }
 }

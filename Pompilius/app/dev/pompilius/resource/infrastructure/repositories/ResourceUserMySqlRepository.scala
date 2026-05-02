@@ -149,8 +149,7 @@ class ResourceUserMySqlRepository @Inject() (
       DB.localTx { implicit session =>
         withSQL {
           update(this as ru)
-            .set(column.deleted -> true)
-            .set(column.updated -> clock.now)
+            .set(column.deleted -> true, column.updated -> clock.now)
             .where
             .eq(ru.userId, userId.id)
             .and

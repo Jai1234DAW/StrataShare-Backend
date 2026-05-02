@@ -358,6 +358,7 @@ class SampleController @Inject() (
                     )
                 // Siempre devolver preview (datos básicos para el listado)
                 //Luego se pordá acceder con más datos a cada uno de ellos.
+                //Luego se pordá acceder con más datos a cada uno de ellos.
                 json <-
                   resourceWriter.asPrivate(resource, ResourceAccessLevel.PREVIEW_ONLY, ownerId, Some(sample), None)
               } yield json
