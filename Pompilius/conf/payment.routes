@@ -54,5 +54,5 @@ GET        /:paymentId/status                            dev.pompilius.payment.i
 #        schema:
 #         $ref: '#/components/schemas/Payment'
 ###
-GET          /payments/:paymentId                           dev.pompilius.payment.infrastructure.controllers.PaymentController.getPaymentById(paymentId: String)
+GET          /:paymentId                           dev.pompilius.payment.infrastructure.controllers.PaymentController.getPaymentById(paymentId: String)
 

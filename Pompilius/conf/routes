@@ -30,7 +30,7 @@ GET        /api/assets/*file                           controllers.Assets.versio
 ->         /api/resources/samples                      sample.Routes
 ->         /api/resources/studies                      study.Routes
 ->         /api/transaction/barter                     barter.Routes
-->         /api/payments                                payment.Routes
+->         /api/transaction/payments                   payment.Routes
 ->         /api/gateways                               gateways.Routes
 ->         /api/reviews                                 review.Routes
 ->         /api/badges                                  badge.Routes

@@ -90,8 +90,7 @@ class SampleMySqlRepository @Inject() (
 
       DB.localTx { implicit session =>
         withSQL {
-          select(s.result.*)
-            .from(this as s)
+          selectFrom(this as s)
             .innerJoin(resourceMySqlRepository as r)
             .on(s.resourceId, r.id)
             .append(
@@ -144,17 +143,20 @@ class SampleMySqlRepository @Inject() (
   private def filterToSqlSyntax(filter: SampleFilter): Option[SQLSyntax] = {
 
     val nameFilter = filter.name.map { name =>
-      val r = resourceMySqlRepository.syntax("r")
+      val re = resourceMySqlRepository.syntax("re")
+      val value = s"%${name.trim.toLowerCase}%"
+
       sqls.exists(
         select(sqls"1")
-          .from(resourceMySqlRepository as r)
+          .from(resourceMySqlRepository as re)
           .where
-          .eq(r.id, s.resourceId)
+          .eq(re.id, s.resourceId)
           .and
-          .like(sqls.lower(r.name), ScalikeUtil.normalizeSearch(name.toLowerCase))
+          .like(sqls"LOWER(TRIM(${re.name}))", value)
           .toSQLSyntax
       )
     }
+
 
     val sampleTypeFilter = filter.sampleType.map { sampleType =>
       sqls.like(sqls.lower(s.sampleType), ScalikeUtil.normalizeSearch(sampleType.toLowerCase))

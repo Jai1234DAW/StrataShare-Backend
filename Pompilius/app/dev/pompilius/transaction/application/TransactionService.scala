@@ -49,7 +49,7 @@ class TransactionServImpl @Inject() (
       transactionStatus = Some(TransactionStatus.PENDING)
     )
 
-    transactionRepository.find(transactionFilter, Pagination(1, Some(1))).map { transactions =>
+    transactionRepository.find(transactionFilter, Pagination(0,Some(1))).map { transactions =>
       if (transactions.nonEmpty) {
         throw new ForbiddenException("You already have a pending transaction for this resource")
       }
