@@ -343,6 +343,7 @@ class StudyController @Inject() (
               pag.oneMore
             )
             // 2. Para cada study, obtener resource y generar preview JSON usando paginatedWriter
+
             json <- paginatedWriter.toJson(Paginated(studies, pag)) { study =>
               for {
                 resource <-
@@ -352,16 +353,18 @@ class StudyController @Inject() (
                       _.getOrElse(throw new ResourceNotFoundException(s"Resource not found for study ${study.id}"))
                     )
 
-                ownerId <-
-                  resourceUserRepository
-                    .findOwnerByResource(resource.id)
-                    .map(
-                      _.map(_.id).getOrElse(
-                        throw new ResourceNotFoundException(s"Owner not found for resource ${resource.id}")
-                      )
-                    )
+//                ownerId <-
+//                  resourceUserRepository
+//                    .findOwnerByResource(resource.id)
+//                    .map(
+//                      _.map(_.id).getOrElse(
+//                        throw new ResourceNotFoundException(s"Owner not found for resource ${resource.id}")
+//                      )
+//                    )
 
-                json <- resourceWriter.asPrivate(resource, ResourceAccessLevel.PREVIEW_ONLY, ownerId, None, Some(study))
+                json <-
+                  resourceWriter
+                    .asPrivate(resource, ResourceAccessLevel.PREVIEW_ONLY, currentUser.id, None, Some(study))
               } yield json
             }
 
@@ -372,13 +375,23 @@ class StudyController @Inject() (
     }
 
   def getAllMyStudies(
-      pag: Pagination
+      pag: Pagination,
+      userType: String
   ): Action[AnyContent] =
     Action.async { implicit request =>
       withAuthenticatedUser {
         case (_, user, _) =>
           for {
-            studies <- studyRepository.getAllMyStudiesAsOwner(userId = user.id, pag.oneMore)
+
+            studies <- userType.toUpperCase.replace(" ","_") match {
+              case "OWNER" =>
+                studyRepository.getMyAllStudiesAs(userId = user.id, pag.oneMore, ResourceUserType.OWNER.toString)
+              case "ACCEPTED_AS_PAYMENT" =>
+                studyRepository.getMyAllStudiesAs(userId = user.id, pag.oneMore, ResourceUserType.ACCEPTED_AS_PAYMENT.toString)
+
+              case "PURCHASED" =>
+                studyRepository.getMyAllStudiesAs(userId = user.id, pag.oneMore, ResourceUserType.PURCHASED.toString)
+            }
 
             json <- paginatedWriter.toJson(Paginated(studies, pag)) { study =>
               for {
@@ -393,16 +406,7 @@ class StudyController @Inject() (
                       )
                     )
 
-                ownerId <-
-                  resourceUserRepository
-                    .findOwnerByResource(resource.id)
-                    .map(
-                      _.map(_.id).getOrElse(
-                        throw new ResourceNotFoundException(s"Owner not found for resource ${resource.id}")
-                      )
-                    )
-
-                json <- resourceWriter.asPublic(resource, ResourceAccessLevel.OWNER, ownerId, None, Some(study))
+                json <- resourceWriter.asPublic(resource, ResourceAccessLevel.OWNER, user.id, None, Some(study))
               } yield json
             }
           } yield Ok(json)

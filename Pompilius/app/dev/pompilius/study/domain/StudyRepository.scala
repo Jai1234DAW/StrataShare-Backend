@@ -22,6 +22,5 @@ trait StudyRepository {
 
   def delete(id: StudyId): Future[Done]
 
-  def getAllMyStudiesAsOwner(userId:UserId, pag: Pagination): Future[List[Study]]
-
+  def getMyAllStudiesAs(userId:UserId, pag: Pagination, user_type: String): Future[List[Study]]
 }

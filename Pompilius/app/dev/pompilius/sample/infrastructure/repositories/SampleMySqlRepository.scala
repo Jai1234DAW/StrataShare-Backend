@@ -102,9 +102,9 @@ class SampleMySqlRepository @Inject() (
       }
     }
 
-  override def getMyAllSamplesAsOwner(
+  override def getMyAllSamplesAs(
       userId: UserId,
-      pag: Pagination
+      pag: Pagination, userType: String
   ): Future[List[Sample]] =
     Future {
       val r = resourceMySqlRepository.syntax("r")
@@ -122,7 +122,9 @@ class SampleMySqlRepository @Inject() (
             .where
             .eq(ru.userId, userId.id)
             .and
-            .eq(ru.resourceUserType, ResourceUserType.OWNER.toString)
+            .eq(ru.deleted, false)
+            .and
+            .eq(ru.resourceUserType, userType)
             .orderBy(orderBy: _*)
             .append(ScalikeUtil.pag(pag))
         }.map(apply(s.resultName)(_)).list()
@@ -244,6 +246,22 @@ class SampleMySqlRepository @Inject() (
       )
     }
 
+    val resourceUserNotDeletedFilter = {
+      val ru = resourceUserMySqlRepository.syntax("ru")
+
+      sqls.exists(
+        select(sqls"1")
+          .from(resourceUserMySqlRepository as ru)
+          .where
+          .eq(ru.resourceId, s.resourceId)
+          .and
+          .eq(ru.resourceUserType, ResourceUserType.OWNER.toString)
+          .and
+          .eq(ru.deleted, false)
+          .toSQLSyntax
+      )
+    }
+
     val filters = List(
       nameFilter,
       sampleTypeFilter,
@@ -252,6 +270,7 @@ class SampleMySqlRepository @Inject() (
       visibilityFilter,
       locationFilter,
       searchFilter,
+      Some(resourceUserNotDeletedFilter),
       userFilter
     ).flatten
 
@@ -261,7 +280,7 @@ class SampleMySqlRepository @Inject() (
   private def buildOrderBy(pag: Pagination): Seq[SQLSyntax] = {
     val r = resourceMySqlRepository.syntax("r")
 
-    val defaultOrderBy = Seq(r.created.desc, s.id.desc)
+    val defaultOrderBy = Seq(r.created.desc,  r.name.asc, s.id.desc)
 
     pag.orderBy match {
       case Nil =>
@@ -275,6 +294,9 @@ class SampleMySqlRepository @Inject() (
           cleanField match {
             case Strings.created =>
               Some(if (desc) r.created.desc else r.created.asc)
+
+            case Strings.name =>
+              Some(if (desc) r.name.asc else r.name.desc)
 
             case _ =>
               None

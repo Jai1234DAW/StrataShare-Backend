@@ -82,7 +82,7 @@ class StudyMySqlRepository @Inject() (
   private def buildOrderBy(pag: Pagination): Seq[SQLSyntax] = {
     val r = resourceMySqlRepository.syntax("r")
 
-    val defaultOrderBy = Seq(r.created.desc, st.id.desc)
+    val defaultOrderBy = Seq(r.created.desc, r.name.asc, st.id.desc)
 
     pag.orderBy match {
       case Nil =>
@@ -96,6 +96,9 @@ class StudyMySqlRepository @Inject() (
           cleanField match {
             case Strings.created =>
               Some(if (desc) r.created.desc else r.created.asc)
+
+            case Strings.name =>
+              Some(if (desc) r.name.asc else r.name.desc)
 
             case _ =>
               None
@@ -125,14 +128,16 @@ class StudyMySqlRepository @Inject() (
     }
 
     val nameFilter = filter.name.map { name =>
-      val r = resourceMySqlRepository.syntax("r")
+      val re = resourceMySqlRepository.syntax("re")
+      val value = s"%${name.trim.toLowerCase}%"
+
       sqls.exists(
         select(sqls"1")
-          .from(resourceMySqlRepository as r)
+          .from(resourceMySqlRepository as re)
           .where
-          .eq(r.id, st.resourceId)
+          .eq(re.id, st.resourceId)
           .and
-          .eq(r.name, name)
+          .like(sqls"LOWER(TRIM(${re.name}))", value)
           .toSQLSyntax
       )
     }
@@ -152,6 +157,13 @@ class StudyMySqlRepository @Inject() (
 
     val areaFilter = filter.area.map { area =>
       sqls.eq(sqls.lower(st.area), area.entryName.toLowerCase)
+    }
+
+    val authorsFilter = filter.authors.map { authors =>
+      sqls.like(
+        sqls.lower(st.authors),
+        ScalikeUtil.normalizeSearch(authors.toLowerCase)
+      )
     }
 
     val userFilter = filter.userId.map { userId =>
@@ -190,7 +202,7 @@ class StudyMySqlRepository @Inject() (
           .where
           .eq(r.id, st.resourceId)
           .and
-          .eq(sqls.lower(r.location), location.toLowerCase)
+          .like(sqls.lower(r.location), ScalikeUtil.normalizeSearch(location.toLowerCase))
           .toSQLSyntax
       )
     }
@@ -206,10 +218,28 @@ class StudyMySqlRepository @Inject() (
 //          .toSQLSyntax
 //      )
 
+    val resourceUserNotDeletedFilter = {
+      val ru = resourceUserMySqlRepository.syntax("ru")
+
+      sqls.exists(
+        select(sqls"1")
+          .from(resourceUserMySqlRepository as ru)
+          .where
+          .eq(ru.resourceId, st.resourceId)
+          .and
+          .eq(ru.resourceUserType, ResourceUserType.OWNER.toString)
+          .and
+          .eq(ru.deleted, false)
+          .toSQLSyntax
+      )
+    }
+
     val filters = List(
+      Some(resourceUserNotDeletedFilter),
       nameFilter,
       yearFilter,
       areaFilter,
+      authorsFilter,
       searchFilter,
       userFilter,
       visibilityFilter,
@@ -219,9 +249,9 @@ class StudyMySqlRepository @Inject() (
     if (filters.nonEmpty) Some(sqls.joinWithAnd(filters: _*)) else None
   }
 
-  override def getAllMyStudiesAsOwner(
+  override def getMyAllStudiesAs(
       userId: UserId,
-      pag: Pagination
+      pag: Pagination, resourceType: String
   ): Future[List[Study]] =
     Future {
       val r = resourceMySqlRepository.syntax("r")
@@ -239,9 +269,14 @@ class StudyMySqlRepository @Inject() (
             .where
             .eq(ru.userId, userId.id)
             .and
-            .eq(ru.resourceUserType, ResourceUserType.OWNER.toString)
+            .eq(ru.resourceUserType, resourceType)
+            .and
+            .eq(ru.deleted, false)
+            .and
+            .eq(ru.resourceUserType, resourceType)
             .orderBy(orderBy: _*)
             .append(ScalikeUtil.pag(pag))
+
         }.map(apply(st.resultName)(_)).list()
       }
     }
