@@ -22,5 +22,5 @@ trait SampleRepository {
 
   def delete(id: SampleId): Future[Done]
 
-  def getMyAllSamplesAsOwner(userId:UserId, pag: Pagination): Future[List[Sample]]
+  def getMyAllSamplesAs(userId:UserId, pag: Pagination, userType: String): Future[List[Sample]]
 }

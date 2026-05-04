@@ -120,7 +120,7 @@ GET        /                                              dev.pompilius.sample.i
 #         $ref: '#/components/schemas/SampleList'
 #      description: List of studies for the user  or all samples matching the search criteria
 ###
-GET        /mine                                                      dev.pompilius.sample.infrastructure.controllers.SampleController.getAllMySamples(pag: Pagination)
+GET        /mine                                                      dev.pompilius.sample.infrastructure.controllers.SampleController.getAllMySamples(pag: Pagination, resourceUserType: String  )
 
 
 ###

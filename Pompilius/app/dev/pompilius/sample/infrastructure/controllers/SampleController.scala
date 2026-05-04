@@ -348,19 +348,10 @@ class SampleController @Inject() (
                       _.getOrElse(throw new ResourceNotFoundException(s"Resource not found for study ${sample.id}"))
                     )
 
-                ownerId <-
-                  resourceUserRepository
-                    .findOwnerByResource(resource.id)
-                    .map(
-                      _.map(_.id).getOrElse(
-                        throw new ResourceNotFoundException(s"Owner not found for resource ${resource.id}")
-                      )
-                    )
                 // Siempre devolver preview (datos básicos para el listado)
                 //Luego se pordá acceder con más datos a cada uno de ellos.
-                //Luego se pordá acceder con más datos a cada uno de ellos.
                 json <-
-                  resourceWriter.asPrivate(resource, ResourceAccessLevel.PREVIEW_ONLY, ownerId, Some(sample), None)
+                  resourceWriter.asPrivate(resource, ResourceAccessLevel.PREVIEW_ONLY, user.id, Some(sample), None)
               } yield json
             }
 
@@ -390,13 +381,22 @@ class SampleController @Inject() (
   }
 
   def getAllMySamples(
-      pag: Pagination
+      pag: Pagination,
+      userType: String
   ): Action[AnyContent] =
     Action.async { implicit request =>
       withAuthenticatedUser {
         case (_, user, _) =>
           for {
-            samples <- sampleRepository.getMyAllSamplesAsOwner(userId = user.id, pag.oneMore)
+            samples <- userType.toUpperCase.replace(" ","_") match {
+              case "OWNER" =>
+                sampleRepository.getMyAllSamplesAs(userId = user.id, pag.oneMore, ResourceUserType.OWNER.toString)
+              case "ACCEPTED_AS_PAYMENT" =>
+                sampleRepository.getMyAllSamplesAs(userId = user.id, pag.oneMore, ResourceUserType.ACCEPTED_AS_PAYMENT.toString)
+
+              case "PURCHASED" =>
+                sampleRepository.getMyAllSamplesAs(userId = user.id, pag.oneMore, ResourceUserType.PURCHASED.toString)
+            }
 
             json <- paginatedWriter.toJson(Paginated(samples, pag)) { sample =>
               for {
@@ -410,16 +410,8 @@ class SampleController @Inject() (
                         )
                       )
                     )
-                ownerId <-
-                  resourceUserRepository
-                    .findOwnerByResource(resource.id)
-                    .map(
-                      _.map(_.id).getOrElse(
-                        throw new ResourceNotFoundException(s"Owner not found for resource ${resource.id}")
-                      )
-                    )
 
-                json <- resourceWriter.asPublic(resource, ResourceAccessLevel.OWNER, ownerId, Some(sample), None)
+                json <- resourceWriter.asPublic(resource, ResourceAccessLevel.OWNER, user.id, Some(sample), None)
               } yield json
             }
           } yield Ok(json)
