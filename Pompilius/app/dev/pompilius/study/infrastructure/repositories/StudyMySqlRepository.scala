@@ -251,7 +251,7 @@ class StudyMySqlRepository @Inject() (
 
   override def getMyAllStudiesAs(
       userId: UserId,
-      pag: Pagination, resourceType: String
+      pag: Pagination, resourceUserType: String
   ): Future[List[Study]] =
     Future {
       val r = resourceMySqlRepository.syntax("r")
@@ -269,11 +269,9 @@ class StudyMySqlRepository @Inject() (
             .where
             .eq(ru.userId, userId.id)
             .and
-            .eq(ru.resourceUserType, resourceType)
+            .eq(ru.resourceUserType, resourceUserType)
             .and
             .eq(ru.deleted, false)
-            .and
-            .eq(ru.resourceUserType, resourceType)
             .orderBy(orderBy: _*)
             .append(ScalikeUtil.pag(pag))
 

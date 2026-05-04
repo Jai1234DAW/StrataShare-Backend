@@ -75,7 +75,7 @@ PUT          /:studyId                                      dev.pompilius.study.
 #         $ref: '#/components/schemas/StudyList'
 #      description: List of studies for the user  or all samples matching the search criteria
 ###
-GET        /mine                                                      dev.pompilius.study.infrastructure.controllers.StudyController.getAllMyStudies(pag: Pagination, userType: String  )
+GET        /mine                                                      dev.pompilius.study.infrastructure.controllers.StudyController.getAllMyStudies(pag: Pagination, resourceUserType: String  )
 
 ###
 #  summary: Get all studies by filters
