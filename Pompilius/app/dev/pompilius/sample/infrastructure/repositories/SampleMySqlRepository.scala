@@ -159,7 +159,6 @@ class SampleMySqlRepository @Inject() (
       )
     }
 
-
     val sampleTypeFilter = filter.sampleType.map { sampleType =>
       sqls.like(sqls.lower(s.sampleType), ScalikeUtil.normalizeSearch(sampleType.toLowerCase))
     }

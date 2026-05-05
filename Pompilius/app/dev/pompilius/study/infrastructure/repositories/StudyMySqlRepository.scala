@@ -118,12 +118,26 @@ class StudyMySqlRepository @Inject() (
   private def filterToSqlSyntax(filter: StudyFilter): Option[SQLSyntax] = {
 
     val searchFilter = filter.search.map { search =>
-      val normalizedSearch = ScalikeUtil.normalizeSearch(search)
+      val re = resourceMySqlRepository.syntax("re")
+      val value = ScalikeUtil.normalizeSearch(search.toLowerCase)
+
       sqls.roundBracket(
         sqls
-          .like(st.description, normalizedSearch)
+          .like(sqls.lower(st.description), value)
           .or
-          .like(st.authors, normalizedSearch)
+          .like(sqls.lower(st.authors), value)
+          .or
+          .like(sqls.lower(st.area), value)
+          .or
+          .exists(
+            select(sqls"1")
+              .from(resourceMySqlRepository as re)
+              .where
+              .eq(re.id, st.resourceId)
+              .and
+              .like(sqls.lower(re.name), value)
+              .toSQLSyntax
+          )
       )
     }
 
