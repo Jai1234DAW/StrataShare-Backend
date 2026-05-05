@@ -69,7 +69,7 @@ INSERT INTO `resource` (
       (835125411154232003, 'Reynisfjara columnar basalt ISL-BC-2023-08', 'SAMPLE', 'PUBLIC', NOW(), NOW(),
        'Iceland - Reynisfjara basalt columns',
        'Hexagonal column fragment typical of slow cooling. Excellent educational example.',
-       'Columnar basalt from Icelandic black beach', 0, 1),
+       'Columnar basalt from Icelandic black beach', 0, 0),
 
       (835125411154232004, 'El Teniente hydrothermal breccia TEN-BX-2024-03', 'SAMPLE', 'PUBLIC', NOW(), NOW(),
        'El Teniente Mine, Chile',
