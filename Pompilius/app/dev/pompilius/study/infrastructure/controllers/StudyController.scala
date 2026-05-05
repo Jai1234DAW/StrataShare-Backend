@@ -383,11 +383,12 @@ class StudyController @Inject() (
         case (_, user, _) =>
           for {
 
-            studies <- userType.toUpperCase.replace(" ","_") match {
+            studies <- userType.toUpperCase.replace(" ", "_") match {
               case "OWNER" =>
                 studyRepository.getMyAllStudiesAs(userId = user.id, pag.oneMore, ResourceUserType.OWNER.toString)
               case "ACCEPTED_AS_PAYMENT" =>
-                studyRepository.getMyAllStudiesAs(userId = user.id, pag.oneMore, ResourceUserType.ACCEPTED_AS_PAYMENT.toString)
+                studyRepository
+                  .getMyAllStudiesAs(userId = user.id, pag.oneMore, ResourceUserType.ACCEPTED_AS_PAYMENT.toString)
 
               case "PURCHASED" =>
                 studyRepository.getMyAllStudiesAs(userId = user.id, pag.oneMore, ResourceUserType.PURCHASED.toString)
