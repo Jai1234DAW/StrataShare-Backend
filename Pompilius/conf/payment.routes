@@ -28,7 +28,7 @@ POST         /create-intent                                 dev.pompilius.paymen
 #        schema:
 #         $ref: '#/components/schemas/PaymentList'
 ###
-GET         /                                              dev.pompilius.payment.infrastructure.controllers.PaymentController.getMyPayments(pag: Pagination)
+GET         /                                              dev.pompilius.payment.infrastructure.controllers.PaymentController.getMyPaymentsAs(pag: Pagination, paymentRole)
 
 ###
 #  summary: Get status for a specific payment
