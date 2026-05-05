@@ -93,7 +93,9 @@ class ResourceUserMySqlRepository @Inject() (
           selectFrom(this as ru).where
             .eq(ru.userId, userId.id)
             .and
-            .eq(ru.resourceUserType, resourceUserType.toString)
+            .eq(ru.resourceUserType, resourceUserType.value)
+            .and
+            .eq(ru.deleted, false)
             .orderBy(ru.created)
             .desc
             .append(ScalikeUtil.pag(pag))
