@@ -28,15 +28,15 @@ class ResourceAccessValidatorImpl @Inject() (
     extends ResourceAccessValidator {
 
   def verifyOwnership(resourceId: ResourceId, userId: UserId): Future[Unit] = {
-
     resourceUserRepository
       .findByUserAndType(userId, ResourceUserType.OWNER, Pagination.all)
-      .flatMap { resourceIds =>
-        if (resourceIds.contains(resourceId)) {
-          Future.successful(())
+      .flatMap { resources =>
+        val ownsResource = resources.exists(_.id == resourceId.id)
+
+        if (ownsResource) {
           validateResourceIsActive(resourceId, userId)
         } else {
-            Future.failed(new ForbiddenException("You don't have ownership of this resource"))
+          Future.failed(new ForbiddenException("You don't have ownership of this resource"))
         }
       }
   }
@@ -93,9 +93,9 @@ class ResourceAccessValidatorImpl @Inject() (
             ResourceAccessLevel.OWNER
 
           case Some(ru)
-            if !ru.deleted &&
-              (ru.resourceUserType == ResourceUserType.PURCHASED ||
-                ru.resourceUserType == ResourceUserType.ACCEPTED_AS_PAYMENT) =>
+              if !ru.deleted &&
+                (ru.resourceUserType == ResourceUserType.PURCHASED ||
+                  ru.resourceUserType == ResourceUserType.ACCEPTED_AS_PAYMENT) =>
             ResourceAccessLevel.FULL_ACCESS
 
           case _ =>
