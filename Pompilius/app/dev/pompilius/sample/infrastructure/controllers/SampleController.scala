@@ -138,6 +138,8 @@ class SampleController @Inject() (
               location = updateSampleRequest.location.getOrElse(resource.location),
               observations = updateSampleRequest.observations.orElse(resource.observations),
               summary = updateSampleRequest.summary.orElse(resource.summary),
+              price = updateSampleRequest.price.orElse(resource.price),
+              isBarter = updateSampleRequest.isBarter.getOrElse(resource.isBarter),
               updated = clock.now
             )
 

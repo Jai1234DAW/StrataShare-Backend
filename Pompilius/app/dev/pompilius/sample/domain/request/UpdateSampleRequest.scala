@@ -10,6 +10,8 @@ case class UpdateSampleRequest(
     location: Option[String] = None,
     observations: Option[String] = None,
     summary: Option[String] = None,
+    price: Option[BigDecimal] = None,
+    isBarter: Option[Boolean] = None,
     // Datos específicos (Sample)
     collectedDate: Option[DateTime] = None,
     minerals: Option[String] = None,

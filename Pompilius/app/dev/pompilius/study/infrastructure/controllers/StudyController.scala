@@ -232,6 +232,8 @@ class StudyController @Inject() (
               location = updateStudyRequest.location.getOrElse(resource.location),
               observations = updateStudyRequest.observations.orElse(resource.observations),
               summary = updateStudyRequest.summary.orElse(resource.summary),
+              price = updateStudyRequest.price.orElse(resource.price),
+              isBarter = updateStudyRequest.isBarter.getOrElse(resource.isBarter),
               updated = clock.now
             )
 
@@ -281,6 +283,9 @@ class StudyController @Inject() (
                 )
 
             json <- accessLevel match {
+              case ResourceAccessLevel.OWNER =>
+                resourceWriter.asPublic(resource, accessLevel, ownerId, None, Some(study))
+
               case ResourceAccessLevel.FULL_ACCESS =>
                 resourceWriter.asPublic(resource, accessLevel, ownerId, None, Some(study))
 
@@ -503,8 +508,12 @@ class StudyController @Inject() (
             // Validar acceso - solo pueden ver muestras si tienen acceso completo
             accessLevel <- resourceAccessValidator.getAccessLevel(resource.id, user.id)
             _ <- accessLevel match {
+              case ResourceAccessLevel.OWNER =>
+                Future.successful(())
+
               case ResourceAccessLevel.FULL_ACCESS =>
                 Future.successful(())
+
               case _ =>
                 // Solo tiene preview, no puede ver las muestras asociadas
                 Future.failed(
