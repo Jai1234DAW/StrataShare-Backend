@@ -19,6 +19,8 @@ object UpdateSampleRequestParser {
       (__ \ Strings.location).readNullable[String] and
       (__ \ Strings.observations).readNullable[String].map(_.map(StringUtil.stripTags)) and
       (__ \ Strings.summary).readNullable[String].map(_.map(StringUtil.stripTags)) and
+      (__ \  Strings.price).readNullable[BigDecimal] and
+      (__ \ Strings.isBarter).readNullable[Boolean] and
       (__ \ Strings.collectedDate)
         .readNullable[DateTime]
         .map(_.map(_.withZone(DateTimeZone.UTC).withTimeAtStartOfDay()))

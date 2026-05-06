@@ -665,7 +665,7 @@
   },
   "StudyResource": {
     "properties": {
-      "id": {
+      "resourceId": {
         "type": "string",
         "default": "3gqbdpbym4ua",
         "required": true,
@@ -725,7 +725,7 @@
         "required": true,
         "description": "ID of the user who owns the resource"
       },
-      "studyId": {
+      "id": {
         "type": "string",
         "default": "study123456",
         "required": true,
@@ -762,7 +762,7 @@
   },
   "UpdateStudyRequest": {
     "properties": {
-      "naame": {
+      "name": {
         "type": "string",
         "default": "Study name",
         "required": true
@@ -786,6 +786,17 @@
         "type": "string",
         "default": "Study summary",
         "required": false
+      },
+      "price": {
+        "type": "number",
+        "format": "float",
+        "default": 100.00,
+        "required": false
+      },
+      "isBarter": {
+        "type": "boolean",
+        "default": false,
+        "required": true
       },
       "startDate": {
         "type": "string",
@@ -813,6 +824,31 @@
         "type": "string",
         "default": "GEOPHYSICS",
         "required": true
+      },
+      "methods": {
+        "type": "string",
+        "default": "SISMIC, ELECTRICAL",
+        "required": true
+      },
+      "authors": {
+        "type": "string",
+        "default": "\"John Doe, Jane Smith\"",
+        "required": true
+      },
+      "section": {
+        "type": "boolean",
+        "default": false,
+        "required": true
+      },
+      "antecedents": {
+        "type": "boolean",
+        "default": false,
+        "required": true
+      },
+      "nameSection": {
+        "type": "string",
+        "default": "Calculations",
+        "required": false
       }
     }
   },

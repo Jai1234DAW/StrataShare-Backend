@@ -11,6 +11,8 @@ case class UpdateStudyRequest(
     location: Option[String] = None,
     observations: Option[String] = None,
     summary: Option[String] = None,
+    price: Option[BigDecimal] = None,
+    isBarter: Option[Boolean] = None,
     // Datos específicos (Study)
 
     startDate: Option[DateTime] = None,
