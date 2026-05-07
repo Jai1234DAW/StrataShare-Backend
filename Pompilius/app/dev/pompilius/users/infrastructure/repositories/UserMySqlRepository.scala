@@ -116,8 +116,8 @@ class UserMySqlRepository @Inject() (
                   sqls.empty
               }
             )
-            .orderBy(u.id)
-            .desc
+            .orderBy(u.username, u.id)
+            .asc
             .append(
               ScalikeUtil.pag(pag)
             )
@@ -171,7 +171,7 @@ class UserMySqlRepository @Inject() (
           column.username -> user.username,
           column.passwordHash -> user.passwordHash,
           column.email -> user.email,
-          column.interests -> user.interests.mkString(","),
+          column.interests -> user.interests.map(_.mkString(",")),
           column.phone -> user.phone,
           column.enabled -> user.enabled,
           column.firstName -> user.firstName,
