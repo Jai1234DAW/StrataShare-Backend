@@ -38,7 +38,6 @@ class AuthController @Inject() (
     requestLogger: RequestLogger,
     mailTokenWriter: MailTokenWriter,
     mailSmtpRepository: MailSmtpRepository,
-    environment: play.Environment,
     implicit val cacheApi: AsyncCacheApi
 )(implicit ec: ExecutionContext)
     extends BaseController {
@@ -260,9 +259,6 @@ class AuthController @Inject() (
                   // Creamos el link de autenticación, que ira en el correo.
                   val link =
                     UrlUtil.addQueryParameters(configuration.auth.resetPasswordUrl, Map(Strings.token -> token))
-                  // Creamos el contenido del email usando una plantilla HTML
-
-                  //val logo=configuration.baseUrl+routes.Assets.versioned("images/stratashare02.png").toString
 
                   val mailContent =
                     dev.pompilius.auth.infrastructure.views.html.reset_password_email(link)(messages)

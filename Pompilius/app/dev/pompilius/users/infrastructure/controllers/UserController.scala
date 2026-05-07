@@ -432,7 +432,9 @@ class UserController @Inject() (
           val followedUserId = UserId(userId)
           for {
             _ <- userRepository.findById(followedUserId).map {
-              case Some(_) =>
+              case Some(idUser) => if (idUser.id == currentUser.id) {
+                  throw new BadRequestException("You cannot follow yourself")
+                }
               case None =>
                 throw new UserNotFoundException(s"User with id $userId not found")
             }

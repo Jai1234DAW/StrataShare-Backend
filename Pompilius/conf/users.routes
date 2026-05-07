@@ -84,7 +84,7 @@ PUT       /me/password                               dev.pompilius.users.infrast
 #      content:
 #        application/json:
 #          schema:
-#            $ref: '#/components/schemas/Attachment'
+#            $ref: '#/components/schemas/User'
 ###
 POST    /me/avatar                                     dev.pompilius.users.infrastructure.controllers.UserController.uploadMyAvatar()
 
@@ -107,7 +107,7 @@ POST    /me/avatar                                     dev.pompilius.users.infra
 #      content:
 #        application/json:
 #          schema:
-#            $ref: '#/components/schemas/Attachment'
+#            $ref: '#/components/schemas/User'
 ###
 POST    /me/coverPhoto                                     dev.pompilius.users.infrastructure.controllers.UserController.uploadMyCoverPhoto()
 
@@ -146,7 +146,7 @@ PUT        /me/delete                     dev.pompilius.users.infrastructure.con
 #         $ref: '#/components/schemas/UserList'
 #      description: List of users matching the search criteria
 ###
-GET         /search                        dev.pompilius.users.infrastructure.controllers.UserController.searchUsers( search : Option[String], username: Option[String], firstName: Option[String], lastName: Option[String], country: Option[String], pag: Pagination)
+GET         /search                        dev.pompilius.users.infrastructure.controllers.UserController.searchUsers(search : Option[String], username: Option[String], firstName: Option[String], lastName: Option[String], country: Option[String], pag: Pagination)
 
 ###
 #  summary: Follow a user

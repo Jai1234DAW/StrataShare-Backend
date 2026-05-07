@@ -21,7 +21,7 @@ object UpdateUserRequestParser {
       (__ \ Strings.country).read[String](ReadsUtil.countryCode).map(Country.withNameInsensitive) and
       (__ \ Strings.language).readNullable[String](ReadsUtil.language).map(_.map(lang => Lang(lang))) and
       (__ \ Strings.bio).readNullable[String].map(_.map(StringUtil.stripTags))
-  )(UpdateUserRequest.apply _)
+    )(UpdateUserRequest.apply _)
 
   def parse[A](request: Request[A]): UpdateUserRequest = {
     request.body match {

@@ -16,6 +16,14 @@
         "default": "email@domain.com",
         "required": true
       },
+      "interests": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "nullable": true,
+        "default": ["Geology", "Mineralogy"]
+      },
       "phone": {
         "type": "string",
         "default": "666123456",
@@ -58,6 +66,14 @@
         "type": "string",
         "format": "date-time",
         "default": "2022-01-01T12:30:00Z",
+        "required": true
+      },
+      "roles": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "default": "STUDENT"
+        },
         "required": true
       }
     }
@@ -150,12 +166,12 @@
     }
   },
   "UserSession": {
+    "session": {
+      "$ref": "#/components/schemas/Session"
+    },
     "properties": {
       "user": {
         "$ref": "#/components/schemas/User"
-      },
-      "session": {
-        "$ref": "#/components/schemas/Session"
       },
       "roles": {
         "type": "array",
