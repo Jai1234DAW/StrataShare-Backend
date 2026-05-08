@@ -44,7 +44,7 @@ class PaymentWriterImpl @Inject() (configuration: Configuration)(implicit ec: Ex
     for {
       baseJson <- toJson(transaction, payment)
     } yield {
-      val finalJson = Json.obj(
+      val finalJson = baseJson.as[JsObject] ++Json.obj(
         List(
           toJsValueWrapper(Strings.netAmount, payment.netAmount), // se usa aquí usamos el avatar resuelto
           toJsValueWrapper(Strings.currency, payment.currency),
@@ -60,7 +60,7 @@ class PaymentWriterImpl @Inject() (configuration: Configuration)(implicit ec: Ex
     for {
       baseJson <- toJson(transaction, payment)
     } yield {
-      val finalJson = Json.obj(
+      val finalJson = baseJson.as[JsObject] ++ Json.obj(
         List(
           toJsValueWrapper(Strings.netAmount, payment.netAmount), // se usa aquí usamos el avatar resuelto
           toJsValueWrapper(Strings.currency, payment.currency),
@@ -75,7 +75,7 @@ class PaymentWriterImpl @Inject() (configuration: Configuration)(implicit ec: Ex
     for {
       baseJson <- toJson(transaction, payment)
     } yield {
-      val finalJson = Json.obj(
+      val finalJson = baseJson.as[JsObject] ++ Json.obj(
         List(
           toJsValueWrapper(Strings.netAmount, payment.netAmount), // se usa aquí usamos el avatar resuelto
           toJsValueWrapper(Strings.currency, payment.currency),

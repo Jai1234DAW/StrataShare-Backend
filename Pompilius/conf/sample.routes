@@ -64,7 +64,7 @@ POST         /create                                        dev.pompilius.sample
 POST         /fullCreate                                        dev.pompilius.sample.infrastructure.controllers.SampleController.createWithAttachments
 
 ###
-#  summary: Get all sample by search criteria (name, type, rock type, freshness) and/or user ID
+#  summary: Get all samples by search criteria (name, type, rock type, freshness) and/or user ID
 #  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL","AMATEUR"]}
 #  parameters:
 #    - name: name
@@ -109,7 +109,7 @@ GET        /                                              dev.pompilius.sample.i
 
 
 ###
-#  summary: Get all sample for a current User
+#  summary: Get all samples for a current User
 #  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL","AMATEUR"]}
 #  parameters:
 #  responses:

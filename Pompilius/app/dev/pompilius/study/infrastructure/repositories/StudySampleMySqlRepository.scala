@@ -62,7 +62,11 @@ class StudySampleMySqlRepository @Inject() (
     Future {
       DB.localTx { implicit session =>
         withSQL {
-          deleteFrom(this).where.eq(ss.studyId, studyId.id).and.eq(ss.sampleId, sampleId.id)
+          deleteFrom(this as ss)
+            .where
+            .eq(ss.studyId, studyId.id)
+            .and
+            .eq(ss.sampleId, sampleId.id)
         }.update()
       }
       Done

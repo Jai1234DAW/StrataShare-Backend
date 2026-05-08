@@ -31,14 +31,12 @@ GET     /admin/all                          dev.pompilius.badge.infrastructure.c
 #      required: true
 #      content:
 #       multipart/form-data:
-#        schema:
-#         type: object
-#         properties:
-#          file:
-#           type: array
-#           items:
-#            type: string
-#            format: binary
+#         schema:
+#           type: object
+#           properties:
+#             file:
+#               type: string
+#               format: binary
 #  responses:
 #    200:
 #      content:

@@ -1564,7 +1564,7 @@
       }
     }
   },
-  "ResourceStatics": {
+  "ResourceStatistics": {
     "properties": {
       "averageRating": {
         "type": "number",
@@ -1751,7 +1751,67 @@
           "description": "Indicates if there are more items available beyond the current list"
         }
       }
+    },
+  "Resource": {
+    "properties": {
+      "id": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": true,
+        "description": "ID of the resource"
+      },
+      "name": {
+        "type": "string",
+        "default": "Resource name",
+        "required": true,
+        "description": "Name of the resource"
+      },
+      "resourceType": {
+        "type": "string",
+        "default": "STUDY",
+        "required": true,
+        "description": "Type of the resource (e.g., STUDY, SAMPLE)"
+      },
+      "visibility": {
+        "type": "string",
+        "default": "public",
+        "required": true,
+        "description": "Visibility of the resource (e.g., public, private)"
+      },
+      "location": {
+        "type": "string",
+        "default": "Resource location",
+        "required": true,
+        "description": "Location associated with the resource"
+      },
+      "observations": {
+        "type": "string",
+        "default": "Resource observations",
+        "required": false,
+        "description": "Additional observations or notes about the resource"
+      },
+      "summary": {
+        "type": "string",
+        "default": "Resource summary",
+        "required": false,
+        "description": "Short summary or description of the resource"
+      },
+      "created": {
+        "type": "string",
+        "format": "date-time",
+        "default": "2026-03-30T10:30:00Z",
+        "required": true,
+        "description": "Timestamp when the resource was created"
+      },
+      "updated": {
+        "type": "string",
+        "format": "date-time",
+        "default": "2026-03-30T10:30:00Z",
+        "required": true,
+        "description": "Timestamp when the resource was last updated"
+      }
     }
+  }
 }
 
 

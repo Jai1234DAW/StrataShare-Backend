@@ -9,7 +9,7 @@ INSERT INTO `resource` (
 (835125411154232009, 'Pumice from Mount St. Helens eruption', 'SAMPLE', 'PRIVATE', NOW(), NOW(),
  'Mount St. Helens, Washington, USA',
  'Highly vesicular pumice from 2000 eruption. Well-preserved pyroclastic texture.',
- 'Dacitic pumice from plinian eruption', 0, 0);
+ 'Dacitic pumice from plinian eruption', 40, 0);
 
 INSERT INTO `sample` (
     `id`, `resource_id`, `collected_date`, `minerals`, `collection_methods`,
@@ -30,7 +30,7 @@ INSERT INTO `resource` (
     (835125411154232010, 'Limestone with trilobite fossils', 'SAMPLE', 'PUBLIC', NOW(), NOW(),
      'Burgess Shale, British Columbia, Canada',
      'Middle Cambrian limestone with exceptionally preserved trilobite fossils.',
-     'Fossiliferous limestone with arthropod fauna', 35.00, 0);
+     'Fossiliferous limestone with arthropod fauna', 0.00, 0);
 
 INSERT INTO `sample` (
     `id`, `resource_id`, `collected_date`, `minerals`, `collection_methods`,
@@ -89,7 +89,7 @@ INSERT INTO `resource` (
     (835125411154232013, 'Shale with graptolite fossils', 'SAMPLE', 'PUBLIC', NOW(), NOW(),
      'Lake District, England',
      'Ordovician black shale with well-preserved graptolite colonies.',
-     'Fossiliferous shale with planktonic fauna', 22.50, 0);
+     'Fossiliferous shale with planktonic fauna', 0.0, 0);
 
 INSERT INTO `sample` (
     `id`, `resource_id`, `collected_date`, `minerals`, `collection_methods`,
@@ -109,7 +109,7 @@ INSERT INTO `resource` (
     `id`, `name`, `resource_type`, `visibility`, `created`, `updated`,
     `location`, `observations`, `summary`, `price`, `is_barter`
 ) VALUES
-      (835125411154232014, 'Amethyst geode cluster', 'SAMPLE', 'PUBLIC', NOW(), NOW(),
+      (835125411154232014, 'Amethyst geode cluster', 'SAMPLE', 'PRIVATE', NOW(), NOW(),
        'Rio Grande do Sul, Brazil',
        'Purple amethyst crystals in geode cavity. Crystals up to 5cm length.',
        'Amethyst quartz crystal geode', 45.00, 0),

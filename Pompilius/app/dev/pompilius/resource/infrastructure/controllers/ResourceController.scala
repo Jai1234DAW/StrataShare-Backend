@@ -7,10 +7,12 @@ import dev.pompilius.attachment.infrastructure.writers.AttachmentWriter
 import dev.pompilius.resource.domain.exceptions.ResourceNotFoundException
 import dev.pompilius.resource.domain.{ResourceAccessLevel, ResourceId, ResourceRepository, ResourceUserRepository}
 import dev.pompilius.resource.infrastructure.ResourceAccessValidator
+import dev.pompilius.resource.infrastructure.writers.ResourceWriter
 import dev.pompilius.shared.domain.Pagination
 import dev.pompilius.shared.domain.exceptions.{BadRequestException, ForbiddenException}
 import dev.pompilius.shared.infrastructure.BaseController
 import dev.pompilius.users.domain.Role
+import dev.pompilius.users.domain.Role.AMATEUR
 import play.api.libs.Files
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MultipartFormData}
@@ -25,10 +27,34 @@ class ResourceController @Inject() (
     attachmentRepository: AttachmentRepository,
     resourceAccessValidator: ResourceAccessValidator,
     attachmentWriter: AttachmentWriter,
-    resourceUserRepository:ResourceUserRepository
+    resourceUserRepository:ResourceUserRepository,
+    resourceWriter: ResourceWriter
 )(implicit val ec: ExecutionContext)
     extends BaseController
     with Attachments {
+
+  def getResourceInfo(resourceId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      withAnyOfThisRoles(Seq(Role.STUDENT, Role.PROFESSIONAL, Role.AMATEUR)) {
+        case (_, user, _,_) =>
+          val rid = ResourceId(resourceId)
+
+          for {
+            resource <-
+              resourceRepository
+                .findById(rid)
+                .map(_.getOrElse(throw new ResourceNotFoundException(s"Resource $rid not found")))
+
+            accessLevel <- resourceAccessValidator.getAccessLevel(rid, user.id)
+
+            response <- resourceWriter.toJson(
+              resource,
+              accessLevel,
+              user.id
+            )
+          } yield Ok(response)
+      }
+    }
 
   def uploadFiles(resourceId: String): Action[MultipartFormData[Files.TemporaryFile]] =
     Action.async(parse.multipartFormData) { implicit request =>

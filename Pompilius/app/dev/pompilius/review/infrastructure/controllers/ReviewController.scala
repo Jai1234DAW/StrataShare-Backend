@@ -7,7 +7,7 @@ import dev.pompilius.review.domain.{Review, ReviewId, ReviewRepository}
 import dev.pompilius.review.infrastructure.parsers.{CreateReviewRequestParser, UpdateReviewRequestParser}
 import dev.pompilius.review.infrastructure.writers.ReviewWriter
 import dev.pompilius.shared.domain.exceptions.{BadRequestException, ForbiddenException}
-import dev.pompilius.shared.domain.{Clock, Paginated, Pagination}
+import dev.pompilius.shared.domain.{Clock, Paginated, Pagination, Visibility}
 import dev.pompilius.shared.infrastructure.BaseController
 import dev.pompilius.shared.infrastructure.writers.PaginatedWriter
 import dev.pompilius.users.domain.{Role, UserRepository}
@@ -37,45 +37,56 @@ class ReviewController @Inject() (
         case (_, user, _, _) =>
           val createRequest = CreateReviewRequestParser.parse(request)
           val resourceId = ResourceId(createRequest.resourceId)
-          for {
 
-            // Verificar que el recurso existe
+          for {
             resource <-
               resourceRepository
                 .findById(resourceId)
                 .map(_.getOrElse(throw new ResourceNotFoundException(s"Resource $resourceId not found")))
-            // Verificar que el usuario tiene acceso al recurso (lo compró o recibió)
+
             resourceUser <-
               resourceUserRepository
                 .findByResourceAndUser(resourceId, user.id)
-                .map(_.getOrElse(throw new ForbiddenException("You must own this resource to review it")))
-            _ = if (resourceUser.deleted) {
+
+            _ = if (resource.visibility != Visibility.PUBLIC && resourceUser.isEmpty) {
+              throw new ForbiddenException("You don't have access to review this resource")
+            }
+
+            _ = if (resourceUser.exists(_.deleted)) {
               throw new ForbiddenException("You no longer have access to this resource")
             }
-            _ = if (resourceUser.resourceUserType == ResourceUserType.OWNER) {
+
+            _ = if (resourceUser.exists(_.resourceUserType == ResourceUserType.OWNER)) {
               throw new ForbiddenException("You cannot review your own resource")
             }
-            // Verificar que no tiene ya una review
-            existingReview <- reviewRepository.findByResourceAndUser(resourceId, user.id)
+
+            existingReview <-
+              reviewRepository.findByResourceAndUser(resourceId, user.id)
+
             _ = if (existingReview.isDefined) {
               throw new BadRequestException("You already reviewed this resource")
             }
-            // Validar rating
+
             _ = if (createRequest.rating < 1 || createRequest.rating > 5) {
               throw new BadRequestException("Rating must be between 1 and 5")
             }
-            // Crear review
+
             reviewId = ReviewId.gen(configuration.nodeId)
+
+            now = clock.now
+
             review = Review(
               id = reviewId,
               resourceId = resourceId,
               userId = user.id,
               rating = createRequest.rating,
               comment = createRequest.comment,
-              createdAt = clock.now,
-              updatedAt = clock.now
+              createdAt = now,
+              updatedAt = now
             )
+
             _ <- reviewRepository.save(review)
+
             json <- reviewWriter.asJsonWithUsername(review, user.username)
           } yield Ok(json)
       }

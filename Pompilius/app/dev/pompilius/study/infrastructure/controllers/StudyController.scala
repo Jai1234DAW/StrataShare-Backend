@@ -13,15 +13,12 @@ import dev.pompilius.shared.domain.{Clock, Paginated, Pagination, Visibility}
 import dev.pompilius.shared.infrastructure.BaseController
 import dev.pompilius.shared.infrastructure.writers.PaginatedWriter
 import dev.pompilius.study.domain._
-import dev.pompilius.study.infrastructure.parsers.{
-  AddSamplesToStudyRequestParser,
-  CreateStudyRequestParser,
-  UpdateStudyRequestParser
-}
+import dev.pompilius.study.infrastructure.parsers.{AddSamplesToStudyRequestParser, CreateStudyRequestParser, UpdateStudyRequestParser}
 import dev.pompilius.study.infrastructure.writers.StudySampleWriter
 import dev.pompilius.users.domain.{Role, UserId}
 import play.api.Logger
 import play.api.libs.Files
+import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MultipartFormData}
 
 import javax.inject._
@@ -525,8 +522,9 @@ class StudyController @Inject() (
             studySamples <- studySampleRepository.getAllByStudyId(sid)
 
             // Usar paginatedWriter para generar JSON paginado
-            json <- paginatedWriter.toJson(Paginated(studySamples, pag)) { studySample =>
-              studySampleWriter.asJson(studySample)
+              json <- paginatedWriter.toJson(Paginated(studySamples, pag)) { studySample =>
+              Future.successful(Json.toJson(studySample.sampleId.toString))
+
             }
           } yield {
             Ok(json)

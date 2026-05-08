@@ -15,7 +15,7 @@
 #        schema:
 #         $ref: '#/components/schemas/Review'
 ###
-POST         /                                                     dev.pompilius.review.infrastructure.controllers.ReviewController.create()
+POST         /create                                                     dev.pompilius.review.infrastructure.controllers.ReviewController.create()
 
 ###
 #  summary: Update a review for a resource
