@@ -295,7 +295,7 @@ class SampleMySqlRepository @Inject() (
               Some(if (desc) r.created.desc else r.created.asc)
 
             case Strings.name =>
-              Some(if (desc) r.name.asc else r.name.desc)
+              Some(if (desc) r.name.desc else r.name.asc)
 
             case _ =>
               None

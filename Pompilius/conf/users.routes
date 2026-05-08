@@ -29,7 +29,7 @@ GET           /:userId/coverPhoto                             dev.pompilius.user
 #    200:
 #      description: Success
 ###
-POST         /registerUser                                  dev.pompilius.users.infrastructure.controllers.UserController.registerUser
+POST         /create                                      dev.pompilius.users.infrastructure.controllers.UserController.registerUser
 
 ###
 #  summary: Update user info

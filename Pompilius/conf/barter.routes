@@ -85,3 +85,33 @@ GET          /successful/requests                          dev.pompilius.barter.
 #          $ref: '#/components/schemas/BarterRequestResponse'
 ###
 GET          /successful/sales                             dev.pompilius.barter.infrastructure.controllers.BarterController.getMySalesSuccessfulBarters(pag:Pagination)
+
+###
+#  summary: Get all pending barter requests for the current user
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL"]}
+#  responses:
+#    200:
+#      description: List of pending barter
+#      content:
+#       application/json:
+#        schema:
+#         type: array
+#         items:
+#          $ref: '#/components/schemas/BarterRequestResponse'
+###
+GET          /pending/requests                             dev.pompilius.barter.infrastructure.controllers.BarterController.getMyPendingBarters(pag:Pagination)
+
+###
+#  summary: Get all pending barter requests where the current user is the seller
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL"]}
+#  responses:
+#    200:
+#      description: List of pending barter where the current user is the seller
+#      content:
+#       application/json:
+#        schema:
+#         type: array
+#         items:
+#          $ref: '#/components/schemas/BarterRequestResponse'
+###
+GET          /pending/sales                                dev.pompilius.barter.infrastructure.controllers.BarterController.getMyPendingBartersToAnswer(pag:Pagination)

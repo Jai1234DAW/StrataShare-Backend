@@ -85,7 +85,30 @@ class BadgeController @Inject() (
           } yield Ok(json)
       }
     }
-
+//  def uploadMyAvatar(): Action[MultipartFormData[Files.TemporaryFile]] =
+//    Action.async(parse.multipartFormData) { implicit request =>
+//      withAuthenticatedUser {
+//        case (_, user, _) =>
+//          for {
+//            attachment <- uploadImage(
+//              user = user,
+//              body = request.body,
+//              maxWidth = configuration.attachments.avatars.maxWidth,
+//              maxHeight = configuration.attachments.avatars.maxHeight
+//            )
+//            updateUser = user.copy(
+//              updated = clock.now,
+//              avatar = Some(attachment.id)
+//            )
+//            _ <- userRepository.save(updateUser)
+//
+//            _ <- userAttachment.save(UserAttachment(user.id, attachment.id))
+//            updatedUserJson <- userWriter.toJson(updateUser)
+//          } yield {
+//            Ok(updatedUserJson)
+//          }
+//      }
+//    }
   //Elimina la imagen de un badge - solo para admins
 
   def removeBadgeImage(badgeTypeStr: String): Action[AnyContent] =

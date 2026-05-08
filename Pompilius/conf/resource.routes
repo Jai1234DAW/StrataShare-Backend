@@ -51,21 +51,6 @@ POST         /:resourceId/attachments/images                      dev.pompilius.
 ###
 #  summary: List all files of a resource
 #  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL","AMATEUR"]}
-#  parameters:
-#    - name: page
-#      in: query
-#      description: Page number for pagination
-#      required: false
-#      schema:
-#        type: integer
-#        default: 0
-#    - name: size
-#      in: query
-#      description: Number of results per page
-#      required: false
-#      schema:
-#        type: integer
-#        default: 10
 #  responses:
 #    200:
 #      content:
@@ -167,3 +152,18 @@ POST         /:resourceId/attachment/:attachmentId/preview                      
 #      description: Resource or preview image not found
 ###
 GET          /:resourceId/preview                             dev.pompilius.resource.infrastructure.controllers.ResourceController.getPreviewImage(resourceId: String)
+
+###
+#  summary: Get all details of a resource
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL","AMATEUR"]}
+#  responses:
+#    200:
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/Resource'
+#      description: Resource details
+#    404:
+#      description: Resource not found
+###
+GET          /:resourceId/details                             dev.pompilius.resource.infrastructure.controllers.ResourceController.getResourceInfo(resourceId: String)

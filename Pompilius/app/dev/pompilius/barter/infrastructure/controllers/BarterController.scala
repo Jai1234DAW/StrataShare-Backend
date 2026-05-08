@@ -2,16 +2,15 @@ package dev.pompilius.barter.infrastructure.controllers
 
 import dev.pompilius.Strings
 import dev.pompilius.auth.domain.MailToken
-import dev.pompilius.auth.infrastructure.parsers.{MailTokenParser, PasswordResetRequestParser}
+import dev.pompilius.auth.infrastructure.parsers.MailTokenParser
 import dev.pompilius.auth.infrastructure.writers.MailTokenWriter
 import dev.pompilius.barter.domain.exception.{
   BarterAlreadyCompletedException,
   BarterNotAllowException,
-  BarterNotFoundException,
-  BarterRejectedException
+  BarterNotFoundException
 }
 import dev.pompilius.barter.domain.{Barter, BarterData, BarterId, BarterRepository}
-import dev.pompilius.barter.infrastructure.parsers.{MailBarterRequestParser, CreateBarterRequestParser}
+import dev.pompilius.barter.infrastructure.parsers.{CreateBarterRequestParser, MailBarterRequestParser}
 import dev.pompilius.barter.infrastructure.writers.BarterWriter
 import dev.pompilius.mail.domain.{Mail, MailAddress, MailContent, MailSubject}
 import dev.pompilius.mail.infrastructure.repositories.MailSmtpRepository
@@ -22,9 +21,9 @@ import dev.pompilius.shared.infrastructure.{BaseController, UrlUtil}
 import dev.pompilius.transaction.application.TransactionService
 import dev.pompilius.transaction.domain._
 import dev.pompilius.transaction.domain.exceptions.TransactionNotFoundException
-import dev.pompilius.users.domain.{Role, User}
+import dev.pompilius.users.domain.Role
 import play.api.Logger
-import play.api.i18n.{Lang, MessagesImpl}
+import play.api.i18n.{Lang, Messages, MessagesImpl}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent}
 
@@ -407,4 +406,73 @@ class BarterController @Inject() (
       }
     }
 
+  def getMyPendingBarters(pag: Pagination): Action[AnyContent] =
+    Action.async { implicit request =>
+      withAnyOfThisRoles(Seq(Role.STUDENT, Role.PROFESSIONAL)) {
+        case (_, user, _, _) =>
+          for {
+            transactions <- transactionRepository.find(
+              TransactionFilter(
+                buyerId = Some(user.id),
+                sellerId = None,
+                resourceId = None,
+                transactionType = Some(TransactionType.BARTER),
+                transactionStatus = Some(TransactionStatus.PENDING)
+              ),
+              pag.oneMore
+            )
+
+            bartersWithTransactions <- Future.sequence(
+              transactions.map { transaction =>
+                barterRepository
+                  .findByTransactionId(transaction.id)
+                  .map(_.get)
+                  .map(barter => transaction -> barter)
+              }
+            )
+
+            jsons <- Future.sequence(
+              bartersWithTransactions.map {
+                case (transaction, barter) =>
+                  barterWriter.asBuyer(transaction, barter)
+              }
+            )
+          } yield Ok(Json.toJson(jsons))
+      }
+    }
+
+  def getMyPendingBartersToAnswer(pag: Pagination): Action[AnyContent] =
+    Action.async { implicit request =>
+      withAnyOfThisRoles(Seq(Role.STUDENT, Role.PROFESSIONAL)) {
+        case (_, user, _, _) =>
+          for {
+            transactions <- transactionRepository.find(
+              TransactionFilter(
+                buyerId = None,
+                sellerId = Some(user.id),
+                resourceId = None,
+                transactionType = Some(TransactionType.BARTER),
+                transactionStatus = Some(TransactionStatus.PENDING)
+              ),
+              pag.oneMore
+            )
+
+            bartersWithTransactions <- Future.sequence(
+              transactions.map { transaction =>
+                barterRepository
+                  .findByTransactionId(transaction.id)
+                  .map(_.get)
+                  .map(barter => transaction -> barter)
+              }
+            )
+
+            jsons <- Future.sequence(
+              bartersWithTransactions.map {
+                case (transaction, barter) =>
+                  barterWriter.asSeller(transaction, barter)
+              }
+            )
+          } yield Ok(Json.toJson(jsons))
+      }
+    }
 }

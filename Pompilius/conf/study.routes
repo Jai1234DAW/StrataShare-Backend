@@ -161,11 +161,19 @@ DELETE       /:studyId/samples/:sampleId                       dev.pompilius.stu
 #  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL","AMATEUR"]}
 #  responses:
 #    200:
-#      description: Success
+#      description: List of samplesId associated with the study
 #      content:
 #       application/json:
 #        schema:
-#         $ref: '#/components/schemas/SampleList'
+#         type: object
+#         properties:
+#          items:
+#           type: array
+#           items:
+#            type: string
+#            example: "sampleId1"
+#           moreItems:
+#            type: boolean
 ###
 GET          /:studyId/samples                                 dev.pompilius.study.infrastructure.controllers.StudyController.getSamples(studyId: String, pag:Pagination)
 
