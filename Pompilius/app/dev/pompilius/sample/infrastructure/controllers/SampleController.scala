@@ -398,6 +398,11 @@ class SampleController @Inject() (
 
               case "PURCHASED" =>
                 sampleRepository.getMyAllSamplesAs(userId = user.id, pag.oneMore, ResourceUserType.PURCHASED.toString)
+
+                case "BARTERED" =>
+                sampleRepository.getMyAllSamplesAs(userId = user.id, pag.oneMore, ResourceUserType.BARTERED.toString)
+                case _ =>
+                Future.failed(new IllegalArgumentException(s"Invalid userType: $userType"))
             }
 
             json <- paginatedWriter.toJson(Paginated(samples, pag)) { sample =>
@@ -414,6 +419,48 @@ class SampleController @Inject() (
                     )
 
                 json <- resourceWriter.asPublic(resource, ResourceAccessLevel.OWNER, user.id, Some(sample), None)
+              } yield json
+            }
+          } yield Ok(json)
+      }
+    }
+
+  def getAllAcquiredSamples(pag: Pagination): Action[AnyContent] =
+    Action.async { implicit request =>
+      withAuthenticatedUser {
+        case (_, user, _) =>
+          for {
+
+            // Obtener muestras compradas
+            purchasedSamples <- sampleRepository.getMyAllSamplesAs(
+              userId = user.id,
+              pag.oneMore,
+              ResourceUserType.PURCHASED.toString
+            )
+
+            // Obtener muestras conseguidas por barter (aceptadas como pago)
+            barteredSamples <- sampleRepository.getMyAllSamplesAs(
+              userId = user.id,
+              pag.oneMore,
+              ResourceUserType.ACCEPTED_AS_PAYMENT.toString
+            )
+
+            allSamples = (purchasedSamples ++ barteredSamples).distinct
+
+            json <- paginatedWriter.toJson(Paginated(allSamples, pag)) { sample =>
+              for {
+                resource <-
+                  resourceRepository
+                    .findById(sample.resourceId)
+                    .map(
+                      _.getOrElse(
+                        throw new ResourceNotFoundException(
+                          s"Resource not found for sample ${sample.id}"
+                        )
+                      )
+                    )
+
+                json <- resourceWriter.asPublic(resource, ResourceAccessLevel.FULL_ACCESS, user.id, Some(sample), None)
               } yield json
             }
           } yield Ok(json)

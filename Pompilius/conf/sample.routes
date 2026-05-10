@@ -122,6 +122,18 @@ GET        /                                              dev.pompilius.sample.i
 ###
 GET        /mine                                                      dev.pompilius.sample.infrastructure.controllers.SampleController.getAllMySamples(pag: Pagination, resourceUserType: String  )
 
+###
+#  summary: Get all adcquire samples
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL","AMATEUR"]}
+#  responses:
+#    200:
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/SampleList'
+#      description: List of adcquire samples
+###
+GET          /acquired                                         dev.pompilius.sample.infrastructure.controllers.SampleController.getAllAcquiredSamples(pag: Pagination)
 
 ###
 #  summary: Get a sample by ID
