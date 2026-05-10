@@ -394,6 +394,12 @@ class StudyController @Inject() (
 
               case "PURCHASED" =>
                 studyRepository.getMyAllStudiesAs(userId = user.id, pag.oneMore, ResourceUserType.PURCHASED.toString)
+
+              case "BARTERED" =>
+                studyRepository.getMyAllStudiesAs(userId = user.id, pag.oneMore, ResourceUserType.BARTERED.toString)
+
+              case _ =>
+              Future.failed(new IllegalArgumentException("Invalid userType. Must be one of: OWNER, ACCEPTED_AS_PAYMENT, PURCHASED, BARTERED"))
             }
 
             json <- paginatedWriter.toJson(Paginated(studies, pag)) { study =>

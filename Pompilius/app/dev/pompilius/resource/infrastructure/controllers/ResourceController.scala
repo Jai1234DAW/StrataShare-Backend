@@ -5,12 +5,14 @@ import dev.pompilius.attachment.domain.{Attachment, AttachmentId, AttachmentRepo
 import dev.pompilius.attachment.infrastructure.Attachments
 import dev.pompilius.attachment.infrastructure.writers.AttachmentWriter
 import dev.pompilius.resource.domain.exceptions.ResourceNotFoundException
-import dev.pompilius.resource.domain.{ResourceAccessLevel, ResourceId, ResourceRepository, ResourceUserRepository}
+import dev.pompilius.resource.domain.{ResourceAccessLevel, ResourceId, ResourceRepository, ResourceType, ResourceUserRepository}
 import dev.pompilius.resource.infrastructure.ResourceAccessValidator
 import dev.pompilius.resource.infrastructure.writers.ResourceWriter
+import dev.pompilius.sample.domain.SampleRepository
 import dev.pompilius.shared.domain.Pagination
 import dev.pompilius.shared.domain.exceptions.{BadRequestException, ForbiddenException}
 import dev.pompilius.shared.infrastructure.BaseController
+import dev.pompilius.study.domain.StudyRepository
 import dev.pompilius.users.domain.Role
 import dev.pompilius.users.domain.Role.AMATEUR
 import play.api.libs.Files
@@ -28,7 +30,9 @@ class ResourceController @Inject() (
     resourceAccessValidator: ResourceAccessValidator,
     attachmentWriter: AttachmentWriter,
     resourceUserRepository:ResourceUserRepository,
-    resourceWriter: ResourceWriter
+    resourceWriter: ResourceWriter,
+    studyRepository: StudyRepository,
+    sampleRepository: SampleRepository
 )(implicit val ec: ExecutionContext)
     extends BaseController
     with Attachments {
@@ -47,11 +51,27 @@ class ResourceController @Inject() (
 
             accessLevel <- resourceAccessValidator.getAccessLevel(rid, user.id)
 
+
+            sampleOpt <-
+              if (resource.resourceType == ResourceType.SAMPLE)
+                sampleRepository.findByResource(rid)
+              else
+                Future.successful(None)
+
+            studyOpt <-
+              if (resource.resourceType == ResourceType.STUDY)
+                studyRepository.findByResource(rid)
+              else
+                Future.successful(None)
+
             response <- resourceWriter.toJson(
               resource,
               accessLevel,
-              user.id
+              user.id,
+              sampleOpt,
+              studyOpt
             )
+
           } yield Ok(response)
       }
     }

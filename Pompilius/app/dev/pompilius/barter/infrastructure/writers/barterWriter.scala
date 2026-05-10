@@ -43,13 +43,17 @@ class BarterWriterImpl @Inject() (implicit ec: ExecutionContext) extends BarterW
     for {
       baseJson <- toJson(transaction, barter)
     } yield {
-      baseJson.as[JsObject] ++ Json.obj(
-        List(
-          toJsValueWrapper(Strings.sellerId, transaction.sellerId.toString),
-          toJsValueWrapper(Strings.updated, transaction.updated),
-          toJsValueWrapper(Strings.completedAt, transaction.completedSuccessfullyAt)
-        ).flatten: _*
-      )
+      val commonFields = List(
+        toJsValueWrapper(Strings.sellerId, transaction.sellerId.toString),
+        toJsValueWrapper(Strings.updated, transaction.updated)
+      ).flatten
+
+      val completedField =
+        transaction.completedSuccessfullyAt
+          .map(date => toJsValueWrapper(Strings.completedAt, date))
+          .getOrElse(Nil)
+
+      baseJson.as[JsObject] ++ Json.obj((commonFields ++ completedField): _*)
     }
   }
 
@@ -57,13 +61,17 @@ class BarterWriterImpl @Inject() (implicit ec: ExecutionContext) extends BarterW
     for {
       baseJson <- toJson(transaction, barter)
     } yield {
-      baseJson.as[JsObject] ++ Json.obj(
-        List(
-          toJsValueWrapper(Strings.buyerId, transaction.buyerId.toString),
-          toJsValueWrapper(Strings.updated, transaction.updated),
-          toJsValueWrapper(Strings.completedAt, transaction.completedSuccessfullyAt)
-        ).flatten: _*
-      )
+      val commonFields = List(
+        toJsValueWrapper(Strings.buyerId, transaction.buyerId.toString),
+        toJsValueWrapper(Strings.updated, transaction.updated)
+      ).flatten
+
+      val completedField =
+        transaction.completedSuccessfullyAt
+          .map(date => toJsValueWrapper(Strings.completedAt, date))
+          .getOrElse(Nil)
+
+      baseJson.as[JsObject] ++ Json.obj((commonFields ++ completedField): _*)
     }
   }
 

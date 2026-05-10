@@ -1,5 +1,6 @@
 package dev.pompilius.badge.infrastructure.repositories
 
+import dev.pompilius.attachment.domain.AttachmentId
 import dev.pompilius.badge.domain._
 import dev.pompilius.shared.infrastructure.ScalikeUtil
 import dev.pompilius.shared.infrastructure.contexts.DbExecutionContext

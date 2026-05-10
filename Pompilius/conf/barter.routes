@@ -25,12 +25,12 @@ POST         /create                                        dev.pompilius.barter
 #      content:
 #       application/json:
 #        schema:
-#         $ref: '#/components/schemas/MailBarterRequest'
+#         $ref: '#/components/schemas/BarterRequest'
 #  responses:
 #    200:
 #      description: Barter accepted successfully
 ###
-POST         /accept                              dev.pompilius.barter.infrastructure.controllers.BarterController.acceptBarter
+POST         /accept                              dev.pompilius.barter.infrastructure.controllers.BarterController.acceptBarter()
 
 ###
 #  summary: Reject a barter request
@@ -40,7 +40,7 @@ POST         /accept                              dev.pompilius.barter.infrastru
 #      content:
 #       application/json:
 #        schema:
-#         $ref: '#/components/schemas/MailBarterRequest'
+#         $ref: '#/components/schemas/BarterRequest'
 #  responses:
 #    200:
 #      description: Barter rejected successfully
@@ -69,7 +69,7 @@ DELETE       /:barterId/cancel                              dev.pompilius.barter
 #         items:
 #          $ref: '#/components/schemas/BarterRequestResponse'
 ###
-GET          /successful/requests                          dev.pompilius.barter.infrastructure.controllers.BarterController.getMyRequestSuccessfulBarters(uestpag:Pagination)
+GET          /successful/requests                          dev.pompilius.barter.infrastructure.controllers.BarterController.getMyRequestSuccessfulBarters(pag:Pagination)
 
 ###
 #  summary: Get all successful barters where the current id was seller

@@ -166,10 +166,10 @@
     }
   },
   "UserSession": {
-    "session": {
-      "$ref": "#/components/schemas/Session"
-    },
     "properties": {
+      "session": {
+        "$ref": "#/components/schemas/Session"
+      },
       "user": {
         "$ref": "#/components/schemas/User"
       },
@@ -680,6 +680,7 @@
     }
   },
   "StudyResource": {
+    "type": "object",
     "properties": {
       "resourceId": {
         "type": "string",
@@ -741,41 +742,12 @@
         "required": true,
         "description": "ID of the user who owns the resource"
       },
-      "id": {
-        "type": "string",
-        "default": "study123456",
-        "required": true,
-        "description": "Study ID"
-      },
-      "startDate": {
-        "type": "string",
-        "format": "date-time",
-        "default": "2024-01-01T12:30:00Z",
+      "studyData": {
+        "$ref": "#/components/schemas/StudyData",
         "required": true
-      },
-      "endDate": {
-        "type": "string",
-        "format": "date-time",
-        "default": "2024-01-01T12:30:00Z",
-        "required": false
-      },
-      "description": {
-        "type": "string",
-        "default": "Study description",
-        "required": true
-      },
-      "coordinates": {
-        "type": "string",
-        "default": "-34.6037,-58.3816",
-        "required": true
-      },
-      "area": {
-        "type": "string",
-        "default": "GEOPHYSICS",
-        "required": true
+        }
       }
-    }
-  },
+    },
   "UpdateStudyRequest": {
     "properties": {
       "name": {
@@ -1121,6 +1093,22 @@
         "default": "2022-01-01T12:30:00Z",
         "required": false,
         "description": "Timestamp when the barter request was last updated"
+      }
+    }
+  },
+  "BarterRequest": {
+    "properties": {
+      "barterId": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": true,
+        "description": "ID of the barter request"
+      },
+      "transactionId": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": true,
+        "description": "ID of the transaction associated with the barter request"
       }
     }
   },
@@ -1811,7 +1799,71 @@
         "description": "Timestamp when the resource was last updated"
       }
     }
+  },
+  "StudyData": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "default": "study123456",
+        "required": true,
+        "description": "Study ID"
+      },
+      "startDate": {
+        "type": "string",
+        "format": "date-time",
+        "default": "2024-01-01T12:30:00Z",
+        "required": true
+      },
+      "endDate": {
+        "type": "string",
+        "format": "date-time",
+        "default": "2024-01-01T12:30:00Z",
+        "required": false
+      },
+      "description": {
+        "type": "string",
+        "default": "Study description",
+        "required": true
+      },
+      "coordinates": {
+        "type": "string",
+        "default": "-34.6037,-58.3816",
+        "required": true
+      },
+      "area": {
+        "type": "string",
+        "default": "GEOPHYSICS",
+        "required": true
+      },
+      "methods": {
+        "type": "string",
+        "default": "FTIR spectroscopy",
+        "required": false
+      },
+      "authors": {
+        "type": "string",
+        "default": "[\"Laura Martínez\"]",
+        "required": false
+      },
+      "section": {
+        "type": "boolean",
+        "default": true,
+        "required": false
+      },
+      "antecedents": {
+        "type": "boolean",
+        "default": true,
+        "required": false
+      },
+      "nameSection": {
+        "type": "string",
+        "default": "Gemstone formation",
+        "required": false
+      }
+    }
   }
 }
+
 
 

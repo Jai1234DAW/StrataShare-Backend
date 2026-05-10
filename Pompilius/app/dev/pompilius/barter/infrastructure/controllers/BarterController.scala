@@ -4,13 +4,9 @@ import dev.pompilius.Strings
 import dev.pompilius.auth.domain.MailToken
 import dev.pompilius.auth.infrastructure.parsers.MailTokenParser
 import dev.pompilius.auth.infrastructure.writers.MailTokenWriter
-import dev.pompilius.barter.domain.exception.{
-  BarterAlreadyCompletedException,
-  BarterNotAllowException,
-  BarterNotFoundException
-}
+import dev.pompilius.barter.domain.exception.{BarterAlreadyCompletedException, BarterNotAllowException, BarterNotFoundException}
 import dev.pompilius.barter.domain.{Barter, BarterData, BarterId, BarterRepository}
-import dev.pompilius.barter.infrastructure.parsers.{CreateBarterRequestParser, MailBarterRequestParser}
+import dev.pompilius.barter.infrastructure.parsers.{BarterRequestParser, CreateBarterRequestParser, MailBarterRequestParser}
 import dev.pompilius.barter.infrastructure.writers.BarterWriter
 import dev.pompilius.mail.domain.{Mail, MailAddress, MailContent, MailSubject}
 import dev.pompilius.mail.infrastructure.repositories.MailSmtpRepository
@@ -156,28 +152,83 @@ class BarterController @Inject() (
     } yield ()
   }
 
+//  def acceptBarter: Action[AnyContent] =
+//    Action.async { implicit request =>
+//      withAnyOfThisRoles(Seq(Role.STUDENT, Role.PROFESSIONAL)) {
+//        case (_, user, _, _) =>
+//          val acceptRequest = MailBarterRequestParser.parse(request)
+//
+//          // Validar el token del email
+//          val mailToken = MailTokenParser.parse(acceptRequest.token, configuration.mails.tokenSecretKey)
+//
+//          // Validar que el email del token coincide con el email enviado
+//          if (!mailToken.mail.equalsIgnoreCase(acceptRequest.email)) {
+//            throw new BadRequestException("The email does not match the token")
+//          }
+//
+//          // Validar que el email coincide con el usuario logueado
+//          if (!acceptRequest.email.equalsIgnoreCase(user.email)) {
+//            throw new BadRequestException("The email does not match your account")
+//          }
+//
+//          if (mailToken.expires.isBefore(clock.now)) {
+//            throw new BadRequestException("Token expired")
+//          }
+//
+//          val idB = BarterId(acceptRequest.barterId)
+//          val idT = TransactionId(acceptRequest.transactionId)
+//
+//          for {
+//            transaction <-
+//              transactionRepository
+//                .findById(idT)
+//                .map(_.getOrElse(throw new BadRequestException("Transaction not found")))
+//
+//            barter <-
+//              barterRepository
+//                .findByTransactionId(idT)
+//                .map(_.getOrElse(throw new BadRequestException("Barter not found")))
+//
+//            _ = if (barter.barterId != idB) {
+//              throw new BarterNotAllowException("Barter ID does not match Transaction")
+//            }
+//
+//            // Validar que el usuario es el vendedor
+//            _ = if (transaction.sellerId != user.id) {
+//              throw new BarterNotAllowException("Only the seller can accept the barter")
+//            }
+//
+//            /// Validar que el trueque está pendiente
+//            _ = transaction.transactionStatus match {
+//
+//              case TransactionStatus.PENDING =>
+//                () // OK, se puede rechazar
+//
+//              case TransactionStatus.CANCELLED =>
+//                throw new BarterNotAllowException(
+//                  "Barter was cancelled by the buyer and cannot be accepted"
+//                )
+//
+//              case _ =>
+//                throw new BarterAlreadyCompletedException(
+//                  "Only pending barters can be accepted"
+//                )
+//            }
+//
+//            // Transferir recursos (en transacción atómica)
+//            _ <- transactionService.transactionTrans(transaction, barter)
+//
+//            json <- barterWriter.asSeller(transaction, barter)
+//
+//          } yield Ok(json)
+//      }
+//    }
+
   def acceptBarter: Action[AnyContent] =
     Action.async { implicit request =>
       withAnyOfThisRoles(Seq(Role.STUDENT, Role.PROFESSIONAL)) {
         case (_, user, _, _) =>
-          val acceptRequest = MailBarterRequestParser.parse(request)
-
-          // Validar el token del email
-          val mailToken = MailTokenParser.parse(acceptRequest.token, configuration.mails.tokenSecretKey)
-
-          // Validar que el email del token coincide con el email enviado
-          if (!mailToken.mail.equalsIgnoreCase(acceptRequest.email)) {
-            throw new BadRequestException("The email does not match the token")
-          }
-
-          // Validar que el email coincide con el usuario logueado
-          if (!acceptRequest.email.equalsIgnoreCase(user.email)) {
-            throw new BadRequestException("The email does not match your account")
-          }
-
-          if (mailToken.expires.isBefore(clock.now)) {
-            throw new BadRequestException("Token expired")
-          }
+          val acceptRequest = BarterRequestParser.parse(request)
 
           val idB = BarterId(acceptRequest.barterId)
           val idT = TransactionId(acceptRequest.transactionId)
@@ -232,18 +283,7 @@ class BarterController @Inject() (
     Action.async { implicit request =>
       withAnyOfThisRoles(Seq(Role.STUDENT, Role.PROFESSIONAL)) {
         case (_, user, _, _) =>
-          val denyRequest = MailBarterRequestParser.parse(request)
-
-          // Validar el token del email
-          val mailToken = MailTokenParser.parse(denyRequest.token, configuration.mails.tokenSecretKey)
-
-          if (!mailToken.mail.equalsIgnoreCase(user.email)) {
-            throw new BadRequestException("The email token does not match your account")
-          }
-
-          if (mailToken.expires.isBefore(clock.now)) {
-            throw new BadRequestException("Token expired")
-          }
+          val denyRequest = BarterRequestParser.parse(request)
 
           val idB = BarterId(denyRequest.barterId)
           val idT = TransactionId(denyRequest.transactionId)
@@ -294,6 +334,73 @@ class BarterController @Inject() (
           } yield Ok
       }
     }
+
+//  def denyBarter: Action[AnyContent] =
+//    Action.async { implicit request =>
+//      withAnyOfThisRoles(Seq(Role.STUDENT, Role.PROFESSIONAL)) {
+//        case (_, user, _, _) =>
+//          val denyRequest = MailBarterRequestParser.parse(request)
+//
+//          // Validar el token del email
+//          val mailToken = MailTokenParser.parse(denyRequest.token, configuration.mails.tokenSecretKey)
+//
+//          if (!mailToken.mail.equalsIgnoreCase(user.email)) {
+//            throw new BadRequestException("The email token does not match your account")
+//          }
+//
+//          if (mailToken.expires.isBefore(clock.now)) {
+//            throw new BadRequestException("Token expired")
+//          }
+//
+//          val idB = BarterId(denyRequest.barterId)
+//          val idT = TransactionId(denyRequest.transactionId)
+//
+//          for {
+//            transaction <-
+//              transactionRepository
+//                .findById(idT)
+//                .map(_.getOrElse(throw new BadRequestException("Transaction not found")))
+//
+//            barter <-
+//              barterRepository
+//                .findByTransactionId(idT)
+//                .map(_.getOrElse(throw new BadRequestException("Barter not found")))
+//
+//            _ = if (barter.barterId != idB) {
+//              throw new BarterNotAllowException("Barter ID does not match Transaction")
+//            }
+//
+//            // Validar que el usuario es el vendedor
+//            _ = if (transaction.sellerId != user.id) {
+//              throw new BarterNotAllowException("Only the seller can reject the barter")
+//            }
+//
+//            // Validar que el trueque está pendiente
+//            _ = transaction.transactionStatus match {
+//
+//              case TransactionStatus.PENDING =>
+//                () // OK, se puede rechazar
+//
+//              case TransactionStatus.CANCELLED =>
+//                throw new BarterNotAllowException(
+//                  "Barter was cancelled by the buyer and cannot be rejected"
+//                )
+//
+//              case _ =>
+//                throw new BarterAlreadyCompletedException(
+//                  "Only pending barters can be rejected"
+//                )
+//            }
+//            //            // Marcar el trueque como rechazado
+//            //            updatedBarter = barter.copy(rejectedAt = Some(clock.now))
+//            //            _ <- barterRepository.save(updatedBarter)
+//
+//            // Actualizar transaction a REJECTED
+//            _ <- transactionRepository.updateStatusRejectedCancelled(idT, TransactionStatus.REJECTED)
+//
+//          } yield Ok
+//      }
+//    }
 
   //Esto es para cancelar un trueque antes de que el vendedor lo acepte.
   def cancel(transactionId: String, barterId: String): Action[AnyContent] =
@@ -426,8 +533,10 @@ class BarterController @Inject() (
               transactions.map { transaction =>
                 barterRepository
                   .findByTransactionId(transaction.id)
-                  .map(_.get)
-                  .map(barter => transaction -> barter)
+                  .map { optionBarter =>
+                    optionBarter.map(barter => transaction -> barter)
+                  }
+                  .map(_.get)  // Aquí sí es seguro porque validaste arriba
               }
             )
 
@@ -457,12 +566,15 @@ class BarterController @Inject() (
               pag.oneMore
             )
 
+
             bartersWithTransactions <- Future.sequence(
               transactions.map { transaction =>
                 barterRepository
                   .findByTransactionId(transaction.id)
+                  .map { optionBarter =>
+                    optionBarter.map(barter => transaction -> barter)
+                  }
                   .map(_.get)
-                  .map(barter => transaction -> barter)
               }
             )
 
