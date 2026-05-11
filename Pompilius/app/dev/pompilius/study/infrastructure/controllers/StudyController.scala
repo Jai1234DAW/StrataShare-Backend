@@ -104,7 +104,7 @@ class StudyController @Inject() (
               )
             )
 
-            json <- resourceWriter.asPublic(newResource, ResourceAccessLevel.OWNER, user.id, None, Some(newStudy))
+            json <- resourceWriter.asPublic(newResource, ResourceAccessLevel.OWNER, user.id, None,None, Some(newStudy))
 
             //Llamo aquí a lo de eventos.
             // Registrar evento
@@ -204,7 +204,7 @@ class StudyController @Inject() (
               )
             }
 
-            json <- resourceWriter.asPublic(newResource, ResourceAccessLevel.OWNER, user.id, None, Some(newStudy))
+            json <- resourceWriter.asPublic(newResource, ResourceAccessLevel.OWNER, user.id, None, None, Some(newStudy))
 
           } yield Ok(json)
       }
@@ -253,7 +253,7 @@ class StudyController @Inject() (
 
             // Retornar JSON actualizado
             json <-
-              resourceWriter.asPublic(updatedResource, ResourceAccessLevel.OWNER, user.id, None, Some(updatedStudy))
+              resourceWriter.asPublic(updatedResource, ResourceAccessLevel.OWNER, user.id, None, None, Some(updatedStudy))
           } yield {
             Ok(json)
           }
@@ -280,15 +280,22 @@ class StudyController @Inject() (
                 )
 
             json <- accessLevel match {
-              case ResourceAccessLevel.OWNER =>
-                resourceWriter.asPublic(resource, accessLevel, ownerId, None, Some(study))
-
               case ResourceAccessLevel.FULL_ACCESS =>
-                resourceWriter.asPublic(resource, accessLevel, ownerId, None, Some(study))
+                // Si es público: sin relación, puede verlo todo por ser público
+                // Si es privado: tiene FULL_ACCESS porque existe una relación (comprado, aceptado, bartered, etc)
+                for {
+                  resourceUserOpt <- resourceUserRepository.findByResourceAndUser(resource.id, user.id)
+                  userTypeRelation = resourceUserOpt.map(_.resourceUserType.toString)
+                  baseJson <- resourceWriter.asPublic(resource, accessLevel, ownerId, userTypeRelation, None, Some(study))
+                } yield baseJson
+
+              case ResourceAccessLevel.OWNER =>
+                resourceWriter.asPublic(resource, accessLevel, ownerId, Some(ResourceUserType.OWNER.toString), None, Some(study))
 
               case _ =>
                 // PREVIEW_ONLY → Solo preview
-                resourceWriter.asPrivate(resource, accessLevel, ownerId, None, Some(study))
+                resourceWriter.asPrivate(resource, accessLevel, ownerId,None,Some(study))
+
             }
 
           } yield {
@@ -415,7 +422,7 @@ class StudyController @Inject() (
                       )
                     )
 
-                json <- resourceWriter.asPublic(resource, ResourceAccessLevel.OWNER, user.id, None, Some(study))
+                json <- resourceWriter.asPublic(resource, ResourceAccessLevel.OWNER, user.id, None, None, Some(study))
               } yield json
             }
           } yield Ok(json)

@@ -12,7 +12,9 @@ import dev.pompilius.transaction.domain._
 import dev.pompilius.transaction.domain.exceptions.{TransactionNotAllowedException, TransactionNotFoundException}
 import dev.pompilius.transaction.infrastructure.writer.TransactionWriter
 import dev.pompilius.users.domain.Role
+import org.joda.time.DateTime
 import play.api.Logger
+import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent}
 
 import javax.inject._
@@ -273,4 +275,106 @@ class PaymentController @Inject() (
           } yield Ok(json)
       }
     }
+
+  def getPaymentsSummary(paymentRole: String, fromDate: Option[String], toDate: Option[String]): Action[AnyContent] =
+    Action.async { implicit request =>
+      withAuthenticatedUser {
+        case (_, user, _) =>
+
+          val transactionFilter = paymentRole.toLowerCase match {
+            case "buyer" =>
+              TransactionFilter(
+                buyerId = Some(user.id),
+                transactionType = Some(TransactionType.PAYMENT),
+                transactionStatus = Some(TransactionStatus.COMPLETED)
+              )
+
+            case "seller" =>
+              TransactionFilter(
+                sellerId = Some(user.id),
+                transactionType = Some(TransactionType.PAYMENT),
+                transactionStatus = Some(TransactionStatus.COMPLETED)
+              )
+
+            case _ =>
+              TransactionFilter(
+                buyerId = Some(user.id),
+                transactionType = Some(TransactionType.PAYMENT),
+                transactionStatus = Some(TransactionStatus.COMPLETED)
+              )
+          }
+
+          for {
+            // Obtener todas las transacciones de pago del usuario
+            transactions <- transactionRepository.find(transactionFilter, Pagination.all)
+
+            // Filtrar por fechas si se proporcionan
+            filteredTransactions: List[Transaction] = transactions.filter { transaction =>
+              val isAfterFromDate = fromDate match {
+                case Some(from) =>
+                  try {
+                    val fromDateTime = DateTime.parse(from)
+                    transaction.created.isAfter(fromDateTime) || transaction.created.isEqual(fromDateTime)
+                  } catch {
+                    case _: Exception => true
+                  }
+                case None => true
+              }
+
+              val isBeforeToDate = toDate match {
+                case Some(to) =>
+                  try {
+                    val toDateTime = DateTime.parse(to)
+                    transaction.completedSuccessfullyAt.exists(completed => completed.isBefore(toDateTime.plusDays(1)))
+                  } catch {
+                    case _: Exception => true
+                  }
+                case None => true
+              }
+
+              isAfterFromDate && isBeforeToDate
+            }
+
+            // Obtener todos los pagos asociados
+            payments <- Future.sequence(
+              filteredTransactions.map { transaction =>
+                paymentRepository.findByTransactionId(transaction.id)
+              }
+            )
+
+            // Calcular el resumen
+            summary = calculatePaymentsSummary(filteredTransactions, payments, paymentRole)
+
+          } yield Ok(summary)
+      }
+    }
+
+  private def calculatePaymentsSummary(transactions: List[Transaction], payments: List[Option[Payment]], paymentRole: String): play.api.libs.json.JsValue = {
+    val paymentsList = payments.flatten
+
+    val totalAmount = paymentsList.map(_.amount).sum
+    val totalTransactions = paymentsList.length
+    val averageAmount = if (totalTransactions > 0) totalAmount / totalTransactions else BigDecimal(0)
+
+    Json.obj(
+      "paymentRole" -> paymentRole,
+      "totalTransactions" -> totalTransactions,
+      "totalAmount" -> totalAmount.toString,
+      "averageAmount" -> averageAmount.toString,
+      "currency" -> "EUR",
+      "transactionDetails" -> play.api.libs.json.Json.toJson(
+        transactions.map { transaction =>
+          play.api.libs.json.Json.obj(
+            "transactionId" -> transaction.id.toString,
+            "amount" -> Json.toJson(paymentsList
+              .find(_.transactionId == transaction.id)
+              .map(_.amount.toString)
+              .getOrElse("0")),
+            "createdAt" -> transaction.created.toString,
+            "status" -> transaction.transactionStatus.toString
+          )
+        }
+      )
+    )
+  }
 }

@@ -17,4 +17,6 @@ trait UserFollowersRepository {
   def delete(userFollower: UserFollower): Future[Done]
 
   def countByUserId(userId: UserId): Future[Int]
+
+  def isFollower(userId: UserId, followerId: UserId): Future[Boolean]
 }

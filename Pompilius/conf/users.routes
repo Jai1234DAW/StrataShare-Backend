@@ -164,7 +164,7 @@ POST        /:userId/follow                 dev.pompilius.users.infrastructure.c
 #    200:
 #      description: Success
 ###
-POST        /:userId/unfollow               dev.pompilius.users.infrastructure.controllers.UserController.unfollowUser(userId: String)
+DELETE        /:userId/unfollow               dev.pompilius.users.infrastructure.controllers.UserController.unfollowUser(userId: String)
 
 ###
 #  summary: Get followers of a user
@@ -195,3 +195,20 @@ GET         /:userId/followers              dev.pompilius.users.infrastructure.c
 #      description: Total amount of followers
 ###
 GET         /:userId/followers/count        dev.pompilius.users.infrastructure.controllers.UserController.countFollowers(userId: String)
+
+###
+#  summary: Check if a user is following another user
+#  roles: {"required": "any", "roles": ["STUDENT", "PROFESSIONAL", "AMATEUR", "ADMIN"]}
+#  responses:
+#    200:
+#      content:
+#       application/json:
+#        schema:
+#         type: object
+#         properties:
+#          isFollowing:
+#           type: boolean
+#           default: false
+#      description: Whether the user is following the other user
+###
+GET         /:followerId/following/check        dev.pompilius.users.infrastructure.controllers.UserController.isFollower(followerId: String)

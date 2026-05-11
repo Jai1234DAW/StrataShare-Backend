@@ -31,6 +31,37 @@ POST         /create-intent                                 dev.pompilius.paymen
 GET         /                                              dev.pompilius.payment.infrastructure.controllers.PaymentController.getMyPaymentsAs(pag: Pagination, paymentRole)
 
 ###
+#  summary: Get payment summary with optional date filtering
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL","AMATEUR"]}
+#  parameters:
+#    - name: paymentRole
+#      in: query
+#      required: true
+#      schema:
+#        type: string
+#    - name: fromDate
+#      in: query
+#      required: false
+#      schema:
+#        type: string
+#        format: date-time
+#    - name: toDate
+#      in: query
+#      required: false
+#      schema:
+#        type: string
+#        format: date-time
+#  responses:
+#    200:
+#      description: Success with payment summary
+#      content:
+#       application/json:
+#        schema:
+#         type: object
+###
+GET          /summary                                  dev.pompilius.payment.infrastructure.controllers.PaymentController.getPaymentsSummary(paymentRole: String, fromDate: Option[String], toDate: Option[String])
+
+###
 #  summary: Get status for a specific payment
 #  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL","AMATEUR"]}
 #  responses:
