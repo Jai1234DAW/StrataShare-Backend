@@ -111,7 +111,7 @@ class SampleController @Inject() (
             }
 
             // 4. Retornar JSON
-            json <- resourceWriter.asPublic(newResource, ResourceAccessLevel.OWNER, user.id, Some(newSample), None)
+            json <- resourceWriter.asPublic(newResource, ResourceAccessLevel.OWNER, user.id, None, Some(newSample), None)
           } yield {
             Ok(json)
           }
@@ -160,7 +160,7 @@ class SampleController @Inject() (
 
             // Retornar JSON actualizado
             json <-
-              resourceWriter.asPublic(updatedResource, ResourceAccessLevel.OWNER, user.id, Some(updatedSample), None)
+              resourceWriter.asPublic(updatedResource, ResourceAccessLevel.OWNER, user.id, None, Some(updatedSample), None)
           } yield {
             Ok(json)
           }
@@ -247,7 +247,7 @@ class SampleController @Inject() (
               )
             }
 
-            json <- resourceWriter.asPublic(newResource, ResourceAccessLevel.OWNER, user.id, Some(newSample), None)
+            json <- resourceWriter.asPublic(newResource, ResourceAccessLevel.OWNER, user.id, None, Some(newSample), None)
 
           } yield Ok(json)
       }
@@ -276,10 +276,16 @@ class SampleController @Inject() (
 
             json <- accessLevel match {
               case ResourceAccessLevel.FULL_ACCESS =>
-                resourceWriter.asPublic(resource, accessLevel, ownerId, Some(sample), None)
+                // Si es público: sin relación, puede verlo todo por ser público
+                // Si es privado: tiene FULL_ACCESS porque existe una relación (comprado, aceptado, bartered, etc)
+                for {
+                  resourceUserOpt <- resourceUserRepository.findByResourceAndUser(resource.id, user.id)
+                  userTypeRelation = resourceUserOpt.map(_.resourceUserType.toString)
+                  baseJson <- resourceWriter.asPublic(resource, accessLevel, ownerId, userTypeRelation, Some(sample), None)
+                } yield baseJson
 
               case ResourceAccessLevel.OWNER =>
-                resourceWriter.asPublic(resource, accessLevel, ownerId, Some(sample), None)
+                resourceWriter.asPublic(resource, accessLevel, ownerId, Some(ResourceUserType.OWNER.toString), Some(sample), None)
 
               case _ =>
                 // PREVIEW_ONLY → Solo preview
@@ -401,6 +407,7 @@ class SampleController @Inject() (
 
                 case "BARTERED" =>
                 sampleRepository.getMyAllSamplesAs(userId = user.id, pag.oneMore, ResourceUserType.BARTERED.toString)
+
                 case _ =>
                 Future.failed(new IllegalArgumentException(s"Invalid userType: $userType"))
             }
@@ -418,7 +425,7 @@ class SampleController @Inject() (
                       )
                     )
 
-                json <- resourceWriter.asPublic(resource, ResourceAccessLevel.OWNER, user.id, Some(sample), None)
+                json <- resourceWriter.asPublic(resource, ResourceAccessLevel.OWNER, user.id, None, Some(sample), None)
               } yield json
             }
           } yield Ok(json)
@@ -439,13 +446,18 @@ class SampleController @Inject() (
             )
 
             // Obtener muestras conseguidas por barter (aceptadas como pago)
-            barteredSamples <- sampleRepository.getMyAllSamplesAs(
+            acceptedSamples <- sampleRepository.getMyAllSamplesAs(
               userId = user.id,
               pag.oneMore,
               ResourceUserType.ACCEPTED_AS_PAYMENT.toString
             )
 
-            allSamples = (purchasedSamples ++ barteredSamples).distinct
+            barteredSamples <- sampleRepository.getMyAllSamplesAs(
+              userId = user.id,
+              pag.oneMore,
+              ResourceUserType.BARTERED.toString
+            )
+            allSamples = (purchasedSamples ++ barteredSamples ++ acceptedSamples).distinct
 
             json <- paginatedWriter.toJson(Paginated(allSamples, pag)) { sample =>
               for {
@@ -460,7 +472,7 @@ class SampleController @Inject() (
                       )
                     )
 
-                json <- resourceWriter.asPublic(resource, ResourceAccessLevel.FULL_ACCESS, user.id, Some(sample), None)
+                json <- resourceWriter.asPublic(resource, ResourceAccessLevel.FULL_ACCESS, user.id, None, Some(sample), None)
               } yield json
             }
           } yield Ok(json)

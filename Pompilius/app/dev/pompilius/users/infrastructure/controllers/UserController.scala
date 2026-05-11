@@ -509,5 +509,31 @@ def unfollowUser(userId: String): Action[AnyContent] =
           }
       }
     }
+
+  def isFollower(userFollowerId:String): Action[AnyContent] =
+    Action.async { implicit request =>
+      withAuthenticatedUser {
+        case (_, user, _) =>
+          val uid = user.id
+          val followerId = UserId(userFollowerId)
+          for {
+            _ <- userRepository.findById(uid).map {
+              case Some(_) =>
+              case None =>
+                throw new UserNotFoundException(s"User with id $uid not found")
+            }
+            _ <- userRepository.findById(followerId).map {
+              case Some(_) =>
+              case None =>
+                throw new UserNotFoundException(s"User with id $followerId not found")
+            }
+            // Verificar si existe la relación de seguidor sin cargar todos los resultados
+            isFollowerResult <- userFollowerRepository.isFollower(uid, followerId)
+
+          } yield {
+            Ok(Json.obj(Strings.isFollower -> isFollowerResult))
+          }
+      }
+    }
 }
 

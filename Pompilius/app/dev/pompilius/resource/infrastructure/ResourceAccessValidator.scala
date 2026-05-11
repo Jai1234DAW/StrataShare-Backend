@@ -1,6 +1,7 @@
 package dev.pompilius.resource.infrastructure
 
 import com.google.inject.ImplementedBy
+import dev.pompilius.resource.domain.ResourceUserType.BARTERED
 import dev.pompilius.resource.domain.exceptions.{ResourceNotAllowedException, ResourceNotFoundException}
 import dev.pompilius.resource.domain._
 import dev.pompilius.shared.domain.exceptions.ForbiddenException
@@ -95,7 +96,8 @@ class ResourceAccessValidatorImpl @Inject() (
           case Some(ru)
               if !ru.deleted &&
                 (ru.resourceUserType == ResourceUserType.PURCHASED ||
-                  ru.resourceUserType == ResourceUserType.ACCEPTED_AS_PAYMENT) =>
+                  ru.resourceUserType == ResourceUserType.ACCEPTED_AS_PAYMENT ||
+                  ru.resourceUserType == ResourceUserType.BARTERED) =>
             ResourceAccessLevel.FULL_ACCESS
 
           case _ =>

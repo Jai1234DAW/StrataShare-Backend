@@ -19,21 +19,23 @@ trait ResourceWriter {
       accessLevel: ResourceAccessLevel,
       ownerId: UserId,
       sample: Option[Sample] = None,
-      study: Option[Study] = None
+      study: Option[Study] = None,
+      userTypeRelation:Option[String]=None
   ): Future[JsValue]
   def asPrivate(
       resource: Resource,
       accessLevel: ResourceAccessLevel,
       ownerId: UserId,
       sample: Option[Sample] = None,
-      study: Option[Study] = None
+      study: Option[Study] = None,
   ): Future[JsValue]
   def asPublic(
       resource: Resource,
       accessLevel: ResourceAccessLevel,
       ownerId: UserId,
+      userTypeRelation: Option[String] = None,
       sample: Option[Sample] = None,
-      study: Option[Study] = None
+      study: Option[Study] = None,
   ): Future[JsValue]
 }
 
@@ -44,6 +46,7 @@ class ResourceWriterImpl @Inject() ()(implicit val ec: ExecutionContext) extends
       resource: Resource,
       accessLevel: ResourceAccessLevel,
       ownerId:UserId,
+      userTypeRelation:Option[String]=None
   ): JsObject = {
     Json.obj(
       List(
@@ -59,7 +62,8 @@ class ResourceWriterImpl @Inject() ()(implicit val ec: ExecutionContext) extends
         toJsValueWrapper(Strings.price, resource.price),
         toJsValueWrapper(Strings.isBarter, resource.isBarter),
         toJsValueWrapper(Strings.accessLevel, accessLevel.toString),
-        toJsValueWrapper(Strings.ownerId, ownerId.toString)
+        toJsValueWrapper(Strings.ownerId, ownerId.toString),
+        toJsValueWrapper(Strings.userTypeRelation, userTypeRelation)
       ).flatten: _*
     )
   }
@@ -101,10 +105,11 @@ class ResourceWriterImpl @Inject() ()(implicit val ec: ExecutionContext) extends
       accessLevel: ResourceAccessLevel,
       ownerId: UserId,
       sample: Option[Sample] = None,
-      study: Option[Study] = None
+      study: Option[Study] = None,
+      userTypeRelation: Option[String] = None
   ): Future[JsValue] = {
     Future.successful {
-      val baseJson = buildBaseResourceJson(resource, accessLevel,ownerId)
+      val baseJson = buildBaseResourceJson(resource, accessLevel, ownerId, userTypeRelation)
       withSpecificData(baseJson, sample, study, fullAccess = false)
     }
   }
@@ -117,7 +122,7 @@ class ResourceWriterImpl @Inject() ()(implicit val ec: ExecutionContext) extends
       study: Option[Study] = None
   ): Future[JsValue] = {
     Future.successful {
-      val baseJson = buildBaseResourceJson(resource, accessLevel, ownerId)
+      val baseJson = buildBaseResourceJson(resource, accessLevel, ownerId, None)
       withSpecificData(baseJson, sample, study, fullAccess = false)
     }
   }
@@ -126,11 +131,12 @@ class ResourceWriterImpl @Inject() ()(implicit val ec: ExecutionContext) extends
       resource: Resource,
       accessLevel: ResourceAccessLevel,
       ownerId: UserId,
+      userTypeRelation: Option[String] = None,
       sample: Option[Sample] = None,
       study: Option[Study] = None
   ): Future[JsValue] = {
     Future.successful {
-      val baseJson = buildBaseResourceJson(resource, accessLevel, ownerId)
+      val baseJson = buildBaseResourceJson(resource, accessLevel, ownerId, userTypeRelation)
       withSpecificData(baseJson, sample, study, fullAccess = true)
     }
   }
