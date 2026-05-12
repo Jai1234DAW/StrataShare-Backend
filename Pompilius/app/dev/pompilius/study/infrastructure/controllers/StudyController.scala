@@ -362,18 +362,18 @@ class StudyController @Inject() (
                       _.getOrElse(throw new ResourceNotFoundException(s"Resource not found for study ${study.id}"))
                     )
 
-//                ownerId <-
-//                  resourceUserRepository
-//                    .findOwnerByResource(resource.id)
-//                    .map(
-//                      _.map(_.id).getOrElse(
-//                        throw new ResourceNotFoundException(s"Owner not found for resource ${resource.id}")
-//                      )
-//                    )
+                ownerId <-
+                  resourceUserRepository
+                    .findOwnerByResource(resource.id)
+                    .map(
+                      _.map(_.id).getOrElse(
+                        throw new ResourceNotFoundException(s"Owner not found for resource ${resource.id}")
+                      )
+                    )
 
                 json <-
                   resourceWriter
-                    .asPrivate(resource, ResourceAccessLevel.PREVIEW_ONLY, currentUser.id, None, Some(study))
+                    .asPrivate(resource, ResourceAccessLevel.PREVIEW_ONLY, ownerId, None, Some(study))
               } yield json
             }
 

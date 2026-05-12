@@ -29,7 +29,7 @@ class UserAttachmentMySqlRepository @Inject() (implicit ec: DbExecutionContext)
       attachmentId = AttachmentId(rs.get[Long](ua.attachmentId))
     )
 
-  private val ua = this.syntax("pa")
+  private val ua = this.syntax("ua")
 
   override def findBy(userId: UserId, attachmentId: AttachmentId): Future[Option[UserAttachment]] =
     Future {
