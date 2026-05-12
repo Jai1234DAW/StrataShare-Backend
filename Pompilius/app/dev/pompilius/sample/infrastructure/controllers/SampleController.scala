@@ -356,10 +356,20 @@ class SampleController @Inject() (
                       _.getOrElse(throw new ResourceNotFoundException(s"Resource not found for study ${sample.id}"))
                     )
 
+
+                 ownerId <-
+                  resourceUserRepository
+                    .findOwnerByResource(resource.id)
+                    .map(
+                      _.map(_.id).getOrElse(
+                        throw new ResourceNotFoundException(s"Owner not found for resource ${resource.id}")
+                      )
+                    )
+
                 // Siempre devolver preview (datos básicos para el listado)
                 //Luego se pordá acceder con más datos a cada uno de ellos.
                 json <-
-                  resourceWriter.asPrivate(resource, ResourceAccessLevel.PREVIEW_ONLY, user.id, Some(sample), None)
+                  resourceWriter.asPrivate(resource, ResourceAccessLevel.PREVIEW_ONLY, ownerId, Some(sample), None)
               } yield json
             }
 
