@@ -545,4 +545,25 @@ class UserController @Inject() (
           }
       }
     }
+
+  def getUserById(userId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      withAuthenticatedUser {
+        case (_, _, _) =>
+          val uid = UserId(userId)
+
+          for {
+            user <-
+              userRepository
+                .findById(uid)
+                .map(
+                  _.getOrElse(throw new UserNotFoundException(s"User with id $userId not found"))
+                )
+
+            userJson <- userWriter.asAnotherUser(user)
+          } yield {
+            Ok(userJson)
+          }
+      }
+    }
 }
