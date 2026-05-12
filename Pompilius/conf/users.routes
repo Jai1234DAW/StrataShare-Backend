@@ -27,7 +27,11 @@ GET           /:userId/coverPhoto                             dev.pompilius.user
 #         $ref: '#/components/schemas/RegisterUserRequest'
 #  responses:
 #    200:
-#      description: Success
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/User'
+#      description: Registered user information
 ###
 POST         /create                                      dev.pompilius.users.infrastructure.controllers.UserController.registerUser
 
@@ -212,3 +216,61 @@ GET         /:userId/followers/count        dev.pompilius.users.infrastructure.c
 #      description: Whether the user is following the other user
 ###
 GET         /:followerId/following/check        dev.pompilius.users.infrastructure.controllers.UserController.isFollower(followerId: String)
+
+###
+#  summary: Check availability of an email
+#  roles: {"required": "none", "roles": []}
+#  requestBody:
+#    required: true
+#    content:
+#      application/json:
+#        schema:
+#          properties:
+#            email:
+#              type: string
+#  responses:
+#    200:
+#      description: Success
+#      content:
+#       application/json:
+#        schema:
+#          properties:
+#            available:
+#              type: boolean
+#              default: true
+#              description: true if the email is available
+#            valid:
+#              type: boolean
+#              default: true
+#              description: true if the email format is valid
+###
+POST          /validations/email           dev.pompilius.users.infrastructure.controllers.UserController.validateEmail
+
+###
+#  summary: Check availability of an username
+#  roles: {"required": "none", "roles": []}
+#  requestBody:
+#    required: true
+#    content:
+#      application/json:
+#        schema:
+#          properties:
+#            username:
+#              type: string
+#  responses:
+#    200:
+#      description: Success
+#      content:
+#       application/json:
+#        schema:
+#          properties:
+#            available:
+#              type: boolean
+#              default: true
+#              description: true if the username is available
+#            valid:
+#              type: boolean
+#              default: true
+#              description: true if the username format is valid
+###
+POST          /validations/username        dev.pompilius.users.infrastructure.controllers.UserController.validateUsername

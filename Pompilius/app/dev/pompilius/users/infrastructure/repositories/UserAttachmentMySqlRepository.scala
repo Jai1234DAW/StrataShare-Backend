@@ -88,7 +88,7 @@ class UserAttachmentMySqlRepository @Inject() (implicit ec: DbExecutionContext)
       Done
     }
 
-  //MIRAR SI ESTO ES NECESARIO???
+
   override def delete(userId: UserId, attachmentId: AttachmentId): Future[Done] = {
     Future {
       DB.localTx { implicit session =>

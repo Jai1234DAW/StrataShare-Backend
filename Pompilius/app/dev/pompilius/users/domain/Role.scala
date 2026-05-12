@@ -35,6 +35,7 @@ object Role extends Enum[Role] with PlayJsonEnum[Role] {
     val level = 4
   }
 
+  // Futuros roles que deseen implementarse
   @SuppressWarnings(Array("ObjectNames"))
   case object SUPPORT extends Role {
     val description = "Support"

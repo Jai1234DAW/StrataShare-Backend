@@ -14,7 +14,7 @@ trait UserFollowersRepository {
 
   def save(userFollower: UserFollower): Future[Done]
 
-  def delete(userFollower: UserFollower): Future[Done]
+  def delete(followerId: UserId, userId: UserId): Future[Done]
 
   def countByUserId(userId: UserId): Future[Int]
 

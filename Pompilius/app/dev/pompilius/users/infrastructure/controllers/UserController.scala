@@ -14,8 +14,16 @@ import dev.pompilius.shared.domain.exceptions.{BadRequestException, NotFoundExce
 import dev.pompilius.shared.domain.{Paginated, Pagination}
 import dev.pompilius.shared.infrastructure.writers.PaginatedWriter
 import dev.pompilius.users.domain._
-import dev.pompilius.users.domain.exceptions.{EmailAlreadyInUseException, UserNotFoundException, UsernameAlreadyInUseException}
-import dev.pompilius.users.infrastructure.parsers.{ChangeUserPasswordRequestParser, RegisterUserRequestParser, UpdateUserRequestParser}
+import dev.pompilius.users.domain.exceptions.{
+  EmailAlreadyInUseException,
+  UserNotFoundException,
+  UsernameAlreadyInUseException
+}
+import dev.pompilius.users.infrastructure.parsers.{
+  ChangeUserPasswordRequestParser,
+  RegisterUserRequestParser,
+  UpdateUserRequestParser
+}
 import dev.pompilius.users.infrastructure.writers.UserWriter
 import play.api.libs.Files
 import play.api.libs.json.{JsValue, Json}
@@ -57,7 +65,7 @@ class UserController @Inject() (
         passwordHash = UserPassword(createUserRequest.password).hash,
         enabled = true,
         email = createUserRequest.email,
-        interests=None,
+        interests = None,
         country = createUserRequest.country,
         firstName = createUserRequest.firstName,
         lastName = createUserRequest.lastName,
@@ -141,7 +149,8 @@ class UserController @Inject() (
                   _.getOrElse(throw new UserNotFoundException(s"User with id $userId not found"))
                 )
 
-            attachmentId = user.avatar.getOrElse(throw new NotFoundException(s"User with id $userId has no avatar"))
+            attachmentId =
+              user.avatar.getOrElse(throw new AttachmentNotFoundException(s"User with id $userId has no avatar"))
 
             result <- download(Some(user), attachmentId)
 
@@ -164,7 +173,9 @@ class UserController @Inject() (
                   _.getOrElse(throw new UserNotFoundException(s"User with id $userId not found"))
                 )
 
-            attachmentId = user.coverPhoto.getOrElse(throw new AttachmentNotFoundException(s"User with id $userId has no cover Photo"))
+            attachmentId = user.coverPhoto.getOrElse(
+              throw new AttachmentNotFoundException(s"User with id $userId has no cover Photo")
+            )
 
             result <- download(Some(user), attachmentId)
 
@@ -362,9 +373,7 @@ class UserController @Inject() (
       }
     }
 
-  //Otra función generada para enviar emails, vamos a intentar y si no comentamos
-
-  //Para validar el formato del username y su disponibilidad, esto es para mejorar la experiencia de usaurio en el frontend,
+  //Para validar el formato del username y su disponibilidad, esto es para mejorar la experiencia de usuario en el frontend,
   // no es estrictamente necesario ya que el backend también validará esto al crear o actualizar un usuario, pero así evitamos que el usuario
   // tenga que esperar a enviar el formulario para saber si el username es válido o no.
   def validateUsername: Action[JsValue] =
@@ -376,7 +385,7 @@ class UserController @Inject() (
             Ok(Json.obj(Strings.available -> available, Strings.valid -> true))
           }
         case _ =>
-          // Si el nombre de usuario no es válido, devolvemos un error
+          // Si el nombre de usuario no es válido, devolvemos un boolean false.
           Future.successful(Ok(Json.obj(Strings.available -> false, Strings.valid -> false)))
       }
     }
@@ -390,7 +399,7 @@ class UserController @Inject() (
             Ok(Json.obj(Strings.available -> available, Strings.valid -> true))
           }
         case _ =>
-          // Si el email no es válido, se devuelve un error
+          // Si el email no es válido, se devuelve un boolean false
           Future.successful(Ok(Json.obj(Strings.available -> false, Strings.valid -> false)))
       }
     }
@@ -432,20 +441,21 @@ class UserController @Inject() (
           val followedUserId = UserId(userId)
           for {
             _ <- userRepository.findById(followedUserId).map {
-              case Some(idUser) => if (idUser.id == currentUser.id) {
+              case Some(idUser) =>
+                if (idUser.id == currentUser.id) {
                   throw new BadRequestException("You cannot follow yourself")
                 }
               case None =>
                 throw new UserNotFoundException(s"User with id $userId not found")
             }
-            _ <- userFollowerRepository.save(UserFollower(followedUserId,currentUser.id, clock.now))
+            _ <- userFollowerRepository.save(UserFollower(followedUserId, currentUser.id, clock.now))
           } yield {
             Ok
           }
       }
     }
 
-def unfollowUser(userId: String): Action[AnyContent] =
+  def unfollowUser(userId: String): Action[AnyContent] =
     Action.async { implicit request =>
       withAuthenticatedUser {
         case (_, currentUser, _) =>
@@ -456,7 +466,7 @@ def unfollowUser(userId: String): Action[AnyContent] =
               case None =>
                 throw new UserNotFoundException(s"User with id $userId not found")
             }
-            _ <- userFollowerRepository.delete(UserFollower(unfollowedUserId, currentUser.id, clock.now))
+            _ <- userFollowerRepository.delete(unfollowedUserId, currentUser.id)
           } yield {
             Ok
           }
@@ -510,7 +520,7 @@ def unfollowUser(userId: String): Action[AnyContent] =
       }
     }
 
-  def isFollower(userFollowerId:String): Action[AnyContent] =
+  def isFollower(userFollowerId: String): Action[AnyContent] =
     Action.async { implicit request =>
       withAuthenticatedUser {
         case (_, user, _) =>
@@ -536,4 +546,3 @@ def unfollowUser(userId: String): Action[AnyContent] =
       }
     }
 }
-

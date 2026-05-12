@@ -35,4 +35,3 @@ case class User(
     }
   }
 }
-//Aquí puede haber más parámetros según se crean las otras cosas, los estudios por ejemplo
