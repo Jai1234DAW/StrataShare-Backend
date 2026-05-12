@@ -61,14 +61,14 @@ class UserFollowersMySqlRepository @Inject() (implicit dbExecutionContext: DbExe
       Done
     }
 
-  override def delete(userFollower: UserFollower): Future[Done] =
+  override def delete(followerId: UserId, userId: UserId): Future[Done] =
     Future {
       DB.localTx { implicit session =>
         withSQL {
           deleteFrom(this as uf).where
-            .eq(uf.userId, userFollower.userId.id)
+            .eq(uf.userId, userId.id)
             .and
-            .eq(uf.followerId, userFollower.followerId.id)
+            .eq(uf.followerId, followerId.id)
         }.update()
       }
       Done

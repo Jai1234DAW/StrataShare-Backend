@@ -50,7 +50,6 @@ class UserRoleMySqlRepository @Inject() (implicit dbExecutionContext: DbExecutio
       }
     }
 
-  //MIRAR ESTO
   private def filterToSqlSyntax(filter: UserRoleFilter): Option[SQLSyntax] = {
     val filters = List(
       filter.userId.map(id => sqls.eq(ur.userId, id.id)),

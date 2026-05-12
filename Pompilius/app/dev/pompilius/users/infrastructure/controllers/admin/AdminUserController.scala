@@ -348,5 +348,3 @@
 //      }
 //    }
 //
-////Faltaria aqui el tema de las estadisiticas
-// Colocar aqui todo lo de los filtros de usuarios aunque yo tb podria bnnuscar otros usuarios
