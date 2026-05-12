@@ -218,6 +218,19 @@ GET         /:userId/followers/count        dev.pompilius.users.infrastructure.c
 GET         /:followerId/following/check        dev.pompilius.users.infrastructure.controllers.UserController.isFollower(followerId: String)
 
 ###
+#  summary: Get complete user information by ID
+#  roles: {"required": "any", "roles": ["STUDENT", "PROFESSIONAL", "AMATEUR", "ADMIN"]}
+#  responses:
+#    200:
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/User'
+#      description: Complete user information
+###
+GET         /:userId/info                       dev.pompilius.users.infrastructure.controllers.UserController.getUserById(userId: String)
+
+###
 #  summary: Check availability of an email
 #  roles: {"required": "none", "roles": []}
 #  requestBody:

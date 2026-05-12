@@ -120,17 +120,23 @@ class ResourceUserMySqlRepository @Inject() (
         withSQL {
           select(u.result.*)
             .from(userMySqlRepository as u)
-            .innerJoin(this as ru)
-            .on(ru.userId, u.id)
             .where
-            .eq(ru.resourceId, resourceId.id)
-            .and
-            .eq(ru.resourceUserType, ResourceUserType.OWNER.toString)
-            .and
-            .eq(ru.deleted, false)
+            .exists(
+              select(sqls"1")
+                .from(this as ru)
+                .where
+                .eq(ru.userId, u.id)
+                .and
+                .eq(ru.resourceId, resourceId.id)
+                .and
+                .eq(ru.resourceUserType, ResourceUserType.OWNER.toString)
+                .and
+                .eq(ru.deleted, false)
+            )
         }.map(userMySqlRepository.apply(u.resultName)(_)).single()
       }
     }
+
 
   override def deleteAllResourceByUserId(userId: UserId): Future[Done] = {
     Future {
