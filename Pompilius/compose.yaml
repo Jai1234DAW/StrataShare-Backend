@@ -1,0 +1,41 @@
+services:
+  mysql:
+    image: mysql:8
+    container_name: pompiliusdb
+    hostname: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: pompilius
+      MYSQL_USER: pompilius
+      MYSQL_PASSWORD: pompilius
+    volumes:
+      - pompilius-db:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 20s
+      retries: 5
+  backend:
+    image: ghcr.io/jai1234daw/pompilius:latest
+    container_name: pompiliusbackend
+    environment:
+      JDBC_DATABASE_URL: "jdbc:mysql://mysql:3306/pompilius?useUnicode=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
+      JDBC_DATABASE_USERNAME: pompilius
+      JDBC_DATABASE_PASSWORD: pompilius
+    ports:
+      - 9000:9000
+    volumes:
+      - pompilius-data:/root/tmp/strataShare/attachments
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  frontend:
+    image: ghcr.io/jai1234daw/nautilus:latest
+    ports:
+      - 80:80
+    depends_on:
+      - backend
+volumes:
+  pompilius-data:
+  pompilius-db:
