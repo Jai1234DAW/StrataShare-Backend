@@ -32,8 +32,6 @@ trait Configuration {
       scalaVersion: String,
       sbtVersion: String,
       buildTime: DateTime,
-      gitBranch: String,
-      gitCommit: String,
       startTime: DateTime
   )
 

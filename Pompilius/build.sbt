@@ -16,13 +16,7 @@ lazy val root = (project in file("."))
       name,
       version,
       scalaVersion,
-      sbtVersion,
-      BuildInfoKey.action("gitBranch") {
-        "git rev-parse --abbrev-ref HEAD".!!.trim
-      },
-      BuildInfoKey.action("gitCommit") {
-        "git rev-parse HEAD".!!.trim
-      }
+      sbtVersion
     ),
     buildInfoPackage := "dev.pompilius",
     buildInfoUsePackageAsPath := true,

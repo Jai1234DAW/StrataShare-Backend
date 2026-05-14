@@ -63,8 +63,6 @@ class PlayConfiguration @Inject() (
     scalaVersion = BuildInfo.scalaVersion,
     sbtVersion = BuildInfo.sbtVersion,
     buildTime = new DateTime(BuildInfo.builtAtMillis),
-    gitBranch = BuildInfo.gitBranch,
-    gitCommit = BuildInfo.gitCommit,
     startTime = clock.now
   )
 
