@@ -50,9 +50,6 @@ class UserMySqlRepository @Inject() (
       language = rs.get[Option[String]](u.language).flatMap(lang => Try(Lang(lang)).toOption),
       notes = rs.get(u.notes),
       bio = rs.get(u.bio)
-//      institution = rs.get(u.institution),
-//      website=rs.get(u.website),
-//      experience=rs.get(u.experience)
     )
 
   private val u = this.syntax("u")
@@ -90,9 +87,9 @@ class UserMySqlRepository @Inject() (
 
   override def find(filter: UserFilter, pag: Pagination): Future[List[User]] =
     Future {
-      val usernameFilter: Option[SQLSyntax] = filter.username.map(username => sqls.eq(u.username, username))
-      val firstNameFilter: Option[SQLSyntax] = filter.firstName.map(firstName => sqls.eq(u.firstName, firstName))
-      val lastNameFilter: Option[SQLSyntax] = filter.lastName.map(lastName => sqls.eq(u.lastName, lastName))
+      val usernameFilter: Option[SQLSyntax] = filter.username.map(username => sqls.like(u.username, ScalikeUtil.normalizeSearch(username)))
+      val firstNameFilter: Option[SQLSyntax] = filter.firstName.map(firstName => sqls.like(u.firstName, ScalikeUtil.normalizeSearch(firstName)))
+      val lastNameFilter: Option[SQLSyntax] = filter.lastName.map(lastName => sqls.like(u.lastName, ScalikeUtil.normalizeSearch(lastName)))
       val enabledFilter: Option[SQLSyntax] = filter.enabled.map(enabled => sqls.eq(u.enabled, enabled))
       val countryFilter: Option[SQLSyntax] = filter.country.map(country => sqls.eq(u.country, country.toString))
 
@@ -130,20 +127,15 @@ class UserMySqlRepository @Inject() (
       case Array(Strings.id, id) =>
         Try(UserId(id.trim)).map(userId => sqls.eq(u.id, userId.id)).getOrElse(defaultSearchFilter(search))
       case Array(Strings.username, username) =>
-        val normalizedSearch = ("%" + username.trim + "%").replaceAll("( |%)+", "%")
-        sqls.like(u.username, normalizedSearch)
+        sqls.like(u.username, ScalikeUtil.normalizeSearch(username.trim))
       case Array(Strings.firstName, firstName) =>
-        val normalizedSearch = ("%" + firstName.trim + "%").replaceAll("( |%)+", "%")
-        sqls.like(u.firstName, normalizedSearch)
+        sqls.like(u.firstName, ScalikeUtil.normalizeSearch(firstName.trim))
       case Array(Strings.lastName, lastName) =>
-        val normalizedSearch = ("%" + lastName.trim + "%").replaceAll("( |%)+", "%")
-        sqls.like(u.lastName, normalizedSearch)
+        sqls.like(u.lastName, ScalikeUtil.normalizeSearch(lastName.trim))
       case Array(Strings.email, email) =>
-        val normalizedSearch = ("%" + email.trim + "%").replaceAll("( |%)+", "%")
-        sqls.like(u.email, normalizedSearch)
+        sqls.like(u.email, ScalikeUtil.normalizeSearch(email.trim))
       case Array(Strings.phone, phone) =>
-        val normalizedSearch = ("%" + phone.trim + "%").replaceAll("( |%)+", "%")
-        sqls.like(u.phone, normalizedSearch)
+        sqls.like(u.phone, ScalikeUtil.normalizeSearch(phone.trim))
       case Array(Strings.country, country) =>
         sqls.eq(u.country, country.trim)
       case _ =>
@@ -152,7 +144,7 @@ class UserMySqlRepository @Inject() (
   }
 
   private def defaultSearchFilter(search: String): SQLSyntax = {
-    val normalizedSearch = ("%" + search + "%").replaceAll("( |%)+", "%")
+    val normalizedSearch = ScalikeUtil.normalizeSearch(search)
     sqls.roundBracket(
       sqls
         .like(u.username, normalizedSearch)
@@ -183,7 +175,7 @@ class UserMySqlRepository @Inject() (
           column.created -> user.created,
           column.updated -> user.updated,
           column.avatar -> user.avatar.map(_.id),
-            column.coverPhoto -> user.coverPhoto.map(_.id)
+          column.coverPhoto -> user.coverPhoto.map(_.id)
         )
 
         withSQL {
@@ -194,8 +186,5 @@ class UserMySqlRepository @Inject() (
         }.update()
       }
       Done
-
     }
-
-
 }

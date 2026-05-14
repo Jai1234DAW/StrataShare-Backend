@@ -21,6 +21,9 @@ GET        /swagger/swagger-ui/*file             controllers.Assets.at(path: Str
 ### NoDocs ###
 GET        /api/assets/*file                           controllers.Assets.versioned(path="/public", file: Asset)
 
+# Endpoints de admin
+->         /api/admin/auth                             admin_auth.Routes
+
 # Endpoints de usuario
 ->         /api/auth                                   auth.Routes
 ->         /api/context                                context.Routes

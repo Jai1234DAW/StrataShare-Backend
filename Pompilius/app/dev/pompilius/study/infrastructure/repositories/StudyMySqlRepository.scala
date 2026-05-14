@@ -143,7 +143,7 @@ class StudyMySqlRepository @Inject() (
 
     val nameFilter = filter.name.map { name =>
       val re = resourceMySqlRepository.syntax("re")
-      val value = s"%${name.trim.toLowerCase}%"
+      val value = ScalikeUtil.normalizeSearch(name.trim.toLowerCase)
 
       sqls.exists(
         select(sqls"1")

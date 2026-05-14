@@ -18,7 +18,7 @@ class UserFollowersMySqlRepository @Inject() (implicit dbExecutionContext: DbExe
     extends UserFollowersRepository
     with SQLSyntaxSupport[UserFollower] {
 
-  //Usabilidad de esto
+
   implicit val overwrittenZoneId: OverwrittenZoneId = OverwrittenZoneId(ZoneId.of("UTC"))
   override val tableName = "users_followers"
 
@@ -83,17 +83,32 @@ class UserFollowersMySqlRepository @Inject() (implicit dbExecutionContext: DbExe
       }
     }
 
+//  override def isFollower(userId: UserId, followerId: UserId): Future[Boolean] =
+//    Future {
+//      DB.localTx { implicit session =>
+//        withSQL {
+//          select(sqls.count)
+//            .from(this as uf)
+//            .where
+//            .eq(uf.userId, userId.id)
+//            .and
+//            .eq(uf.followerId, followerId.id)
+//        }.map(_.int(1)).single().getOrElse(0) > 0
+//      }
+//    }
+
   override def isFollower(userId: UserId, followerId: UserId): Future[Boolean] =
     Future {
-      DB.localTx { implicit session =>
+      DB.readOnly { implicit session =>
         withSQL {
-          select(sqls.count)
+          select(sqls"1")
             .from(this as uf)
             .where
             .eq(uf.userId, userId.id)
             .and
             .eq(uf.followerId, followerId.id)
-        }.map(_.int(1)).single().getOrElse(0) > 0
+            .limit(1)
+        }.map(_ => true).single().getOrElse(false)
       }
     }
 }

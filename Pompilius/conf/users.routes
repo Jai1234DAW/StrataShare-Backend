@@ -117,7 +117,7 @@ POST    /me/coverPhoto                                     dev.pompilius.users.i
 
 ###
 #  summary: Delete my avatar
-#  roles: {"required": "none", "roles": []}
+#  roles: {"required": "any", "roles": ["ADMIN", "PROFESSIONAL", "AMATEUR", "STUDENT"]}
 #  responses:
 #    200:
 #      description: Success
@@ -130,7 +130,7 @@ DELETE        /me/avatar                   dev.pompilius.users.infrastructure.co
 
 ###
 #  summary: Delete my account
-#  roles: {"required": "none", "roles": []}
+#  roles: {"required": "any", "roles": ["ADMIN", "PROFESSIONAL", "AMATEUR", "STUDENT"]}
 #  consumes:
 #    - text/html'
 #  responses:
@@ -154,7 +154,7 @@ GET         /search                        dev.pompilius.users.infrastructure.co
 
 ###
 #  summary: Follow a user
-#  roles: {"required": "any", "roles": ["STUDENT", "AMATEUR", "PROFESSIONAL", "ADMIN"]}
+#  roles: {"required": "any", "roles": ["STUDENT", "AMATEUR", "PROFESSIONAL"]}
 #  responses:
 #    200:
 #      description: Success
@@ -163,7 +163,7 @@ POST        /:userId/follow                 dev.pompilius.users.infrastructure.c
 
 ###
 #  summary: Unfollow a user
-#  roles: {"required": "any", "roles": ["STUDENT", "PROFESSIONAL", "AMATEUR", "ADMIN"]}
+#  roles: {"required": "any", "roles": ["STUDENT", "PROFESSIONAL", "AMATEUR"]}
 #  responses:
 #    200:
 #      description: Success

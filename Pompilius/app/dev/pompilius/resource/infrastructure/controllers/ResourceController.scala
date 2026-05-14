@@ -97,7 +97,7 @@ class ResourceController @Inject() (
                   .map(_.getOrElse(throw new ResourceNotFoundException(s"Resource $rid not found")))
 
               attachments <- uploadMultipleFiles(user, body, rid)
-              response <- attachmentWriter.asList(attachments.toList)
+              response <- attachmentWriter.asList(attachments.toList, resourceId)
 
             } yield Ok(response)
           }
@@ -189,7 +189,7 @@ class ResourceController @Inject() (
               }
             }
 
-            response <- attachmentWriter.asList(attachments.toList)
+            response <- attachmentWriter.asList(attachments.toList, resourceId)
 
           } yield Ok(response)
         }
@@ -417,7 +417,7 @@ class ResourceController @Inject() (
             }
 
             // Formatear respuesta
-            response <- attachmentWriter.asList(allAttachments)
+            response <- attachmentWriter.asList(allAttachments, resourceId)
 
           } yield {
             Ok(response)

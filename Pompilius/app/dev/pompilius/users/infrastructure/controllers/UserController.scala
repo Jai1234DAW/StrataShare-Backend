@@ -194,6 +194,7 @@ class UserController @Inject() (
           for {
 
             _ <- userRepository.findByUsername(updateUserRequest.username).map {
+
               // Si otro usuario está usando este username, lanzamos una excepción
               case Some(u) if u.id.id != currentUser.id.id =>
                 throw new UsernameAlreadyInUseException()
@@ -526,17 +527,18 @@ class UserController @Inject() (
         case (_, user, _) =>
           val uid = user.id
           val followerId = UserId(userFollowerId)
+
+          if (user.id == followerId) {
+            throw new BadRequestException("You cannot check if you are a follower of yourself")
+          }
+
           for {
-            _ <- userRepository.findById(uid).map {
-              case Some(_) =>
-              case None =>
-                throw new UserNotFoundException(s"User with id $uid not found")
-            }
             _ <- userRepository.findById(followerId).map {
               case Some(_) =>
               case None =>
                 throw new UserNotFoundException(s"User with id $followerId not found")
             }
+
             // Verificar si existe la relación de seguidor sin cargar todos los resultados
             isFollowerResult <- userFollowerRepository.isFollower(uid, followerId)
 
