@@ -1,7 +1,7 @@
 # Scripts de insert into para pruebas y modificacion de columna rock_type a sample_category
 
 # --- !Ups
-ALTER TABLE `Sample` RENAME COLUMN `rock_type` TO `sample_category`;
+ALTER TABLE `sample` RENAME COLUMN `rock_type` TO `sample_category`;
 
 INSERT INTO `users` (
     `id`, `username`, `password_hash`, `enabled`, `email`, `interests`, `country`,
