@@ -6,7 +6,7 @@ import dev.pompilius.attachment.domain.AttachmentRepository
 import dev.pompilius.country.infrastructure.writers.CountryWriter
 import dev.pompilius.shared.infrastructure.JsUtils.{JodaDateTimeFormat, toJsValueWrapper}
 import dev.pompilius.shared.infrastructure.UrlUtil
-import dev.pompilius.users.domain.{Role, User, UserRoleRepository}
+import dev.pompilius.users.domain.{User, UserRoleRepository}
 import play.api.libs.json._
 
 import javax.inject.{Inject, Singleton}
@@ -22,13 +22,13 @@ trait UserWriter {
 
 @Singleton
 class UserWriterImpl @Inject() (
-    attachmentRepository: AttachmentRepository,
     userRoleRepository: UserRoleRepository,
     countryWriter: CountryWriter
 )(implicit ec: ExecutionContext)
     extends UserWriter {
   override def toJson(user: User): Future[JsObject] =
     for {
+
       // Obtener el JSON del country
       countryJson <- countryWriter.toJson(user.country)
 
@@ -43,8 +43,8 @@ class UserWriterImpl @Inject() (
       // Obtener el JSON del cover Photo si existe
       coverPhotoJs = user.coverPhoto.map { coverPhoto=>
         UrlUtil.addQueryParameters(
-          dev.pompilius.users.infrastructure.controllers.routes.UserController.downloadAvatar(user.id.toString).url,
-          Map("hash" -> coverPhoto.toString) // Cambiamos la url si cambia el avatar (para evitar la caché)
+          dev.pompilius.users.infrastructure.controllers.routes.UserController.downloadCoverPhoto(user.id.toString).url,
+          Map("hash" -> coverPhoto.toString)
         )
       }
 
@@ -63,7 +63,7 @@ class UserWriterImpl @Inject() (
           toJsValueWrapper(Strings.coverPhoto,coverPhotoJs),
           toJsValueWrapper(Strings.firstName, user.firstName),
           toJsValueWrapper(Strings.lastName, user.lastName),
-          toJsValueWrapper(Strings.country, countryJson), // usamos aquí country resuelto
+          toJsValueWrapper(Strings.country, countryJson),
           toJsValueWrapper(Strings.language, user.language.map(_.language)),
           toJsValueWrapper(Strings.bio, user.bio),
           toJsValueWrapper(Strings.created, user.created),

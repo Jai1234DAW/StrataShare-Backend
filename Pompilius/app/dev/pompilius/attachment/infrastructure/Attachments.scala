@@ -20,7 +20,7 @@ import javax.imageio.ImageIO
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-// Añade funcionalidades de subida y descarga de attachments a un controlador.
+// Trait que añade funcionalidades de subida y descarga de attachments a un controlador.
 trait Attachments extends BaseController {
 
   private[this] var _temporaryFileCreator: TemporaryFileCreator = _
@@ -58,9 +58,6 @@ trait Attachments extends BaseController {
   }
 
   // Sube un archivo y lo guarda como un Attachment
-  // El archivo se recibe en el campo "file" de un formulario multipart
-  // Opcionalmente se puede enviar un campo "description" con una descripción del archivo
-  // Devuelve el Attachment creado
   def upload(
       user: User,
       body: MultipartFormData[Files.TemporaryFile]
@@ -69,7 +66,6 @@ trait Attachments extends BaseController {
     val file = body.file(Strings.file).getOrElse(throw new BadRequestException("file is required"))
 
     val description = body.dataParts.get("description").flatMap(_.headOption).filter(_.nonEmpty)
-    val isPublic = body.dataParts.get("public").exists(_.headOption.contains("true"))
     val attachmentId = AttachmentId.gen(configuration.nodeId)
 
     // Guardamos el archivo en una ruta basada en la fecha actual y el ID del attachment
@@ -150,13 +146,14 @@ trait Attachments extends BaseController {
     resizedImage
   }
 
-  // Sube una imagen, la redimensiona si es necesario y la guarda como un Attachment JPEG
-  // El archivo se recibe en el campo "file" de un formulario multipart
-  // Opcionalmente se puede enviar un campo "description" con una descripción del archivo
-  // Si encrypt es true, se genera una clave aleatoria para cifrar el archivo antes de guardarlo
-  // maxWidth y maxHeight indican el tamaño máximo permitido para la imagen.
-  // Si la imagen es más grande, se redimensiona manteniendo la relación de aspecto
-  // Devuelve el Attachment creado
+  /** Sube una imagen, la redimensiona si es necesario y la guarda como un Attachment JPEG
+     El archivo se recibe en el campo "file" de un formulario multipart
+     Opcionalmente se puede enviar un campo "description" con una descripción del archivo
+     Se podría también generar una clave aleatoria para cifrar el archivo antes de guardarlo
+     maxWidth y maxHeight indican el tamaño máximo permitido para la imagen.
+     Si la imagen es más grande, se redimensiona manteniendo la relación de aspecto
+     Devuelve el Attachment creado **/
+
   def uploadImage(
       user: User,
       body: MultipartFormData[Files.TemporaryFile],

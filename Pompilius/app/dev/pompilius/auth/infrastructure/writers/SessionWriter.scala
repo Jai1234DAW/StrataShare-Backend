@@ -18,6 +18,8 @@ trait SessionWriter {
       user: User,
       roles: List[Role]
   ): Future[JsValue]
+
+  def asAdmin(session: Session, user: User, roles: List[Role]): Future[JsValue]
 }
 
 @Singleton
@@ -27,6 +29,24 @@ class SessionWriterImpl @Inject() (userWriter: UserWriter)(implicit ec: Executio
   override def toJson(session: Session, user: User, roles: List[Role]): Future[JsValue] = {
     for {
       userJson <- userWriter.asCurrentUser(user)
+    } yield {
+      Json.toJson(
+        Json.obj(
+          List(
+            toJsValueWrapper(Strings.id, session.id.toString),
+            toJsValueWrapper(Strings.createdAt, session.created),
+            toJsValueWrapper(Strings.updatedAt, session.updatedAt),
+            toJsValueWrapper(Strings.roles, roles.map(_.toString)),
+            toJsValueWrapper(Strings.user, userJson)
+          ).flatten: _*
+        )
+      )
+    }
+  }
+
+  override def asAdmin(session: Session, user: User, roles: List[Role]): Future[JsValue] = {
+    for {
+      userJson <- userWriter.asAdmin(user)
     } yield {
       Json.toJson(
         Json.obj(

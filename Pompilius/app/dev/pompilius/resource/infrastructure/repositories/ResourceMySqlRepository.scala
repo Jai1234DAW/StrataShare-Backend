@@ -83,7 +83,7 @@ class ResourceMySqlRepository @Inject() (clock: Clock)(
     }
 
     val nameFilter= filter.name.map { n =>
-      sqls.like(sqls.lower(r.name), s"%${n.toLowerCase}%")
+      sqls.like(sqls.lower(r.name), ScalikeUtil.normalizeSearch(n.toLowerCase))
     }
 
     val visibilityFilter = filter.visibility.map { v =>
@@ -99,7 +99,7 @@ class ResourceMySqlRepository @Inject() (clock: Clock)(
     }
 
     val locationFilter = filter.location.map { loc =>
-      sqls.like(sqls.lower(r.location), s"%${loc.toLowerCase}%")
+      sqls.like(sqls.lower(r.location), ScalikeUtil.normalizeSearch(loc.toLowerCase))
     }
 
     val filters = List(

@@ -1,27 +1,20 @@
 package dev.pompilius.auth.infrastructure.controllers
 
+import dev.pompilius.Strings
+import dev.pompilius.auth.application.{LoginValidator, SessionCreator}
+import dev.pompilius.auth.domain.{MailToken, SessionRepository}
+import dev.pompilius.auth.infrastructure.parsers._
 import dev.pompilius.auth.infrastructure.writers.{MailTokenWriter, SessionWriter}
+import dev.pompilius.mail.domain.{Mail, MailAddress, MailContent, MailSubject}
+import dev.pompilius.mail.infrastructure.repositories.MailSmtpRepository
 import dev.pompilius.shared.domain._
+import dev.pompilius.shared.domain.exceptions.{BadRequestException, UnauthorizedException}
 import dev.pompilius.shared.infrastructure.{BaseController, UrlUtil}
 import dev.pompilius.users.domain._
-import dev.pompilius.auth.domain.{MailToken, SessionId, SessionRepository}
 import play.api.Logger
 import play.api.cache.AsyncCacheApi
 import play.api.i18n.MessagesImpl
 import play.api.mvc.{Action, AnyContent}
-import dev.pompilius.Strings
-import dev.pompilius.auth.application.{LoginValidator, SessionCreator}
-import dev.pompilius.auth.infrastructure.parsers.{
-  LoginAsRequestParser,
-  LoginRequestParser,
-  MailTokenParser,
-  PasswordResetRequestParser,
-  SendPasswordResetMailRequestParser
-}
-import dev.pompilius.mail.domain.{Mail, MailAddress, MailContent, MailSubject}
-import dev.pompilius.mail.infrastructure.repositories.MailSmtpRepository
-import dev.pompilius.shared.domain.exceptions.{BadRequestException, UnauthorizedException}
-import org.apache.pekko.Done
 
 import javax.inject._
 import scala.concurrent.{ExecutionContext, Future}
@@ -58,7 +51,6 @@ class AuthController @Inject() (
     }
 
   // Cierra la sesión y la marca como borrada
-
   def logout: Action[AnyContent] =
     Action.async { implicit request =>
       for {
@@ -109,56 +101,11 @@ class AuthController @Inject() (
         } yield {
           Ok(userSessionJson)
             .addingToSession(
-              //Recordar que play cifra las cookies, por lo que no es un gran problema guardar el userId en la sesión, y nos ahorramos tener que hacer una consulta a la base de datos para obtenerlo cada vez que el usuario hace una petición
+              //Play cifra las cookies, por lo que no es problema guardar el userId en la sesión, y nos ahorramos tener que hacer una consulta a la base de datos para obtenerlo cada vez que el usuario hace una petición
               Strings.userId -> session.userId.toString,
               Strings.sessionId -> session.id.toString
             )
         }
-      }
-    }
-
-  // Con la intención de dar soporte, y solucionar incidencias, a los administradores se les da el permiso de
-  // iniciar session como otro usuario, solo necesita conocer su username.
-  def loginAs: Action[AnyContent] =
-    Action.async { implicit request =>
-      findCurrentUser.flatMap {
-        case Some(admin) =>
-          findRolesByUser(admin).flatMap { roles =>
-            if (roles.contains(Role.ADMIN)) {
-              val loginAsRequest = LoginAsRequestParser.parse(request)
-              for {
-                session <- sessionCreator.loginAs(
-                  loginAsRequest = loginAsRequest,
-                  requestFingerprint = getFingerprint
-                )
-                user <- userRepository.getById(session.userId)
-                userRoles <- findRolesByUser(user)
-                userSessionJson <- sessionWriter.toJson(session, user, userRoles)
-                _ <- requestLogger.log(
-                  RequestLog(
-                    id = RequestLogId.gen(configuration.nodeId),
-                    userId = admin.id,
-                    timestamp = clock.now,
-                    address = request.remoteAddress,
-                    method = request.method,
-                    path = request.path,
-                    body = request.body.asJson.map(_.toString),
-                    metadata = None
-                  )
-                )
-              } yield {
-                Ok(userSessionJson)
-                  .addingToSession(
-                    Strings.userId -> session.userId.toString,
-                    Strings.sessionId -> session.id.toString
-                  )
-              }
-            } else {
-              throw new UnauthorizedException("You are not allowed to perform this action")
-            }
-          }
-        case None =>
-          Future.successful(Unauthorized("No autenticado"))
       }
     }
 

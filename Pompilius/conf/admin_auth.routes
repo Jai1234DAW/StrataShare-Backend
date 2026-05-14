@@ -1,0 +1,18 @@
+###
+#  summary: Login as another user
+#  roles: {"required": "all", "roles": ["ADMIN"]}
+#  requestBody:
+#    required: true
+#    content:
+#      application/json:
+#        schema:
+#          $ref: '#/components/schemas/LoginAsRequest'
+#  responses:
+#    200:
+#      description: Success
+#      content:
+#        application/json:
+#          schema:
+#            $ref: '#/components/schemas/UserSession'
+###
+POST          /loginAs            dev.pompilius.auth.infrastructure.controllers.admin.AdminAuthController.loginAs

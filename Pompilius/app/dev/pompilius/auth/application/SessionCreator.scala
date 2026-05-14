@@ -1,11 +1,11 @@
 package dev.pompilius.auth.application
 
 import com.google.inject.ImplementedBy
-import dev.pompilius.auth.domain.exceptions.InvalidPasswordOrUsernameException
 import dev.pompilius.auth.domain.request.LoginAsRequest
 import dev.pompilius.auth.domain.{Session, SessionId, SessionRepository}
 import dev.pompilius.shared.domain.{Clock, Configuration, RequestFingerprint}
 import dev.pompilius.users.domain.{User, UserRepository}
+import dev.pompilius.users.domain.exceptions.UserNotFoundException
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -49,8 +49,8 @@ class SessionCreatorImpl @Inject() (
     userRepository.findByUsername(loginAsRequest.username).flatMap {
       case Some(user) =>
         create(user, requestFingerprint)
-      case _ =>
-        throw new InvalidPasswordOrUsernameException()
+      case None =>
+        throw new UserNotFoundException(s"User with username '${loginAsRequest.username}' not found")
     }
   }
 
