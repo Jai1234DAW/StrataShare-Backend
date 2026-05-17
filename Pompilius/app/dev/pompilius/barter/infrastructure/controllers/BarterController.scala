@@ -5,7 +5,7 @@ import dev.pompilius.auth.domain.MailToken
 import dev.pompilius.auth.infrastructure.parsers.MailTokenParser
 import dev.pompilius.auth.infrastructure.writers.MailTokenWriter
 import dev.pompilius.barter.domain.exception.{BarterAlreadyCompletedException, BarterNotAllowException, BarterNotFoundException}
-import dev.pompilius.barter.domain.{Barter, BarterData, BarterId, BarterRepository}
+import dev.pompilius.barter.domain.{Barter, BarterData, BarterFilter, BarterId, BarterRepository}
 import dev.pompilius.barter.infrastructure.parsers.{BarterRequestParser, CreateBarterRequestParser, MailBarterRequestParser}
 import dev.pompilius.barter.infrastructure.writers.BarterWriter
 import dev.pompilius.mail.domain.{Mail, MailAddress, MailContent, MailSubject}
@@ -587,4 +587,26 @@ class BarterController @Inject() (
           } yield Ok(Json.toJson(jsons))
       }
     }
+
+  def checkPendingBarter(resourceId: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      withAuthenticatedUser {
+        case (_, user, _) =>
+          val rid = ResourceId(resourceId)
+          for {
+            transactions <- transactionRepository.find(
+              TransactionFilter(
+                buyerId = Some(user.id),
+                resourceId = Some(rid),
+                transactionType = Some(TransactionType.BARTER),
+                transactionStatus = Some(TransactionStatus.PENDING)
+              ),
+              Pagination.all
+            )
+          } yield {
+            Ok(Json.obj("hasPendingBarter" -> transactions.nonEmpty))
+          }
+      }
+    }
+
 }

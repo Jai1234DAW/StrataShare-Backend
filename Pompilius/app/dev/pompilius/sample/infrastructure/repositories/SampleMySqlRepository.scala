@@ -131,7 +131,7 @@ class SampleMySqlRepository @Inject() (
       }
     }
 
-  // Mirar si hago borrado lógico o físico. Por ahora, borrado físico
+  // Este método se pudiese usar a futuro por ahora es un borrado lógico.
   override def delete(id: SampleId): Future[Done] =
     Future {
       DB.localTx { implicit session =>
@@ -210,7 +210,7 @@ class SampleMySqlRepository @Inject() (
                 .where
                 .eq(r.id, s.resourceId)
                 .and
-                .like(sqls.lower(r.name), value)
+                .like(sqls"LOWER(TRIM(${r.name}))", value)
                 .toSQLSyntax
             ),
             sqls.exists(
@@ -290,16 +290,19 @@ class SampleMySqlRepository @Inject() (
           val desc = field.startsWith("-")
           val cleanField = field.stripPrefix("-")
 
-          cleanField match {
-            case Strings.created =>
-              Some(if (desc) r.created.desc else r.created.asc)
+           cleanField match {
+             case Strings.created =>
+               Some(if (desc) r.created.desc else r.created.asc)
 
-            case Strings.name =>
-              Some(if (desc) r.name.desc else r.name.asc)
+             case Strings.updated =>
+               Some(if (desc) r.updated.desc else r.updated.asc)
 
-            case _ =>
-              None
-          }
+             case Strings.name =>
+               Some(if (desc) r.name.desc else r.name.asc)
+
+             case _ =>
+               None
+           }
         }
 
         orderBy match {

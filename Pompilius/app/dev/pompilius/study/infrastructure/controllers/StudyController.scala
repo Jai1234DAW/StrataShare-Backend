@@ -337,7 +337,7 @@ class StudyController @Inject() (
       withAuthenticatedUser {
         case (_, currentUser, _) =>
           for {
-            // 1. Buscar studies con todos los filtros
+            // 1. Buscar studies con todos los filtros (incluye los del usuario)
             studies <- studyRepository.find(
               StudyFilter(
                 name = name,
@@ -347,13 +347,23 @@ class StudyController @Inject() (
                 search = search,
                 visibility = visibility.map(Visibility.withNameInsensitive),
                 location = location,
-                userId = userId.map(UserId(_)) // ← Opcional: si es None, busca en todos
+                userId = userId.map(UserId(_))
               ),
               pag.oneMore
             )
-            // 2. Para cada study, obtener resource y generar preview JSON usando paginatedWriter
 
-            json <- paginatedWriter.toJson(Paginated(studies, pag)) { study =>
+            // 2. Obtener IDs de estudios OWNED por el usuario autenticado para excluirlos
+            userOwnedStudyIds <- studyRepository.getMyAllStudiesAs(
+              userId = currentUser.id,
+              Pagination.all,
+              ResourceUserType.OWNER.toString
+            ).map(_.map(_.id).toSet)
+
+            // 3. EXCLUIR SOLO estudios que el usuario OWNS (no excluir los comprados, barteados, etc.)
+            filteredStudies = studies.filterNot(s => userOwnedStudyIds.contains(s.id))
+
+            // 4. Para cada estudio, obtener resource y generar preview JSON usando paginatedWriter
+            json <- paginatedWriter.toJson(Paginated(filteredStudies, pag)) { study =>
               for {
                 resource <-
                   resourceRepository

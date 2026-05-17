@@ -225,7 +225,7 @@ GET         /:followerId/following/check        dev.pompilius.users.infrastructu
 #      content:
 #       application/json:
 #        schema:
-#         $ref: '#/components/schemas/User'
+#         $ref: '#/components/schemas/AnotherUser'
 #      description: Complete user information
 ###
 GET         /:userId/info                       dev.pompilius.users.infrastructure.controllers.UserController.getUserById(userId: String)

@@ -4,13 +4,14 @@ import dev.pompilius.attachment.domain.Attachment
 import dev.pompilius.attachment.domain.exceptions.AttachmentNotFoundException
 import dev.pompilius.attachment.infrastructure.Attachments
 import dev.pompilius.badge.application.BadgeService
+import dev.pompilius.badge.domain.exceptions.BadgeNotFoundException
 import dev.pompilius.badge.domain.{BadgeRepository, BadgeType}
 import dev.pompilius.badge.infrastructure.parsers.UpdateBadgeImageRequestParser
 import dev.pompilius.badge.infrastructure.writers.BadgeWriter
 import dev.pompilius.shared.domain.exceptions.BadRequestException
 import dev.pompilius.shared.domain.{Clock, Configuration}
 import dev.pompilius.shared.infrastructure.BaseController
-import dev.pompilius.users.domain.Role
+import dev.pompilius.users.domain.{Role, UserId}
 import play.api.Logger
 import play.api.libs.Comet.initialHtmlChunk.body
 import play.api.libs.Files
@@ -76,7 +77,7 @@ class BadgeController @Inject() (
             // Buscar el badge
             badgeOpt <- badgeRepository.findByType(badgeType)
             badge = badgeOpt.getOrElse(
-              throw new BadRequestException(s"Badge not found for type: $badgeTypeStr")
+              throw new BadgeNotFoundException(s"Badge not found for type: $badgeTypeStr")
             )
 
             // Actualizar con la nueva imageUrl
@@ -157,9 +158,9 @@ class BadgeController @Inject() (
 ////      }
 ////    }
 
-  //Elimina la imagen de un badge - solo para admins
 
-  def removeBadgeImage(badgeTypeStr: String): Action[AnyContent] =
+  //Elimina la imagen de un badge - solo para admins
+  def removeBadgeImage(badgeTypeStr: String): Action[AnyContent] = {
     Action.async { implicit request =>
       withAnyOfThisRoles(Seq(Role.ADMIN)) {
         case (_, _, _, _) =>
@@ -170,7 +171,7 @@ class BadgeController @Inject() (
           for {
             badgeOpt <- badgeRepository.findByType(badgeType)
             badge = badgeOpt.getOrElse(
-              throw new BadRequestException(s"Badge not found for type: $badgeTypeStr")
+              throw new BadgeNotFoundException(s"Badge not found for type: $badgeTypeStr")
             )
 
             updatedBadge = badge.copy(imageUrl = None)
@@ -182,4 +183,18 @@ class BadgeController @Inject() (
           } yield Ok(json)
       }
     }
+  }
+
+  def listAllBadgesFromAnotherUser(userIdStr: String): Action[AnyContent] = {
+    Action.async { implicit request =>
+      withAuthenticatedUser {
+        case (_, user, _) =>
+          val userId = UserId(userIdStr)
+          for {
+            badges <- badgeService.getUserBadges(userId)
+            json <- badgeWriter.asList(badges)
+          } yield Ok(json)
+      }
+    }
+  }
 }

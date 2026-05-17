@@ -467,7 +467,8 @@ class UserController @Inject() (
               case None =>
                 throw new UserNotFoundException(s"User with id $userId not found")
             }
-            _ <- userFollowerRepository.delete(unfollowedUserId, currentUser.id)
+            // Delete with correct parameter order: (followerId, userId)
+            _ <- userFollowerRepository.delete(currentUser.id, unfollowedUserId)
           } yield {
             Ok
           }
@@ -540,7 +541,8 @@ class UserController @Inject() (
             }
 
             // Verificar si existe la relación de seguidor sin cargar todos los resultados
-            isFollowerResult <- userFollowerRepository.isFollower(uid, followerId)
+            // Check if current user (uid) is a follower of the target user (followerId)
+            isFollowerResult <- userFollowerRepository.isFollower(followerId, uid)
 
           } yield {
             Ok(Json.obj(Strings.isFollower -> isFollowerResult))

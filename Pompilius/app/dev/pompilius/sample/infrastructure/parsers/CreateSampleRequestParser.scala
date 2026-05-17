@@ -5,7 +5,7 @@ import dev.pompilius.sample.domain.request.CreateSampleRequest
 import dev.pompilius.shared.domain.Visibility
 import dev.pompilius.shared.domain.exceptions.BadRequestException
 import dev.pompilius.shared.infrastructure.JsUtils.JodaDateTimeReads
-import dev.pompilius.shared.infrastructure.StringUtil
+import dev.pompilius.shared.infrastructure.{ReadsUtil, StringUtil}
 import org.joda.time.{DateTime, DateTimeZone}
 import play.api.libs.Files
 import play.api.libs.functional.syntax._
@@ -15,7 +15,7 @@ import play.api.mvc.{AnyContentAsJson, MultipartFormData, Request}
 object CreateSampleRequestParser {
 
   implicit val jsonReads: Reads[CreateSampleRequest] = (
-    (__ \ Strings.name).read[String] and
+    (__ \ Strings.name).read[String](ReadsUtil.sampleName) and
       (__ \ Strings.visibility).read[String].map(Visibility.withNameInsensitive) and
       (__ \ Strings.location).read[String] and
       (__ \ Strings.observations).readNullable[String].map(_.map(StringUtil.stripTags)) and
@@ -29,13 +29,13 @@ object CreateSampleRequestParser {
           val today = DateTime.now(DateTimeZone.UTC).withTimeAtStartOfDay()
           !collectedDate.isAfter(today)
         } and
-      (__ \ Strings.minerals).readNullable[String] and
-      (__ \ Strings.collectionMethods).readNullable[String] and
+      (__ \ Strings.minerals).readNullable[String](ReadsUtil.minerals) and
+      (__ \ Strings.collectionMethods).readNullable[String](ReadsUtil.collectionMethods) and
       (__ \ Strings.isFresh).read[Boolean] and
-      (__ \ Strings.sampleType).readNullable[String] and
-      (__ \ Strings.materialsUsed).readNullable[String] and
-      (__ \ Strings.sampleCategory).readNullable[String] and
-      (__ \ Strings.geologicalProcesses).readNullable[String]
+      (__ \ Strings.sampleType).readNullable[String](ReadsUtil.sampleType) and
+      (__ \ Strings.materialsUsed).readNullable[String](ReadsUtil.materialsUsed) and
+      (__ \ Strings.sampleCategory).readNullable[String](ReadsUtil.sampleCategory) and
+      (__ \ Strings.geologicalProcesses).readNullable[String](ReadsUtil.geologicalProcesses)
   )(CreateSampleRequest.apply _).filter(JsonValidationError("Invalid price/barter/visibility combination")) { req =>
     req.visibility match {
       case Visibility.PUBLIC =>

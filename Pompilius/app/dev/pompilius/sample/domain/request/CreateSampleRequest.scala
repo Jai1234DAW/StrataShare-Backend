@@ -14,7 +14,6 @@ case class CreateSampleRequest(
     isBarter: Boolean=false,
 
     // Datos específicos (Sample)
-
     collectedDate: DateTime,
     minerals: Option[String],
     collectionMethods: Option[String],

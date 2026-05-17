@@ -115,3 +115,27 @@ GET          /pending/requests                             dev.pompilius.barter.
 #          $ref: '#/components/schemas/BarterRequestResponse'
 ###
 GET          /pending/sales                                dev.pompilius.barter.infrastructure.controllers.BarterController.getMyPendingBartersToAnswer(pag:Pagination)
+
+###
+#  summary: Check if the current user has a pending barter request for a specific resource
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL"]}
+#  parameters:
+#    - in: query
+#      name: resourceId
+#      schema:
+#        type: string
+#      required: true
+#      description: The ID of the resource to check for pending barter requests
+#  responses:
+#    200:
+#      description: Whether the user has a pending barter request for the specified resource
+#      content:
+#       application/json:
+#        schema:
+#         type: object
+#         properties:
+#          hasPendingBarter:
+#           type: boolean
+#           description: Indicates if the user has a pending barter request for the specified resource
+###
+GET          /pending/check                                dev.pompilius.barter.infrastructure.controllers.BarterController.checkPendingBarter(resourceId: String)
