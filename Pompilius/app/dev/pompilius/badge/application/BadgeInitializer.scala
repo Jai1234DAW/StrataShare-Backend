@@ -14,9 +14,7 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class BadgeInitializer @Inject() (
     badgeService: BadgeService,
-    badgeRepository: BadgeRepository,
-    clock: Clock,
-    configuration: Configuration
+    badgeRepository: BadgeRepository
 )(implicit ec: ExecutionContext) {
 
   private val logger = Logger(this.getClass)

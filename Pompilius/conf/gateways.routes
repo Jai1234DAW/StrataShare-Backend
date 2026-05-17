@@ -2,7 +2,7 @@
 POST        /stripe/webhook                                           dev.pompilius.gateways.infrastructure.controllers.GatewayController.handleStripeWebhook
 
 ### NoDocs ###
-GET         /payments/:paymentId/success                              dev.pompilius.gateways.infrastructure.controllers.GatewayController.oneTimePaymentCompleted(gatewayName:String, paymentId: String)
+GET         /payments/:gatewayName/:paymentId/success                 dev.pompilius.gateways.infrastructure.controllers.GatewayController.oneTimePaymentCompleted(gatewayName:String, paymentId: String)
 
 ### NoDocs ###
-GET         /payments/:paymentId/cancel                               dev.pompilius.gateways.infrastructure.controllers.GatewayController.oneTimePaymentCanceled(gatewayName:String, paymentId: String)
+GET         /payments/:gatewayName/:paymentId/cancel                  dev.pompilius.gateways.infrastructure.controllers.GatewayController.oneTimePaymentCanceled(gatewayName:String, paymentId: String)

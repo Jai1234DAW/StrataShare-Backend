@@ -151,11 +151,6 @@ object ReadsUtil {
       error = "error.token"
     )
 
-  //MIRAR AQUÍ, a partir de aquí puede que no lo use
-
-  // Valida el nombre de libro: longitud mínima y máxima
-  def bookName(implicit reads: Reads[String]): Reads[String] =
-    Reads.minLength[String](1) keepAnd Reads.maxLength[String](64)
 
   // Valida el nombre de región: longitud mínima y máxima
   def regionName(implicit reads: Reads[String]): Reads[String] =
@@ -169,29 +164,11 @@ object ReadsUtil {
   def teamName(implicit reads: Reads[String]): Reads[String] =
     Reads.minLength[String](1) keepAnd Reads.maxLength[String](64)
 
-  // Valida el nombre de categoría: longitud mínima y máxima
-  def categoryName(implicit reads: Reads[String]): Reads[String] =
-    Reads.minLength[String](1) keepAnd Reads.maxLength[String](64)
-
-  // Valida el título de categoría: longitud mínima y máxima
-  def categoryTitle(implicit reads: Reads[String]): Reads[String] =
-    Reads.minLength[String](1) keepAnd Reads.maxLength[String](64)
-
   // Valida una URL: longitud máxima
   def url(implicit reads: Reads[String]): Reads[String] =
     Reads.maxLength[String](2000)
 
-  // Valida la descripción del premio de juego: longitud máxima
-  def gamePrizeDescription(implicit reads: Reads[String]): Reads[String] =
-    Reads.maxLength[String](512)
 
-  // Valida el recordatorio de juego: longitud máxima
-  def gameRemainder(implicit reads: Reads[String]): Reads[String] =
-    Reads.maxLength[String](512)
-
-  // Valida el título de acción de recordatorio de juego: longitud máxima
-  def gameRemainderActionTitle(implicit reads: Reads[String]): Reads[String] =
-    Reads.maxLength[String](32)
 
   // Sample fields validations
   def sampleName(implicit reads: Reads[String]): Reads[String] =
@@ -214,6 +191,8 @@ object ReadsUtil {
 
   def geologicalProcesses(implicit reads: Reads[String]): Reads[String] =
     Reads.maxLength[String](512)
+
+
 
   // Study fields validations
   def studyName(implicit reads: Reads[String]): Reads[String] =
@@ -251,6 +230,5 @@ object ReadsUtil {
 
   def rating(implicit reads: Reads[Int]): Reads[Int] =
     Reads.min(1) keepAnd Reads.max(5)
-
 
 }

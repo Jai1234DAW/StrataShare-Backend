@@ -88,6 +88,7 @@ class BarterMySqlRepository @Inject() (
 
     val transactionId = filter.transactionId.map(tid => sqls.eq(b.transactionId, tid.id))
 
+
     val offeredResourceId = filter.offeredResourceId.map(rid => sqls.eq(b.offeredResourceId, rid.id))
 
     val userBuyer = filter.userBuyer.map { buyerId =>

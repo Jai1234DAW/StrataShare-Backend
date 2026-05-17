@@ -56,6 +56,45 @@ class TransactionServImpl @Inject() (
     }
   }
 
+  private def verifyNotDuplicateOfferToSeller(
+      offeredResourceId: ResourceId,
+      sellerId: UserId,
+      buyerId: UserId
+  ): Future[Unit] = {
+    // Obtener todas las transacciones pendientes donde el buyer está ofreciendo recursos al seller
+    transactionRepository.find(
+      TransactionFilter(
+        buyerId = Some(buyerId),
+        sellerId = Some(sellerId),
+        transactionStatus = Some(TransactionStatus.PENDING)
+      ),
+      Pagination.all
+    ).flatMap { pendingTransactions =>
+      // Verificar que ninguna de esas transacciones tiene el mismo recurso ofrecido
+      val hasDuplicateOffer = pendingTransactions.exists { transaction =>
+        // Extraer el offeredResourceId del metadata
+        transaction.metadata.flatMap { metadata =>
+          try {
+            val json = play.api.libs.json.Json.parse(metadata)
+            (json \ "offeredResourceId").asOpt[String].map(id => ResourceId(id.toLong) == offeredResourceId)
+          } catch {
+            case _: Exception => None
+          }
+        }.getOrElse(false)
+      }
+
+      if (hasDuplicateOffer) {
+        Future.failed(
+          new ForbiddenException(
+            "You already have a pending barter with this user using this resource"
+          )
+        )
+      } else {
+        Future.successful(())
+      }
+    }
+  }
+
   private def validateSameResource(requestedResourceId: ResourceId, offeredResourceId: ResourceId): Future[Unit] = {
     if (requestedResourceId == offeredResourceId) {
       Future.failed(
@@ -126,6 +165,15 @@ class TransactionServImpl @Inject() (
       _ <- resourceAccessValidator.validateAlreadyHaveAccess(resourceId, buyer.id)
 
       _ <- verifyNotPendingTransaction(resourceId, buyer.id)
+
+      // Validar que el vendedor NO posee ya el recurso ofrecido
+      _ <- resourceAccessValidator.validateAlreadyHaveAccess(offeredResourceId, owner.id)
+
+      // Validar que el vendedor NO tiene otra transacción pendiente sobre el recurso ofrecido
+      _ <- verifyNotPendingTransaction(offeredResourceId, owner.id)
+
+      // Validar que el buyer no está ofreciendo el mismo recurso al mismo seller en otra transacción pendiente
+      _ <- verifyNotDuplicateOfferToSeller(offeredResourceId, owner.id, buyer.id)
 
       data = BarterData(
         requestedResource = requestedResource,

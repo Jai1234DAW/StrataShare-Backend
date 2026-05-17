@@ -153,7 +153,6 @@ class BadgeServiceImpl @Inject() (
               throw new BadgeNotFoundException(s"Badge type $badgeType is not configured")
             }
 
-            // PK compuesta: (userId, badgeId) - NO necesitamos un ID separado
             userBadge = UserBadge(
               userId = userId,
               badgeId = badge.id,
@@ -190,83 +189,83 @@ class BadgeServiceImpl @Inject() (
       Badge(
         BadgeId.gen(configuration.nodeId),
         BadgeType.SEDIMENT_COLLECTOR,
-        "Coleccionista de Sedimentos",
-        s"Adquirió $SEDIMENT_COLLECTOR_THRESHOLD estudios o muestras geológicas",
-        Some("/images/badges/sediment_collector.png"),
+        "Sediment Collector",
+        s"Acquired $SEDIMENT_COLLECTOR_THRESHOLD samples or geological studies",
+        Some("https://res.cloudinary.com/dk7yydz0v/image/upload/v1778874624/SEDIMENT_COLLECTOR_txdplm.png"),
         clock.now
       ),
       Badge(
         BadgeId.gen(configuration.nodeId),
         BadgeType.MINERAL_PROSPECTOR,
-        "Prospector de Minerales",
-        s"Adquirió $MINERAL_PROSPECTOR_THRESHOLD estudios o muestras geológicas",
-        Some("/images/badges/mineral_prospector.png"),
+        "Mineral Prospector",
+        s"Acquired $MINERAL_PROSPECTOR_THRESHOLD studies or geological samples",
+        Some("https://res.cloudinary.com/dk7yydz0v/image/upload/v1778875277/MINERAL_PROSPECTOR_q2m20g.png"),
         clock.now
       ),
       Badge(
         BadgeId.gen(configuration.nodeId),
         BadgeType.CRYSTAL_SEEKER,
-        "Buscador de Cristales",
-        s"Adquirió $CRYSTAL_SEEKER_THRESHOLD estudios o muestras geológicas",
-        Some("/images/badges/crystal_seeker.png"),
+        "Crystal Seeker",
+        s"Acquired $CRYSTAL_SEEKER_THRESHOLD samples or geological studies",
+        Some("https://res.cloudinary.com/dk7yydz0v/image/upload/v1778875115/CRYSTAL_SEEKER_yhfmrt.png"),
         clock.now
       ),
       Badge(
         BadgeId.gen(configuration.nodeId),
         BadgeType.DIAMOND_EXPLORER,
-        "Explorador de Diamantes",
-        s"Adquirió $DIAMOND_EXPLORER_THRESHOLD estudios o muestras geológicas",
-        Some("/images/badges/diamond_explorer.png"),
+        "Diamond Explorer",
+        s"Acquired $DIAMOND_EXPLORER_THRESHOLD samples or geological studies",
+        Some("https://res.cloudinary.com/dk7yydz0v/image/upload/v1778875462/DIAMOND_EXPLORER_tjmol6.png"),
         clock.now
       ),
       // Barter badges (Intercambio de recursos geológicos)
       Badge(
         BadgeId.gen(configuration.nodeId),
         BadgeType.FOSSIL_TRADER,
-        "Comerciante de Fósiles",
-        s"Completó $FOSSIL_TRADER_THRESHOLD trueques de recursos geológicos",
-        Some("/images/badges/fossil_trader.png"),
+        "Fossil Trader",
+        s"Completed $FOSSIL_TRADER_THRESHOLD geological resources barters",
+        Some("https://res.cloudinary.com/dk7yydz0v/image/upload/v1778876128/FOSSIL_TRADER_frfnrz.png"),
         clock.now
       ),
       Badge(
         BadgeId.gen(configuration.nodeId),
         BadgeType.ROCK_EXCHANGER,
-        "Intercambiador de Rocas",
-        s"Completó $ROCK_EXCHANGER_THRESHOLD trueques de recursos geológicos",
-        Some("/images/badges/rock_exchanger.png"),
+        "Rock Exchanger",
+        s"Completed $ROCK_EXCHANGER_THRESHOLD geological resources barters",
+        Some("https://res.cloudinary.com/dk7yydz0v/image/upload/v1778877446/ROCK_EXCHANGER_ewk2hd.png"),
         clock.now
       ),
       Badge(
         BadgeId.gen(configuration.nodeId),
         BadgeType.GEMSTONE_SWAPPER,
-        "Permutador de Gemas",
-        s"Completó $GEMSTONE_SWAPPER_THRESHOLD trueques de recursos geológicos",
-        Some("/images/badges/gemstone_swapper.png"),
+        "Gemstone Swapper",
+        s"Completed $GEMSTONE_SWAPPER_THRESHOLD geological resources barters",
+        Some("https://res.cloudinary.com/dk7yydz0v/image/upload/v1778877499/GEMSTONE_SWAPPER_nrtmox.png"),
         clock.now
       ),
       Badge(
         BadgeId.gen(configuration.nodeId),
         BadgeType.GEODE_MASTER,
-        "Maestro de Geodas",
-        s"Completó $GEODE_MASTER_THRESHOLD trueques de recursos geológicos",
-        Some("/images/badges/geode_master.png"),
+        "Geode Master",
+        s"Completed $GEODE_MASTER_THRESHOLD geological resources barters",
+        Some("https://res.cloudinary.com/dk7yydz0v/image/upload/v1778878878/GEODE_MASTER_quh4xm.png"),
         clock.now
       ),
       // Contributor badges (Participación en la comunidad geológica)
       Badge(
         BadgeId.gen(configuration.nodeId),
         BadgeType.STRATA_CONTRIBUTOR,
-        "Contribuidor de Estratos",
-        s"Participó activamente en $STRATA_CONTRIBUTOR_THRESHOLD proporcionar documentación geológica",
-        Some("/images/badges/strata_contributor.png"),
+        "Strata Contributor",
+        s" $STRATA_CONTRIBUTOR_THRESHOLD geological documentation",
+        Some("https://res.cloudinary.com/dk7yydz0v/image/upload/v1778878841/STRATA_CONTRIBUTOR_yfoope.png"),
         clock.now
       ),
       Badge(
         BadgeId.gen(configuration.nodeId),
         BadgeType.GEOLOGICAL_LEGEND,
-        "Leyenda Geológica",
-        s"Participó activamente en $GEOLOGICAL_LEGEND_THRESHOLD en proporcionar documentación geológica",
-        Some("/images/badges/geological_legend.png"),
+        "Geological Legend",
+        s"Actively participated in contributing for $GEOLOGICAL_LEGEND_THRESHOLD geological documentation",
+        Some("https://res.cloudinary.com/dk7yydz0v/image/upload/v1778878470/GEOLOGICAL_LEGEND_hc1o96.png"),
         clock.now
       )
     )

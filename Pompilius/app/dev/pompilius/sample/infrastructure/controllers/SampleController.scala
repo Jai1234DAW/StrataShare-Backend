@@ -99,9 +99,8 @@ class SampleController @Inject() (
                 updated = clock.now
               )
             )
-            //Llamo aquí a lo de eventos.
 
-            // Registrar evento
+            // Registrar evento para badges.
             samplesBadges <- badgeService.registerEventAndCheckBadges(user.id, EventU.SAMPLE_UPLOADED)
 
             _ = if (samplesBadges.nonEmpty) {
@@ -276,6 +275,7 @@ class SampleController @Inject() (
 
             json <- accessLevel match {
               case ResourceAccessLevel.FULL_ACCESS =>
+
                 // Si es público: sin relación, puede verlo todo por ser público
                 // Si es privado: tiene FULL_ACCESS porque existe una relación (comprado, aceptado, bartered, etc)
                 for {
@@ -333,6 +333,7 @@ class SampleController @Inject() (
       withAuthenticatedUser {
         case (_, user, _) =>
           for {
+            // 1. Obtener samples con los filtros (incluye los del usuario)
             samples <- sampleRepository.find(
               SampleFilter(
                 name = name,
@@ -346,8 +347,19 @@ class SampleController @Inject() (
               ),
               pag.oneMore
             )
-            // 2. Para cada study, obtener resource y generar preview JSON usando paginatedWriter
-            json <- paginatedWriter.toJson(Paginated(samples, pag)) { sample =>
+
+            // 2. Obtener IDs de samples OWNED por el usuario autenticado para excluirlos
+            userOwnedSampleIds <- sampleRepository.getMyAllSamplesAs(
+              userId = user.id,
+              Pagination.all,
+              ResourceUserType.OWNER.toString
+            ).map(_.map(_.id).toSet)
+
+            // 3. EXCLUIR SOLO samples que el usuario OWNS (no excluir los comprados, barteados, etc.)
+            filteredSamples = samples.filterNot(s => userOwnedSampleIds.contains(s.id))
+
+            // 4. Para cada sample, obtener resource y generar preview JSON usando paginatedWriter
+            json <- paginatedWriter.toJson(Paginated(filteredSamples, pag)) { sample =>
               for {
                 resource <-
                   resourceRepository
@@ -356,8 +368,7 @@ class SampleController @Inject() (
                       _.getOrElse(throw new ResourceNotFoundException(s"Resource not found for study ${sample.id}"))
                     )
 
-
-                 ownerId <-
+                ownerId <-
                   resourceUserRepository
                     .findOwnerByResource(resource.id)
                     .map(
@@ -367,7 +378,6 @@ class SampleController @Inject() (
                     )
 
                 // Siempre devolver preview (datos básicos para el listado)
-                //Luego se pordá acceder con más datos a cada uno de ellos.
                 json <-
                   resourceWriter.asPrivate(resource, ResourceAccessLevel.PREVIEW_ONLY, ownerId, Some(sample), None)
               } yield json

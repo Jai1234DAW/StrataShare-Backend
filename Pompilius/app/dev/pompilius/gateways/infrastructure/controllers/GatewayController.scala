@@ -222,6 +222,7 @@ class GatewayController @Inject() (
   @SuppressWarnings(Array("UnusedMethodParameter"))
   def oneTimePaymentCanceled(gatewayName: String, paymentId: String): Action[AnyContent] =
     Action.async { implicit request =>
+      logger.info(s"Payment cancel endpoint hit for gatewayName=$gatewayName paymentId=$paymentId")
       withAuthenticatedUser {
         case (_, user, _) =>
           val gateway = Gateway.withNameInsensitive(gatewayName) match {
@@ -250,6 +251,11 @@ class GatewayController @Inject() (
               throw new TransactionNotAllowedException("This payment does not belong to the provided gateway")
             }
 
+            _ <- reconcileCanceledCheckout(
+              paymentIntent = paymentIntent,
+              transaction = transaction
+            )
+
           } yield {
             val parameters =
               paymentIntent.returnUrlParams.getOrElse(Map.empty[String, String]) ++ Map(
@@ -260,6 +266,7 @@ class GatewayController @Inject() (
 
             val url = configuration.payments.paymentCanceledUrl
 
+            logger.info(s"Redirecting to cancel URL: $url with parameters: $parameters")
             TemporaryRedirect(
               UrlUtil.addQueryParameters(
                 UrlUtil.interpolateVariables(url, parameters),
@@ -323,8 +330,15 @@ class GatewayController @Inject() (
       _ <- paymentIntentOpt match {
         case Some(pi) =>
           for {
-            _ <- paymentIntentRepository.updateStatus(pi.paymentId, PaymentIntentStatus.CANCELED)
-            _ <- transactionRepository.updateStatusRejectedCancelled(pi.transactionId, TransactionStatus.CANCELLED)
+            transaction <-
+              transactionRepository
+                .findById(pi.transactionId)
+                .map(_.getOrElse(throw new TransactionNotFoundException(s"Transaction ${pi.transactionId} not found")))
+
+            _ <- reconcileCanceledCheckout(
+              paymentIntent = pi,
+              transaction = transaction
+            )
           } yield ()
 
         case None =>
@@ -356,6 +370,21 @@ class GatewayController @Inject() (
     )
 
     Future.successful(())
+  }
+
+  private def reconcileCanceledCheckout(
+      paymentIntent: dev.pompilius.payment.domain.PaymentIntent,
+      transaction: Transaction
+  ): Future[Unit] = {
+
+    for {
+      _ <- paymentIntentRepository.updateStatus(paymentIntent.paymentId, PaymentIntentStatus.CANCELED)
+      _ <- transactionRepository.updateStatusRejectedCancelled(transaction.id, TransactionStatus.CANCELLED)
+    } yield {
+      logger.info(
+        s"Payment canceled successfully for transaction=${transaction.id}, payment=${paymentIntent.paymentId}"
+      )
+    }
   }
 
   private def handlePaymentIntentCanceled(json: JsValue): Future[Unit] = {

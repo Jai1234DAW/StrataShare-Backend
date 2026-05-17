@@ -22,7 +22,10 @@
           "type": "string"
         },
         "nullable": true,
-        "default": ["Geology", "Mineralogy"]
+        "default": [
+          "Geology",
+          "Mineralogy"
+        ]
       },
       "phone": {
         "type": "string",
@@ -293,7 +296,10 @@
           "type": "string"
         },
         "nullable": true,
-        "default": ["Geology", "Mineralogy"]
+        "default": [
+          "Geology",
+          "Mineralogy"
+        ]
       },
       "phone": {
         "type": "string",
@@ -549,12 +555,12 @@
         "default": true,
         "required": true
       },
-    "collectedDate": {
-      "type": "string",
-      "format": "date-time",
-      "default": "2026-03-30T10:30:00Z",
-      "required": true
-    },
+      "collectedDate": {
+        "type": "string",
+        "format": "date-time",
+        "default": "2026-03-30T10:30:00Z",
+        "required": true
+      },
       "minerals": {
         "type": "string",
         "default": "Sample minerals",
@@ -745,9 +751,9 @@
       "studyData": {
         "$ref": "#/components/schemas/StudyData",
         "required": true
-        }
       }
-    },
+    }
+  },
   "UpdateStudyRequest": {
     "properties": {
       "name": {
@@ -873,11 +879,11 @@
         "default": 100.00,
         "required": false
       },
-        "isBarter": {
-            "type": "boolean",
-            "default": false,
-            "required": true
-        },
+      "isBarter": {
+        "type": "boolean",
+        "default": false,
+        "required": true
+      },
       "collectedDate": {
         "type": "string",
         "format": "date-time",
@@ -1723,23 +1729,23 @@
         "description": "Timestamp when the badge was created"
       }
     }
-    },
-    "BadgeAdminList": {
-      "properties": {
+  },
+  "BadgeAdminList": {
+    "properties": {
+      "items": {
+        "type": "array",
         "items": {
-          "type": "array",
-          "items": {
-            "$ref": "#/components/schemas/BadgeAdmin"
-          }
-        },
-        "moreItems": {
-          "type": "boolean",
-          "default": false,
-          "required": true,
-          "description": "Indicates if there are more items available beyond the current list"
+          "$ref": "#/components/schemas/BadgeAdmin"
         }
+      },
+      "moreItems": {
+        "type": "boolean",
+        "default": false,
+        "required": true,
+        "description": "Indicates if there are more items available beyond the current list"
       }
-    },
+    }
+  },
   "Resource": {
     "properties": {
       "id": {
@@ -1862,8 +1868,77 @@
         "required": false
       }
     }
+  },
+  "AnotherUser": {
+    "properties": {
+      "username": {
+        "type": "string",
+        "default": "user",
+        "required": true,
+        "description": "Username of the user"
+      },
+      "avatar": {
+        "type": "string",
+        "default": "api/users/3gqbdpbym4ua/avatar",
+        "required": false,
+        "description": "URL of the user's avatar image"
+      },
+      "interests": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "default": [
+          "SAMPLE_COLLECTOR",
+          "GEMSTONE_SEEKER"
+        ],
+        "required": false,
+        "description": "List of interests or hobbies of the user"
+      },
+      "firstName": {
+        "type": "string",
+        "default": "John",
+        "required": false,
+        "description": "First name of the user"
+      },
+      "lastName": {
+        "type": "string",
+        "default": "Smith",
+        "required": false,
+        "description": "Last name of the user"
+      },
+      "country": {
+        "type": "string",
+        "default": "ES",
+        "required": true,
+        "description": "Country code of the user (e.g., ES for Spain)"
+      },
+      "bio": {
+        "type": "string",
+        "default": "Short biography of the user",
+        "required": false,
+        "description": "Short biography or description of the user"
+      },
+      "created": {
+        "type": "string",
+        "format": "date-time",
+        "default": "2026-03-30T10:30:00Z",
+        "required": true,
+        "description": "Timestamp when the user account was created"
+      },
+      "roles": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "default": [
+          "STUDENT"
+        ],
+        "required": true,
+        "description": "List of roles assigned to the user (e.g., STUDENT, ADMIN)"
+      }
+    }
   }
 }
-
 
 

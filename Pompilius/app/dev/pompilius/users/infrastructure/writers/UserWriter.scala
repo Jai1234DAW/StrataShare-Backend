@@ -130,6 +130,7 @@ class UserWriterImpl @Inject() (
           toJsValueWrapper(Strings.lastName, user.lastName),
           toJsValueWrapper(Strings.country, countryJson), // usamos aquí country resuelto
           toJsValueWrapper(Strings.bio, user.bio),
+          toJsValueWrapper(Strings.created, user.created),
           toJsValueWrapper(Strings.role, roles)
         ).flatten: _*
       )

@@ -221,17 +221,6 @@ class StudyMySqlRepository @Inject() (
       )
     }
 
-//      sqls.in(
-//        st.resourceId,
-//        select(ru.resourceId)
-//          .from(resourceUserMySqlRepository as ru)
-//          .where
-//          .eq(ru.userId, userId.id)
-//          .and
-//          .eq(ru.deleted, false)
-//          .toSQLSyntax
-//      )
-
     val resourceUserNotDeletedFilter = {
       val ru = resourceUserMySqlRepository.syntax("ru")
 

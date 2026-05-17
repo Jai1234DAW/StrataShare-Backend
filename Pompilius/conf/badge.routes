@@ -11,6 +11,20 @@
 ###
 GET     /my                                 dev.pompilius.badge.infrastructure.controllers.BadgeController.myBadges
 
+
+###
+#  summary: List badges of any user
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL"]}
+#  responses:
+#    200:
+#      content:
+#       application/json:
+#        schema:
+#         $ref: '#/components/schemas/BadgeUserList'
+#       description: Success
+###
+GET     /user/:userId                                 dev.pompilius.badge.infrastructure.controllers.BadgeController.listAllBadgesFromAnotherUser(userId: String)
+
 ###
 #  summary: List all badges (admin)
 #  roles: {"required": "any", "roles": ["ADMIN"]}
@@ -25,18 +39,18 @@ GET     /my                                 dev.pompilius.badge.infrastructure.c
 GET     /admin/all                          dev.pompilius.badge.infrastructure.controllers.BadgeController.allBadges
 
 ###
-#  summary: Upload an image to a badge
+#  summary: Update badge image URL
 #  roles: {"required": "any", "roles": ["ADMIN"]}
 #  requestBody:
 #      required: true
 #      content:
-#       multipart/form-data:
+#       application/json:
 #         schema:
 #           type: object
 #           properties:
-#             file:
+#             imageUrl:
 #               type: string
-#               format: binary
+#               description: URL de la imagen del badge
 #  responses:
 #    200:
 #      content:
