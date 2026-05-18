@@ -49,7 +49,7 @@ class PaymentCreatorImpl @Inject() (
       purchaseData: PurchaseData
   ): Future[PaymentIntent] = {
 
-    //AQUI SE METE LA LOGICA DEL COUPON QUE POR AHORA NO SE APLICARA
+    //Aquí puede ir la lógica para el cupon de descuento, que de momento no se implementará.
     val discount = BigDecimal(0)
     val priceWithDiscount = purchaseData.totalAmount - discount
 

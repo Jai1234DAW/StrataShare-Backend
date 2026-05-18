@@ -139,7 +139,7 @@ class SessionMySqlRepository @Inject() (clock: Clock)(implicit dbExecutionContex
           update(this)
             .set(column.deleted -> true)
             .where.eq(column.userId, userId.id)
-            .and(keep.map(id => sqls.ne(column.id, id.toString)))
+            .and(keep.map(id => sqls.ne(column.id, id.id)))
         }.update()
       }
       Done

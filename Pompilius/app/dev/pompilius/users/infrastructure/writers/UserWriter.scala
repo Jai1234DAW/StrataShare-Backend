@@ -2,11 +2,10 @@ package dev.pompilius.users.infrastructure.writers
 
 import com.google.inject.ImplementedBy
 import dev.pompilius.Strings
-import dev.pompilius.attachment.domain.AttachmentRepository
 import dev.pompilius.country.infrastructure.writers.CountryWriter
 import dev.pompilius.shared.infrastructure.JsUtils.{JodaDateTimeFormat, toJsValueWrapper}
 import dev.pompilius.shared.infrastructure.UrlUtil
-import dev.pompilius.users.domain.{User, UserRoleRepository}
+import dev.pompilius.users.domain.{User, UserAttachmentRepository, UserAttachmentType, UserRoleRepository}
 import play.api.libs.json._
 
 import javax.inject.{Inject, Singleton}
@@ -23,6 +22,7 @@ trait UserWriter {
 @Singleton
 class UserWriterImpl @Inject() (
     userRoleRepository: UserRoleRepository,
+    userAttachmentRepository: UserAttachmentRepository,
     countryWriter: CountryWriter
 )(implicit ec: ExecutionContext)
     extends UserWriter {
@@ -32,19 +32,21 @@ class UserWriterImpl @Inject() (
       // Obtener el JSON del country
       countryJson <- countryWriter.toJson(user.country)
 
-      // Obtener el JSON del avatar si existe
-      avatarJs = user.avatar.map { avatar =>
+      // Obtener el avatar actual desde UserAttachment
+      avatarAttachment <- userAttachmentRepository.findCurrentByType(user.id, UserAttachmentType.AVATAR)
+      avatarJs = avatarAttachment.map { attachment =>
         UrlUtil.addQueryParameters(
           dev.pompilius.users.infrastructure.controllers.routes.UserController.downloadAvatar(user.id.toString).url,
-          Map("hash" -> avatar.toString) // Cambiamos la url si cambia el avatar (para evitar la caché)
+          Map("hash" -> attachment.attachmentId.toString) // Cambiamos la url si cambia el avatar (para evitar la caché)
         )
       }
 
-      // Obtener el JSON del cover Photo si existe
-      coverPhotoJs = user.coverPhoto.map { coverPhoto=>
+      // Obtener el cover photo actual desde UserAttachment
+      coverPhotoAttachment <- userAttachmentRepository.findCurrentByType(user.id, UserAttachmentType.COVER_PHOTO)
+      coverPhotoJs = coverPhotoAttachment.map { attachment =>
         UrlUtil.addQueryParameters(
           dev.pompilius.users.infrastructure.controllers.routes.UserController.downloadCoverPhoto(user.id.toString).url,
-          Map("hash" -> coverPhoto.toString)
+          Map("hash" -> attachment.attachmentId.toString)
         )
       }
 
@@ -102,20 +104,24 @@ class UserWriterImpl @Inject() (
       // Obtener el JSON del country
       countryJson <- countryWriter.toJson(user.country)
 
-      // Obtener el JSON del avatar si existe
-      avatarJs = user.avatar.map { avatar =>
+      // Obtener el avatar actual desde UserAttachment
+      avatarAttachment <- userAttachmentRepository.findCurrentByType(user.id, UserAttachmentType.AVATAR)
+      avatarJs = avatarAttachment.map { attachment =>
         UrlUtil.addQueryParameters(
           dev.pompilius.users.infrastructure.controllers.routes.UserController.downloadAvatar(user.id.toString).url,
-          Map("hash" -> avatar.toString) // Cambiamos la url si cambia el avatar (para evitar la caché)
+          Map("hash" -> attachment.attachmentId.toString) // Cambiamos la url si cambia el avatar (para evitar la caché)
         )
       }
 
-      coverPhotoJs = user.coverPhoto.map { coverPhoto=>
+      // Obtener el cover photo actual desde UserAttachment
+      coverPhotoAttachment <- userAttachmentRepository.findCurrentByType(user.id, UserAttachmentType.COVER_PHOTO)
+      coverPhotoJs = coverPhotoAttachment.map { attachment =>
         UrlUtil.addQueryParameters(
-          dev.pompilius.users.infrastructure.controllers.routes.UserController.downloadAvatar(user.id.toString).url,
-          Map("hash" -> coverPhoto.toString) // Cambiamos la url si cambia el avatar (para evitar la caché)
+          dev.pompilius.users.infrastructure.controllers.routes.UserController.downloadCoverPhoto(user.id.toString).url,
+          Map("hash" -> attachment.attachmentId.toString)
         )
       }
+
       roles<- userRoleRepository.getAllByUserId(user.id).map(_.map(_.role))
 
     } yield {

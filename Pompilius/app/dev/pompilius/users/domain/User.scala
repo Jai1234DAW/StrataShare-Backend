@@ -1,8 +1,6 @@
 package dev.pompilius.users.domain
 
 import dev.pompilius.country.domain.Country
-import dev.pompilius.attachment.domain.{Attachment, AttachmentId}
-import dev.pompilius.users.domain.UserId
 import org.joda.time.DateTime
 import play.api.i18n.Lang
 
@@ -20,8 +18,6 @@ case class User(
     language: Option[Lang],
     created: DateTime,
     updated: DateTime,
-    avatar: Option[AttachmentId],
-    coverPhoto: Option[AttachmentId],
     notes: Option[String],
     bio: Option[String]
 ) {

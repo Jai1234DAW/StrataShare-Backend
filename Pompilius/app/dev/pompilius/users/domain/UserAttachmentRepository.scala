@@ -14,4 +14,7 @@ trait UserAttachmentRepository {
   def find(filter: UserAttachmentFilter, pag: Pagination): Future[List[UserAttachment]]
   def save(userAttachment: UserAttachment): Future[Done]
   def delete(userId: UserId, attachmentId: AttachmentId): Future[Done]
+
+  def findCurrentByType(userId: UserId, attachmentType: UserAttachmentType): Future[Option[UserAttachment]]
+  def markAllAsNotCurrent(userId: UserId, attachmentType: UserAttachmentType): Future[Done]
 }

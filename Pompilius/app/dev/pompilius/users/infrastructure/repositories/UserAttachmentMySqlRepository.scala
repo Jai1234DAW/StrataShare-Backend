@@ -1,7 +1,7 @@
 package dev.pompilius.users.infrastructure.repositories
 
 import dev.pompilius.shared.infrastructure.contexts.DbExecutionContext
-import dev.pompilius.users.domain.{UserAttachment, UserAttachmentRepository, UserId, UserAttachmentFilter}
+import dev.pompilius.users.domain.{UserAttachment, UserAttachmentFilter, UserAttachmentRepository, UserAttachmentType, UserId}
 import org.apache.pekko.Done
 import scalikejdbc._
 
@@ -11,6 +11,9 @@ import scala.concurrent.Future
 import dev.pompilius.attachment.domain.AttachmentId
 import dev.pompilius.shared.domain.Pagination
 import dev.pompilius.shared.infrastructure.ScalikeUtil
+
+import scalikejdbc.jodatime.JodaParameterBinderFactory._
+import scalikejdbc.jodatime.JodaTypeBinder._
 
 @Singleton
 class UserAttachmentMySqlRepository @Inject() (implicit ec: DbExecutionContext)
@@ -26,7 +29,10 @@ class UserAttachmentMySqlRepository @Inject() (implicit ec: DbExecutionContext)
   def apply(ua: ResultName[UserAttachment])(rs: WrappedResultSet): UserAttachment =
     UserAttachment(
       userId = UserId(rs.get[Long](ua.userId)),
-      attachmentId = AttachmentId(rs.get[Long](ua.attachmentId))
+      attachmentId = AttachmentId(rs.get[Long](ua.attachmentId)),
+      attachmentType = UserAttachmentType.withNameInsensitive(rs.get[String](ua.attachmentType)),
+      createdAt = rs.get(ua.createdAt),
+      isCurrent = rs.get(ua.isCurrent)
     )
 
   private val ua = this.syntax("ua")
@@ -46,7 +52,9 @@ class UserAttachmentMySqlRepository @Inject() (implicit ec: DbExecutionContext)
   private def filterToSqlSyntax(filter: UserAttachmentFilter): Option[SQLSyntax] = {
     val filters = List(
       filter.userId.map(id => sqls.eq(ua.userId, id.id)),
-      filter.attachmentId.map(id => sqls.eq(ua.attachmentId, id.id))
+      filter.attachmentId.map(id => sqls.eq(ua.attachmentId, id.id)),
+      filter.attachmentType.map(t => sqls.eq(ua.attachmentType, t.toString)),
+      filter.isCurrent.map(isCurrent => sqls.eq(ua.isCurrent, isCurrent))
     ).flatten
 
     if (filters.nonEmpty) Some(sqls.joinWithAnd(filters: _*)) else None
@@ -75,7 +83,10 @@ class UserAttachmentMySqlRepository @Inject() (implicit ec: DbExecutionContext)
       DB.localTx { implicit session =>
         val values = List(
           column.userId -> userAttachment.userId.id,
-          column.attachmentId -> userAttachment.attachmentId.id
+          column.attachmentId -> userAttachment.attachmentId.id,
+          column.attachmentType -> userAttachment.attachmentType.toString,
+          column.createdAt -> userAttachment.createdAt,
+          column.isCurrent -> userAttachment.isCurrent
         )
 
         withSQL {
@@ -100,4 +111,31 @@ class UserAttachmentMySqlRepository @Inject() (implicit ec: DbExecutionContext)
     }
   }
 
+  override def findCurrentByType(userId: UserId, attachmentType: UserAttachmentType): Future[Option[UserAttachment]] =
+    Future {
+      DB.localTx { implicit session =>
+        withSQL {
+          selectFrom(this as ua).where
+            .eq(ua.userId, userId.id)
+            .and
+            .eq(ua.attachmentType, attachmentType.toString)
+            .and
+            .eq(ua.isCurrent, true)
+        }.map(apply(ua.resultName)(_)).single()
+      }
+    }
+
+  override def markAllAsNotCurrent(userId: UserId, attachmentType: UserAttachmentType): Future[Done] = {
+    Future {
+      DB.localTx { implicit session =>
+        withSQL {
+          update(this as ua).set(ua.isCurrent -> false).where
+            .eq(ua.userId, userId.id)
+            .and
+            .eq(ua.attachmentType, attachmentType.toString)
+        }.update()
+      }
+      Done
+    }
+  }
 }

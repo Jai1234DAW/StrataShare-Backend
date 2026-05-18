@@ -414,9 +414,26 @@ class GatewayController @Inject() (
         logger.info(s"PaymentIntent ${paymentIntent.paymentId} already reconciled by another process")
         Future.successful(())
       } else {
+        // Monto total que pagó el comprador (solo el precio del producto, sin surcharge)
         val amount = BigDecimal(amountTotalInCents) / 100
-        val stripeFee = amount * BigDecimal(0.029) + BigDecimal(0.30)
-        val netAmount = amount - stripeFee
+
+        // Obtener el fee real de Stripe desde el BalanceTransaction
+        val gatewayFee = fetchStripeActualFee(stripePaymentIntentId).getOrElse(
+          // Fallback: estimación si no se puede obtener (2.9% + 0.30€)
+          amount * BigDecimal(0.029) + BigDecimal(0.30)
+        )
+
+        // Comisión de la plataforma (viene del Transaction.fee, calculada en PaymentValidator)
+        val platformFee = transaction.fee.getOrElse(BigDecimal(0))
+
+        // Monto neto que recibe el vendedor = amount - gatewayFee - platformFee
+        // El vendedor absorbe tanto el fee de Stripe como la comisión de la plataforma
+        val netAmount = amount - gatewayFee - platformFee
+
+        logger.info(
+          s"Payment breakdown for ${paymentIntent.paymentId}: " +
+          s"amount=${amount}, gatewayFee=${gatewayFee}, platformFee=${platformFee}, netAmount=${netAmount}"
+        )
 
         val payment = Payment(
           id = paymentIntent.paymentId,
@@ -424,6 +441,8 @@ class GatewayController @Inject() (
           gateway = Gateway.STRIPE,
           gatewayPaymentId = stripePaymentIntentId.getOrElse(sessionId),
           amount = amount,
+          platformFee = platformFee,
+          gatewayFee = gatewayFee,
           netAmount = netAmount,
           currency = currency,
           receiptUrl = receiptUrl,
@@ -495,4 +514,41 @@ class GatewayController @Inject() (
       case None =>
         Future.successful(None)
     }
+
+  /**
+    * Obtiene el fee REAL que cobró Stripe desde el BalanceTransaction.
+    * Esto es más preciso que calcular 2.9% + 0.30€ porque Stripe puede tener
+    * diferentes tarifas según el país, tipo de tarjeta, etc.
+    */
+  private def fetchStripeActualFee(stripePaymentIntentId: Option[String]): Option[BigDecimal] = {
+    stripePaymentIntentId.flatMap { piId =>
+      try {
+        val pi = StripePaymentIntent.retrieve(piId)
+        Option(pi.getLatestCharge).flatMap { chargeId =>
+          try {
+            val charge = Charge.retrieve(chargeId)
+            Option(charge.getBalanceTransaction).map { balanceTransactionId =>
+              try {
+                val balanceTransaction = com.stripe.model.BalanceTransaction.retrieve(balanceTransactionId)
+                // El fee viene en centavos
+                BigDecimal(balanceTransaction.getFee) / 100
+              } catch {
+                case NonFatal(e) =>
+                  logger.warn(s"Could not retrieve BalanceTransaction $balanceTransactionId: ${e.getMessage}")
+                  BigDecimal(0)
+              }
+            }
+          } catch {
+            case NonFatal(e) =>
+              logger.warn(s"Could not retrieve Charge $chargeId: ${e.getMessage}")
+              None
+          }
+        }
+      } catch {
+        case NonFatal(e) =>
+          logger.warn(s"Could not retrieve Stripe PaymentIntent $piId: ${e.getMessage}")
+          None
+      }
+    }
+  }
 }
