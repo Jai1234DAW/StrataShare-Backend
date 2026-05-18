@@ -21,8 +21,10 @@ case class Payment(
     transactionId: TransactionId, // FK a Transaction (1:1)
     gateway: Gateway, // Pasarela usada
     gatewayPaymentId: String, // ID del pago en la pasarela (mismo que gatewayIntentId)
-    amount: BigDecimal, // Monto inicial del pago (antes de fees y ajustes)
-    netAmount: BigDecimal, // Monto neto después de fees de la pasarela + todos los ajustes
+    amount: BigDecimal, // Monto total que pagó el comprador (precio + surcharge)
+    platformFee: BigDecimal, // Comisión de la plataforma (la paga el vendedor)
+    gatewayFee: BigDecimal, // Fee real cobrado por Stripe (obtenido de BalanceTransaction)
+    netAmount: BigDecimal, // Monto neto que recibe el vendedor (amount - platformFee - gatewayFee)
     currency: String,
     receiptUrl: Option[String] = None, // URL del recibo
     instrument: Option[String] = None, // Método de pago usado

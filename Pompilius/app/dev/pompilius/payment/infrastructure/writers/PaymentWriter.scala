@@ -44,11 +44,11 @@ class PaymentWriterImpl @Inject() (configuration: Configuration)(implicit ec: Ex
     for {
       baseJson <- toJson(transaction, payment)
     } yield {
-      val finalJson = baseJson.as[JsObject] ++Json.obj(
+      val finalJson = baseJson.as[JsObject] ++ Json.obj(
         List(
-          toJsValueWrapper(Strings.netAmount, payment.netAmount), // se usa aquí usamos el avatar resuelto
-          toJsValueWrapper(Strings.currency, payment.currency),
-          toJsValueWrapper(Strings.created, payment.created)
+          toJsValueWrapper((Strings.amount, payment.amount)), // Lo que pagó el comprador
+          toJsValueWrapper((Strings.currency, payment.currency)),
+          toJsValueWrapper((Strings.created, payment.created))
         ).flatten: _*
       )
 
@@ -62,9 +62,12 @@ class PaymentWriterImpl @Inject() (configuration: Configuration)(implicit ec: Ex
     } yield {
       val finalJson = baseJson.as[JsObject] ++ Json.obj(
         List(
-          toJsValueWrapper(Strings.netAmount, payment.netAmount), // se usa aquí usamos el avatar resuelto
-          toJsValueWrapper(Strings.currency, payment.currency),
-          toJsValueWrapper(Strings.created, payment.created)
+          toJsValueWrapper((Strings.amount, payment.amount)), // Total del pago
+          toJsValueWrapper((Strings.platformFee, payment.platformFee)), // Comisión de la plataforma
+          toJsValueWrapper((Strings.gatewayFee, payment.gatewayFee)), // Fee de Stripe
+          toJsValueWrapper((Strings.netAmount, payment.netAmount)), // Lo que recibe el vendedor
+          toJsValueWrapper((Strings.currency, payment.currency)),
+          toJsValueWrapper((Strings.created, payment.created))
         ).flatten: _*
       )
       finalJson
@@ -77,13 +80,16 @@ class PaymentWriterImpl @Inject() (configuration: Configuration)(implicit ec: Ex
     } yield {
       val finalJson = baseJson.as[JsObject] ++ Json.obj(
         List(
-          toJsValueWrapper(Strings.netAmount, payment.netAmount), // se usa aquí usamos el avatar resuelto
-          toJsValueWrapper(Strings.currency, payment.currency),
-          toJsValueWrapper(Strings.refunded, payment.refunded),
-          toJsValueWrapper(Strings.refundedAmount, payment.refundedAmount),
-          toJsValueWrapper(Strings.created, payment.created),
-          toJsValueWrapper(Strings.updated, payment.updated),
-          toJsValueWrapper(Strings.metadata, payment.metadata)
+          toJsValueWrapper((Strings.amount, payment.amount)),
+          toJsValueWrapper((Strings.platformFee, payment.platformFee)),
+          toJsValueWrapper((Strings.gatewayFee, payment.gatewayFee)),
+          toJsValueWrapper((Strings.netAmount, payment.netAmount)),
+          toJsValueWrapper((Strings.currency, payment.currency)),
+          toJsValueWrapper((Strings.refunded, payment.refunded)),
+          toJsValueWrapper((Strings.refundedAmount, payment.refundedAmount)),
+          toJsValueWrapper((Strings.created, payment.created)),
+          toJsValueWrapper((Strings.updated, payment.updated)),
+          toJsValueWrapper((Strings.metadata, payment.metadata))
         ).flatten: _*
       )
       finalJson

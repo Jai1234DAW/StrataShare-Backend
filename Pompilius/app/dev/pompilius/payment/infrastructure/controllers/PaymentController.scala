@@ -14,6 +14,7 @@ import dev.pompilius.transaction.infrastructure.writer.TransactionWriter
 import dev.pompilius.users.domain.Role
 import org.joda.time.DateTime
 import play.api.Logger
+import play.api.libs.json
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent}
 
@@ -349,10 +350,20 @@ class PaymentController @Inject() (
       }
     }
 
-  private def calculatePaymentsSummary(transactions: List[Transaction], payments: List[Option[Payment]], paymentRole: String): play.api.libs.json.JsValue = {
+  private def calculatePaymentsSummary(transactions: List[Transaction], payments: List[Option[Payment]], paymentRole: String): json.JsValue = {
     val paymentsList = payments.flatten
 
-    val totalAmount = paymentsList.map(_.amount).sum
+    // Según el rol, usamos el campo correcto:
+    // - Buyer: amount (lo que pagó)
+    // - Seller: netAmount (lo que recibió)
+    val isSeller = paymentRole.toLowerCase == "seller"
+
+    val totalAmount = if (isSeller) {
+      paymentsList.map(_.netAmount).sum  // Lo que recibió el vendedor
+    } else {
+      paymentsList.map(_.amount).sum     // Lo que pagó el comprador
+    }
+
     val totalTransactions = paymentsList.length
     val averageAmount = if (totalTransactions > 0) totalAmount / totalTransactions else BigDecimal(0)
 
@@ -364,12 +375,14 @@ class PaymentController @Inject() (
       "currency" -> "EUR",
       "transactionDetails" -> play.api.libs.json.Json.toJson(
         transactions.map { transaction =>
-          play.api.libs.json.Json.obj(
+          val paymentOpt = paymentsList.find(_.transactionId == transaction.id)
+          val amountValue = paymentOpt.map { payment =>
+            if (isSeller) payment.netAmount.toString else payment.amount.toString
+          }.getOrElse("0")
+
+          Json.obj(
             "transactionId" -> transaction.id.toString,
-            "amount" -> Json.toJson(paymentsList
-              .find(_.transactionId == transaction.id)
-              .map(_.amount.toString)
-              .getOrElse("0")),
+            "amount" -> amountValue,
             "createdAt" -> transaction.created.toString,
             "status" -> transaction.transactionStatus.toString
           )

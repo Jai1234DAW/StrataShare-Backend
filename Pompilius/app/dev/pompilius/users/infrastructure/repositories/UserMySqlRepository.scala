@@ -2,7 +2,6 @@ package dev.pompilius.users.infrastructure.repositories
 
 import dev.pompilius.Strings
 import dev.pompilius.country.domain.Country
-import dev.pompilius.attachment.domain.AttachmentId
 import dev.pompilius.shared.domain.Pagination
 import dev.pompilius.shared.infrastructure.ScalikeUtil
 import dev.pompilius.shared.infrastructure.contexts.DbExecutionContext
@@ -45,8 +44,6 @@ class UserMySqlRepository @Inject() (
       phone = rs.get(u.phone),
       created = rs.get(u.created),
       updated = rs.get(u.updated),
-      avatar = rs.get[Option[Long]](u.avatar).map(AttachmentId(_)),
-      coverPhoto=rs.get[Option[Long]](u.coverPhoto).map(AttachmentId(_)),
       language = rs.get[Option[String]](u.language).flatMap(lang => Try(Lang(lang)).toOption),
       notes = rs.get(u.notes),
       bio = rs.get(u.bio)
@@ -173,9 +170,7 @@ class UserMySqlRepository @Inject() (
           column.notes -> user.notes,
           column.bio -> user.bio,
           column.created -> user.created,
-          column.updated -> user.updated,
-          column.avatar -> user.avatar.map(_.id),
-          column.coverPhoto -> user.coverPhoto.map(_.id)
+          column.updated -> user.updated
         )
 
         withSQL {

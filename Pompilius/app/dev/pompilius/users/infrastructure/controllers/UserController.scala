@@ -73,8 +73,6 @@ class UserController @Inject() (
         language = createUserRequest.language,
         created = clock.now,
         updated = clock.now,
-        avatar = None,
-        coverPhoto = None,
         notes = createUserRequest.notes,
         bio = createUserRequest.bio
       )
@@ -149,8 +147,12 @@ class UserController @Inject() (
                   _.getOrElse(throw new UserNotFoundException(s"User with id $userId not found"))
                 )
 
-            attachmentId =
-              user.avatar.getOrElse(throw new AttachmentNotFoundException(s"User with id $userId has no avatar"))
+            // Obtener el avatar actual desde UserAttachment
+            userAttachmentOpt <- userAttachment.findCurrentByType(user.id, UserAttachmentType.AVATAR)
+
+            attachmentId = userAttachmentOpt
+              .map(_.attachmentId)
+              .getOrElse(throw new AttachmentNotFoundException(s"User with id $userId has no avatar"))
 
             result <- download(Some(user), attachmentId)
 
@@ -173,9 +175,12 @@ class UserController @Inject() (
                   _.getOrElse(throw new UserNotFoundException(s"User with id $userId not found"))
                 )
 
-            attachmentId = user.coverPhoto.getOrElse(
-              throw new AttachmentNotFoundException(s"User with id $userId has no cover Photo")
-            )
+            // Obtener el cover photo actual desde UserAttachment
+            userAttachmentOpt <- userAttachment.findCurrentByType(user.id, UserAttachmentType.COVER_PHOTO)
+
+            attachmentId = userAttachmentOpt
+              .map(_.attachmentId)
+              .getOrElse(throw new AttachmentNotFoundException(s"User with id $userId has no cover photo"))
 
             result <- download(Some(user), attachmentId)
 
@@ -264,14 +269,26 @@ class UserController @Inject() (
               maxWidth = configuration.attachments.avatars.maxWidth,
               maxHeight = configuration.attachments.avatars.maxHeight
             )
-            updateUser = user.copy(
-              updated = clock.now,
-              avatar = Some(attachment.id)
-            )
-            _ <- userRepository.save(updateUser)
 
-            _ <- userAttachment.save(UserAttachment(user.id, attachment.id))
-            updatedUserJson <- userWriter.toJson(updateUser)
+            // Marcar todos los avatares anteriores como no actuales
+            _ <- userAttachment.markAllAsNotCurrent(user.id, UserAttachmentType.AVATAR)
+
+            // Actualizar timestamp del usuario
+            updatedUser = user.copy(updated = clock.now)
+            _ <- userRepository.save(updatedUser)
+
+            // Guardar la nueva asociación
+            _ <- userAttachment.save(
+              UserAttachment(
+                userId = user.id,
+                attachmentId = attachment.id,
+                attachmentType = UserAttachmentType.AVATAR,
+                createdAt = clock.now,
+                isCurrent = true
+              )
+            )
+
+            updatedUserJson <- userWriter.toJson(updatedUser)
           } yield {
             Ok(updatedUserJson)
           }
@@ -290,14 +307,26 @@ class UserController @Inject() (
               maxWidth = configuration.attachments.avatars.maxWidth,
               maxHeight = configuration.attachments.avatars.maxHeight
             )
-            updateUser = user.copy(
-              updated = clock.now,
-              coverPhoto = Some(attachment.id)
-            )
-            _ <- userRepository.save(updateUser)
 
-            _ <- userAttachment.save(UserAttachment(user.id, attachment.id))
-            updatedUserJson <- userWriter.toJson(updateUser)
+            // Marcar todas las cover photos anteriores como no actuales
+            _ <- userAttachment.markAllAsNotCurrent(user.id, UserAttachmentType.COVER_PHOTO)
+
+            // Actualizar timestamp del usuario
+            updatedUser = user.copy(updated = clock.now)
+            _ <- userRepository.save(updatedUser)
+
+            // Guardar la nueva asociación
+            _ <- userAttachment.save(
+              UserAttachment(
+                userId = user.id,
+                attachmentId = attachment.id,
+                attachmentType = UserAttachmentType.COVER_PHOTO,
+                createdAt = clock.now,
+                isCurrent = true
+              )
+            )
+
+            updatedUserJson <- userWriter.toJson(updatedUser)
           } yield {
             Ok(updatedUserJson)
           }
@@ -313,11 +342,23 @@ class UserController @Inject() (
           for {
             _ <- attachmentCheck.check(uploadedAttachmentRequest.id)
 
-            updatedUser = currentUser.copy(
-              avatar = Some(uploadedAttachmentRequest.id)
-            )
+            // Marcar todos los avatares anteriores como no actuales
+            _ <- userAttachment.markAllAsNotCurrent(currentUser.id, UserAttachmentType.AVATAR)
 
+            // Actualizar timestamp del usuario
+            updatedUser = currentUser.copy(updated = clock.now)
             _ <- userRepository.save(updatedUser)
+
+            // Guardar la nueva asociación
+            _ <- userAttachment.save(
+              UserAttachment(
+                userId = currentUser.id,
+                attachmentId = uploadedAttachmentRequest.id,
+                attachmentType = UserAttachmentType.AVATAR,
+                createdAt = clock.now,
+                isCurrent = true
+              )
+            )
 
             updatedUserJson <- userWriter.toJson(updatedUser)
           } yield {
@@ -330,24 +371,23 @@ class UserController @Inject() (
     Action.async { implicit request =>
       withAuthenticatedUser {
         case (_, currentUser, _) =>
-          val updatedUser = currentUser.copy(
-            avatar = None,
-            updated = clock.now
-          )
-
           for {
+            // Obtener el avatar actual
+            currentAvatarOpt <- userAttachment.findCurrentByType(currentUser.id, UserAttachmentType.AVATAR)
+
             avatarId <- Future.fromTry(
-              currentUser.avatar
-                .toRight(
-                  new NotFoundException("User has no avatar")
-                )
+              currentAvatarOpt
+                .map(_.attachmentId)
+                .toRight(new NotFoundException("User has no avatar"))
                 .toTry
             )
 
             _ <- userAttachment.delete(currentUser.id, avatarId)
             _ <- attachmentRepository.delete(avatarId)
 
+            updatedUser = currentUser.copy(updated = clock.now)
             _ <- userRepository.save(updatedUser)
+
             updatedUserJson <- userWriter.toJson(updatedUser)
 
           } yield {
