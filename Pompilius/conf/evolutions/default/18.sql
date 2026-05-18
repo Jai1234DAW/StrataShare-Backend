@@ -1,8 +1,6 @@
 # Crear tabla barter para trueques
 
 # --- !Ups
-
-# Tabla barter
 CREATE TABLE `barter` (
     `barter_id` BIGINT NOT NULL,
     `transaction_id` BIGINT NOT NULL,
