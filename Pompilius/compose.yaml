@@ -19,9 +19,19 @@ services:
     image: ghcr.io/jai1234daw/pompilius:latest
     container_name: pompiliusbackend
     environment:
+      ENVIRONMENT: "docker"
+      BASE_URL: "http://localhost:9000"
+      USE_SSL: "false"
+
       JDBC_DATABASE_URL: "jdbc:mysql://mysql:3306/pompilius?useUnicode=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
       JDBC_DATABASE_USERNAME: pompilius
       JDBC_DATABASE_PASSWORD: pompilius
+
+      RESET_PASSWORD_URL: "http://localhost/pages/auth/reset-password.html"
+      PURCHASE_RESOURCE_URL: "http://localhost/pages/resources/biblioteca.html"
+
+      PAYMENT_COMPLETED_URL: "http://localhost/pages/transactions/payment-success.html?sellerId=$${sellerId}&resourceId=$${resourceId}"
+      PAYMENT_CANCELED_URL: "http://localhost/pages/transactions/payment-cancel.html?sellerId=$${sellerId}&resourceId=$${resourceId}"
     ports:
       - 9000:9000
     volumes:
@@ -34,6 +44,9 @@ services:
     image: ghcr.io/jai1234daw/nautilus:latest
     ports:
       - 80:80
+    environment:
+      BACKEND_URL: "http://localhost:9000"
+      API_URL: "http://localhost:9000/api"
     depends_on:
       - backend
 volumes:
