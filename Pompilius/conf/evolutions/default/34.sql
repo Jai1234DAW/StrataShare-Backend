@@ -1,7 +1,6 @@
 # Modificacion de asci a utf8mb4
 
 # --- !Ups
-
 ALTER TABLE users
     MODIFY username VARCHAR(32)
     CHARACTER SET utf8mb4
