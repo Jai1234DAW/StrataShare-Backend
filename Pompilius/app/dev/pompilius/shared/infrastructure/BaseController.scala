@@ -62,7 +62,7 @@ trait BaseController extends InjectedController {
     langs.preferred(request.acceptLanguages.flatMap(lang => Try(Lang(lang.language)).toOption))
   }
 
-  //El reloj de la aplicacion, utilizado para obtener la fecha y hora actual. Se inyecta para facilitar el testing, permitiendo simular diferentes momentos en el tiempo.
+  //El reloj de la aplicación, utilizado para obtener la fecha y hora actual. Se inyecta para facilitar el testing, permitiendo simular diferentes momentos en el tiempo.
   private[this] var _clock: Clock = _
 
   @SuppressWarnings(Array("NullParameter"))
@@ -138,7 +138,6 @@ trait BaseController extends InjectedController {
     )
   }
 
-  //QUEDE AQUI
   private[this] var _userRoleRepository: UserRoleRepository = _
 
   @SuppressWarnings(Array("NullParameter"))
@@ -157,7 +156,6 @@ trait BaseController extends InjectedController {
     )
   }
 
-  //
   private[this] var _sessionRepository: SessionRepository = _
 
   @SuppressWarnings(Array("NullParameter"))
@@ -243,12 +241,16 @@ trait BaseController extends InjectedController {
     }
   }
 
+  /** Función futura para actualizar la preferencia de idioma del usuario en su perfil, basada en el idioma seleccionado en la cabecera Accept-Language de la request.
+   Solo se actualiza si el usuario ha seleccionado un idioma explícitamente y es diferente al que ya tiene configurado en su perfil.
+   Esto permite que el sistema recuerde la preferencia de idioma del usuario para futuras sesiones */
 //  private def updatePersonLanguagePreference[A](
 //      user: User
 //  )(implicit request: Request[A], ec: ExecutionContext): Future[Unit] = {
 //    user.id match {
 //      case Some(id: UserId) =>
 //        getSelectedLanguage(request).map(_.language) match {
+//
 //          // Solo actualizamos el idioma si el usuario ha seleccionado uno explícitamente
 //          case Some(lang) =>
 //            personRepository.findById(personId).flatMap {

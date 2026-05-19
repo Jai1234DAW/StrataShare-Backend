@@ -4,7 +4,7 @@ import dev.pompilius.gateways.domain.Gateway
 import dev.pompilius.transaction.domain.TransactionId
 import org.joda.time.DateTime
 
-//Mirar esto
+
 /**
  * Payment representa un pago COMPLETADO y CONFIRMADO.
  * Solo se crea cuando el PaymentIntent tiene status = SUCCEEDED.

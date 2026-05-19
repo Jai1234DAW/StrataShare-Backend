@@ -13,7 +13,8 @@ trait AttachmentRepository {
   def findById(id: AttachmentId): Future[Option[Attachment]]
   def save(attachment: Attachment): Future[Done]
   def delete(id: AttachmentId): Future[Done]
-  def findByResourceId(resourceId: ResourceId, pag:Pagination): Future[List[Attachment]]
+  def countByType(resourceId: ResourceId, attachmentType: String): Future[Int]
+  def findByResourceId(resourceId: ResourceId, pag: Pagination): Future[List[Attachment]]
   def findPreviewImageByResourceId(resourceId: ResourceId): Future[Option[Attachment]]
   def setPreviewImageByResourceId(resourceId: ResourceId, attachmentId: AttachmentId): Future[Done]
 }

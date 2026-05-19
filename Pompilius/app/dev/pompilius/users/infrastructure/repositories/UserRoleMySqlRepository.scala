@@ -40,7 +40,7 @@ class UserRoleMySqlRepository @Inject() (implicit dbExecutionContext: DbExecutio
       }
     }
 
-  //Mirar estos métodos
+
   override def findBy(userId: UserId, role: Role): Future[Option[UserRole]] =
     Future {
       DB.localTx { implicit session =>

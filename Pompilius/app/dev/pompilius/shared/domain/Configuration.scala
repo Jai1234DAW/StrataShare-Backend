@@ -3,15 +3,14 @@ package dev.pompilius.shared.domain
 import com.google.inject.ImplementedBy
 import dev.pompilius.country.domain.Country
 import dev.pompilius.mail.domain.MailAddress
-
-import java.nio.file.Path
-import javax.crypto.spec.SecretKeySpec
 import dev.pompilius.shared.infrastructure.PlayConfiguration
 import org.joda.time.DateTime
 import play.api.i18n.Lang
 
+import java.nio.file.Path
+import javax.crypto.spec.SecretKeySpec
 import scala.collection.immutable.HashSet
-import scala.concurrent.duration.{Duration, FiniteDuration}
+import scala.concurrent.duration.FiniteDuration
 
 @ImplementedBy(classOf[PlayConfiguration])
 trait Configuration {
@@ -117,7 +116,6 @@ trait Configuration {
 
   def attachments: Attachments
 
-  //MIRAR ESTA CONFIGURACIÓN AQUÍ
   def mails: Mails
 
   case class Mails(

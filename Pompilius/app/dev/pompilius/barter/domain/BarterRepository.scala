@@ -9,8 +9,6 @@ import org.apache.pekko.Done
 
 import scala.concurrent.Future
 
-//MIRAR ESTO AQUÍ CORREGIR DE SER NECESARIO.
-
 @ImplementedBy(classOf[BarterMySqlRepository])
 trait BarterRepository {
 

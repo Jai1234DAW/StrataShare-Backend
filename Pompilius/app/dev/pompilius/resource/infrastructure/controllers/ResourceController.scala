@@ -549,6 +549,24 @@ class ResourceController @Inject() (
     })
   }
 
+  def getAmountOfAttachmentsByResource(resourceId: String, attachmentType: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      withAuthenticatedUser {
+        case (_, user, _) =>
+          val rid = ResourceId(resourceId)
+
+          for {
+            _ <-
+              resourceRepository
+                .findById(rid)
+                .map(_.getOrElse(throw new ResourceNotFoundException(s"Resource $rid not found")))
+
+            count <- attachmentRepository.countByType(rid, attachmentType )
+
+          } yield Ok(Json.obj("AttachmentCount" -> count))
+      }
+    }
+
   private def checkIsImage(file: MultipartFormData.FilePart[Files.TemporaryFile]): Boolean = {
     val byMime = file.contentType.exists(_.startsWith("image/"))
     val byExtension = file.filename.toLowerCase.matches(".*\\.(jpg|jpeg|png|gif|bmp)$")

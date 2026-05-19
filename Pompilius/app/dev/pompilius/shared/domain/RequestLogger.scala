@@ -18,5 +18,4 @@ class RequestLoggerImpl @Inject() (
 
   override def log(requestLog: RequestLog): Future[Done] =
     requestLogRepository.save(requestLog)
-
 }
