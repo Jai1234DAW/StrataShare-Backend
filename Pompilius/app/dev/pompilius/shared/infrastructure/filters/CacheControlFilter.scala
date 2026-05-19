@@ -4,11 +4,11 @@ import org.apache.pekko.stream.Materializer
 import play.api.http._
 import play.api.mvc._
 
-import javax.inject.{Inject,Singleton}
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class CacheControlFilter @Inject()(implicit
+class CacheControlFilter @Inject() (implicit
     val mat: Materializer,
     ec: ExecutionContext
 ) extends Filter {

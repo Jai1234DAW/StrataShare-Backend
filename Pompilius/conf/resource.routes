@@ -86,6 +86,14 @@ GET          /:resourceId/attachment/:attachmentId               dev.pompilius.r
 ###
 GET          /:resourceId/ownership                                dev.pompilius.resource.infrastructure.controllers.ResourceController.isOwner(resourceId: String)
 
+###
+#  summary: Get the amount of attachment attached to a resource
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL","AMATEUR"]}
+#  responses:
+#    200:
+#      description: Number of attachment attached to the resource distinguish by type (file or image)
+###
+GET         /:resourceId/attachments/count                       dev.pompilius.resource.infrastructure.controllers.ResourceController.getAmountOfAttachmentsByResource(resourceId: String, attachmentType: String)
 
 ###
 #  summary: Update file metadata (name and description)

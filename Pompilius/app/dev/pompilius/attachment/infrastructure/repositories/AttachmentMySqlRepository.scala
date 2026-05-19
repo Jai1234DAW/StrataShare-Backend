@@ -141,4 +141,27 @@ class AttachmentMySqlRepository @Inject() (implicit ec: DbExecutionContext)
       Done
     }
   }
+
+  override def countByType(resourceId: ResourceId, attachmentType: String): Future[Int] = {
+    Future {
+      DB.localTx { implicit session =>
+        val contentTypeCondition = if (attachmentType.toLowerCase.startsWith("image")) {
+          // Si es imagen, filtra solo por imágenes (contentType empieza con "image/")
+          sqls.like(att.contentType, "image/%")
+        } else {
+          // Si NO es imagen, cuenta todo lo que NO sea imagen
+          sqls.notLike(att.contentType, "image/%")
+        }
+
+        withSQL {
+          select(sqls.count(att.id)).from(this as att).where
+            .eq(att.resourceId, resourceId.id)
+            .and
+            .append(contentTypeCondition)
+            .and
+            .eq(att.deleted, false)
+        }.map(_.int(1)).single().getOrElse(0)
+      }
+    }
+  }
 }

@@ -48,7 +48,7 @@ class PaymentController @Inject() (
             // Validar la compra y obtener datos necesarios
             purchaseData <- paymentValidator.validatePurchase(createPaymentRequest.resourceId, user)
 
-            // Mirar si la transacción ya está
+            // Chequear si la transacción ya está
             existingTransaction <-
               transactionRepository
                 .find(
