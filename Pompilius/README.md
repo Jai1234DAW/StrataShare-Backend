@@ -705,6 +705,9 @@ test/
 
 - **AttachmentMySqlRepositorySpec** - Repository behavior specifications
 - **ResourceServiceSpec** - Service layer tests using Mockito mocks
+- **SampleCrudUseCaseSpec** - Sample CRUD unit tests
+- **StudyCrudUseCaseSpec** - Study CRUD unit tests
+- **ResourceWriterUnitTest** - Resource JSON writer unit tests
 
 ### Run Tests
 
@@ -712,8 +715,23 @@ test/
 # All tests
 sbt test
 
+# Compile only test sources
+sbt "test:compile"
+
 # Specific test file
 sbt "testOnly *ResourceServiceSpec"
+
+# Run the new unit test suites (Sample + Study + ResourceWriter)
+sbt "testOnly *SampleCrudUseCaseSpec *StudyCrudUseCaseSpec *ResourceWriterUnitTest"
+
+# Run only Sample CRUD tests
+sbt "testOnly *SampleCrudUseCaseSpec"
+
+# Run only Study CRUD tests
+sbt "testOnly *StudyCrudUseCaseSpec"
+
+# Run only ResourceWriter tests
+sbt "testOnly *ResourceWriterUnitTest"
 
 # Tests with coverage
 sbt clean coverage test coverageReport

@@ -2,7 +2,7 @@ package dev.pompilius.shared.domain
 
 import com.google.inject.ImplementedBy
 import dev.pompilius.shared.infrastructure.HardwareClock
-import org.joda.time.DateTime
+import org.joda.time.{DateTime, YearMonth}
 
 @ImplementedBy(classOf[HardwareClock])
 trait Clock {
@@ -28,5 +28,10 @@ trait Clock {
   def withoutSeconds: DateTime = now.withSecondOfMinute(0)
 
   def withoutMinutes: DateTime = withoutSeconds.withMinuteOfHour(0)
+
+  def yearMonth: YearMonth={
+    val now = this.now
+    new YearMonth(now.getYear, now.getMonthOfYear)
+  }
 
 }
