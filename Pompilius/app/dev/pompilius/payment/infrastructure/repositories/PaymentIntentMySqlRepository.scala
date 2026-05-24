@@ -2,12 +2,10 @@ package dev.pompilius.payment.infrastructure.repositories
 
 import dev.pompilius.gateways.domain.Gateway
 import dev.pompilius.payment.domain.{PaymentId, PaymentIntent, PaymentIntentRepository, PaymentIntentStatus}
-import dev.pompilius.resource.domain.ResourceId
 import dev.pompilius.shared.domain.Clock
 import dev.pompilius.shared.infrastructure.ScalikeUtil
 import dev.pompilius.shared.infrastructure.contexts.DbExecutionContext
 import dev.pompilius.transaction.domain.TransactionId
-import dev.pompilius.users.domain.UserId
 import org.apache.pekko.Done
 import org.joda.time.DateTime
 import play.api.libs.json.Json
@@ -26,6 +24,7 @@ class PaymentIntentMySqlRepository @Inject() (clock: Clock)(implicit dbExecution
     with SQLSyntaxSupport[PaymentIntent] {
 
   override val tableName = "payment_intent"
+  // Composite key support: (paymentId, transactionId)
   implicit val overwrittenZoneId: OverwrittenZoneId = OverwrittenZoneId(ZoneId.of("UTC"))
 
   def apply(pi: SyntaxProvider[PaymentIntent])(rs: WrappedResultSet): PaymentIntent =
@@ -37,7 +36,6 @@ class PaymentIntentMySqlRepository @Inject() (clock: Clock)(implicit dbExecution
       transactionId = TransactionId(rs.get[Long](pi.transactionId)),
       gateway = Gateway.withNameInsensitive(rs.get[String](pi.gateway)),
       gatewayIntentId = rs.get[String](pi.gatewayIntentId),
-      resourceId = ResourceId(rs.get[Long](pi.resourceId)),
       price = rs.get[BigDecimal](pi.price),
       surcharge = rs.get[BigDecimal](pi.surcharge),
       amount = rs.get[BigDecimal](pi.amount),
@@ -67,7 +65,6 @@ class PaymentIntentMySqlRepository @Inject() (clock: Clock)(implicit dbExecution
           column.transactionId -> paymentIntent.transactionId.id,
           column.gateway -> paymentIntent.gateway.toString,
           column.gatewayIntentId -> paymentIntent.gatewayIntentId,
-          column.resourceId -> paymentIntent.resourceId.id,
           column.price -> paymentIntent.price,
           column.surcharge -> paymentIntent.surcharge,
           column.amount -> paymentIntent.amount,
@@ -88,7 +85,7 @@ class PaymentIntentMySqlRepository @Inject() (clock: Clock)(implicit dbExecution
           insert
             .into(this)
             .namedValues(values: _*)
-            .append(ScalikeUtil.onDuplicateUpdate(column.paymentId, values: _*))
+            .append(ScalikeUtil.onDuplicateUpdate(column.paymentId, column.transactionId, values: _*))
         }.update()
       }
       Done
@@ -131,18 +128,75 @@ class PaymentIntentMySqlRepository @Inject() (clock: Clock)(implicit dbExecution
       Done
     }
 
-  override def markSucceededIfNotSucceeded(paymentId: PaymentId): Future[Int] =
-    Future {
+    override def markSucceededIfNotSucceeded(paymentId: PaymentId): Future[Int] =
+      Future {
         DB.localTx { implicit session =>
-            withSQL {
+          withSQL {
             update(this)
-                .set(
+              .set(
                 column.status -> PaymentIntentStatus.SUCCEEDED.toString,
                 column.updated -> DateTime.now()
-                )
-                .where
-                .eq(column.paymentId, paymentId.id)
-            }.update()
+              )
+              .where
+              .eq(column.paymentId, paymentId.id)
+          }.update()
         }
+      }
+
+  override def findByPaymentIdAndTransactionId(
+      paymentId: PaymentId,
+      transactionId: TransactionId
+  ): Future[Option[PaymentIntent]] =
+    Future {
+      DB.localTx { implicit session =>
+        withSQL {
+          selectFrom(this as pi).where
+            .eq(pi.paymentId, paymentId.id)
+            .and
+            .eq(pi.transactionId, transactionId.id)
+        }.map(apply(pi.resultName)(_)).single()
+      }
     }
-}
+
+  override def updateStatusByCompositeKey(
+      paymentId: PaymentId,
+      transactionId: TransactionId,
+      status: PaymentIntentStatus
+  ): Future[Done] =
+    Future {
+      DB.localTx { implicit session =>
+        withSQL {
+          update(this)
+            .set(
+              column.status -> status.toString,
+              column.updated -> DateTime.now()
+            )
+            .where
+            .eq(column.paymentId, paymentId.id)
+            .and
+            .eq(column.transactionId, transactionId.id)
+        }.update()
+      }
+      Done
+    }
+
+  override def markSucceededIfNotSucceededByCompositeKey(
+      paymentId: PaymentId,
+      transactionId: TransactionId
+  ): Future[Int] =
+    Future {
+      DB.localTx { implicit session =>
+        withSQL {
+          update(this)
+            .set(
+              column.status -> PaymentIntentStatus.SUCCEEDED.toString,
+              column.updated -> DateTime.now()
+            )
+            .where
+            .eq(column.paymentId, paymentId.id)
+            .and
+            .eq(column.transactionId, transactionId.id)
+        }.update()
+      }
+    }
+ }

@@ -32,6 +32,7 @@ class PaymentWriterImpl @Inject() (configuration: Configuration)(implicit ec: Ex
             toJsValueWrapper(Strings.transactionId, payment.transactionId.toString),
             toJsValueWrapper(Strings.resourceId, transaction.resourceId.toString),
             toJsValueWrapper(Strings.gateway, payment.gateway),
+            toJsValueWrapper(Strings.netAmount, payment.netAmount),
             toJsValueWrapper(Strings.amount, payment.amount),
             toJsValueWrapper(Strings.instrument, payment.instrument)
           ).flatten: _*
