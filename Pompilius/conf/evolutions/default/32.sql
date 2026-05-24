@@ -104,7 +104,7 @@ INSERT INTO `sample` (
      'Anoxic marine deposition, organic matter preservation, graptolite accumulation');
 
 
--- Recursos de Pedro (835125411154231301)
+-- Recursos adicionales (asignados a Ana - 835125411154231300)
 INSERT INTO `resource` (
     `id`, `name`, `resource_type`, `visibility`, `created`, `updated`,
     `location`, `observations`, `summary`, `price`, `is_barter`
@@ -212,9 +212,9 @@ INSERT INTO `resource_user` (`resource_id`, `user_id`, `resource_user_type`, `cr
 -- Ana dueña de shale con graptolites
 (835125411154232013, 835125411154231300, 'OWNER', NOW(), 0),
 
--- Pedro dueño de amethyst y calcite
-(835125411154232014, 835125411154231301, 'OWNER', NOW(), 0),
-(835125411154232015, 835125411154231301, 'OWNER', NOW(), 0),
+-- Ana dueña de amethyst y calcite
+(835125411154232014, 835125411154231300, 'OWNER', NOW(), 0),
+(835125411154232015, 835125411154231300, 'OWNER', NOW(), 0),
 
 -- Laura dueña de tourmaline, garnet y study
 (835125411154232016, 835125411154231302, 'OWNER', NOW(), 0),
