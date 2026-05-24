@@ -6,7 +6,6 @@ import dev.pompilius.payment.domain.PaymentIntent
 import dev.pompilius.shared.infrastructure.JsUtils.{JodaDateTimeFormat, toJsValueWrapper}
 import dev.pompilius.transaction.domain.Transaction
 import jakarta.inject.Singleton
-import play.api.Configuration
 import play.api.libs.json._
 
 import javax.inject.Inject
@@ -18,7 +17,7 @@ trait PaymentIntentWriter {
 }
 
 @Singleton
-class PaymentIntentWriterImpl @Inject() (configuration: Configuration) extends PaymentIntentWriter {
+class PaymentIntentWriterImpl @Inject() () extends PaymentIntentWriter {
 
   override def toJson(intent: PaymentIntent, transaction: Transaction): Future[JsValue] = {
     Future.successful {

@@ -1,7 +1,6 @@
 package dev.pompilius.payment.domain
 
 import dev.pompilius.gateways.domain.Gateway
-import dev.pompilius.resource.domain.ResourceId
 import dev.pompilius.transaction.domain.TransactionId
 import org.joda.time.DateTime
 
@@ -18,7 +17,6 @@ case class PaymentIntent(
     transactionId: TransactionId, // FK a Transaction
     gateway: Gateway,
     gatewayIntentId: String, // ID del intent en la pasarela (ej: pi_xxx de Stripe)
-    resourceId: ResourceId,
     price: BigDecimal, // Precio base del recurso
     //Fee de la pasarela, se calcula al crear el intent (ej: 2.9% + 0.30 USD en Stripe)
     surcharge: BigDecimal,

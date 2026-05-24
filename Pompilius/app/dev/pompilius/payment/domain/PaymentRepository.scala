@@ -15,6 +15,8 @@ trait PaymentRepository {
 
   def findById(id: PaymentId): Future[Option[Payment]]
 
+  def findByIdAndTransactionId(id: PaymentId, transactionId: TransactionId): Future[Option[Payment]]
+
   def findByGatewayPaymentId(gateway: String, gatewayPaymentId: String): Future[Option[Payment]]
 
   def find(filter: PaymentFilter, pag: Pagination): Future[List[Payment]]

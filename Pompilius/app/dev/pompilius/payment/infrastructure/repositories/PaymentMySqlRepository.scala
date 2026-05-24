@@ -74,7 +74,7 @@ class PaymentMySqlRepository @Inject() ()(implicit dbExecutionContext: DbExecuti
           insert
             .into(this)
             .namedValues(values: _*)
-            .append(ScalikeUtil.onDuplicateUpdate(column.id, values: _*))
+            .append(ScalikeUtil.onDuplicateUpdate(column.id, column.transactionId, values: _*))
         }.update()
       }
       Done
@@ -94,6 +94,18 @@ class PaymentMySqlRepository @Inject() ()(implicit dbExecutionContext: DbExecuti
       DB.localTx { implicit session =>
         withSQL {
           selectFrom(this as p).where.eq(p.id, id.id)
+        }.map(apply(p.resultName)(_)).single()
+      }
+    }
+
+  override def findByIdAndTransactionId(id: PaymentId, transactionId: TransactionId): Future[Option[Payment]] =
+    Future {
+      DB.localTx { implicit session =>
+        withSQL {
+          selectFrom(this as p).where
+            .eq(p.id, id.id)
+            .and
+            .eq(p.transactionId, transactionId.id)
         }.map(apply(p.resultName)(_)).single()
       }
     }
