@@ -59,7 +59,7 @@ INSERT INTO `resource` (
        'Fresh 2008 eruption lava sample. Plagioclase phenocrysts clearly visible.',
        'Recent basaltic-andesite from active stratovolcano', 28.00, 0),
 
-      -- Recursos de Pedro (AMATEUR - Argentina)
+      -- Recursos de Argentina (asignados a Ana - PROFESSIONAL)
       (835125411154232040, 'Ischigualasto petrified wood ISC-PW-2023-09', 'SAMPLE', 'PRIVATE', NOW(), NOW(),
        'Ischigualasto Provincial Park (Valle de la Luna), San Juan, Argentina',
        'Triassic petrified wood with excellent cell structure preservation. Silicification complete.',
@@ -271,10 +271,10 @@ INSERT INTO `resource_user` (`resource_id`, `user_id`, `resource_user_type`, `cr
     (835125411154232038, 835125411154231300, 'OWNER', NOW(), 0),
     (835125411154232039, 835125411154231300, 'OWNER', NOW(), 0),
 
-    -- Pedro (835125411154231301)
-    (835125411154232040, 835125411154231301, 'OWNER', NOW(), 0),
-    (835125411154232041, 835125411154231301, 'OWNER', NOW(), 0),
-    (835125411154232042, 835125411154231301, 'OWNER', NOW(), 0),
+    -- Ana (835125411154231300)
+    (835125411154232040, 835125411154231300, 'OWNER', NOW(), 0),
+    (835125411154232041, 835125411154231300, 'OWNER', NOW(), 0),
+    (835125411154232042, 835125411154231300, 'OWNER', NOW(), 0),
 
     -- Laura (835125411154231302)
     (835125411154232043, 835125411154231302, 'OWNER', NOW(), 0),
@@ -287,7 +287,7 @@ INSERT INTO `resource_user` (`resource_id`, `user_id`, `resource_user_type`, `cr
     (835125411154232036, 835125411154231302, 'PURCHASED', NOW(), 0),  -- Laura compró a John
     (835125411154232039, 835125411154231297, 'PURCHASED', NOW(), 0),  -- María compró a Ana
     (835125411154232043, 835125411154231300, 'PURCHASED', NOW(), 0),  -- Ana compró a Laura
-    (835125411154232032, 835125411154231301, 'ACCEPTED_AS_PAYMENT', NOW(), 0),  -- Pedro recibió por barter de Carlos
+    (835125411154232032, 835125411154231300, 'ACCEPTED_AS_PAYMENT', NOW(), 0),  -- Ana recibió por barter de Carlos
     (835125411154232035, 835125411154231298, 'ACCEPTED_AS_PAYMENT', NOW(), 0),  -- Carlos recibió por barter de John
     (835125411154232038, 835125411154231302, 'ACCEPTED_AS_PAYMENT', NOW(), 0),  -- Laura recibió por barter de Ana
     (835125411154232040, 835125411154231299, 'ACCEPTED_AS_PAYMENT', NOW(), 0),  -- John recibió por barter de Pedro

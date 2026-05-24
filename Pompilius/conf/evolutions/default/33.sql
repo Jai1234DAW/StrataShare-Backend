@@ -15,19 +15,19 @@ INSERT INTO `transaction` (
 INSERT INTO `barter` (`barter_id`, `transaction_id`, `offered_resource_id`) VALUES
     (835125411154236001, 835125411154235001, 835125411154232017);
 
--- Barter 2: COMPLETED - Pedro obtuvo quartzite de John por calcite
+-- Barter 2: COMPLETED - Ana obtuvo quartzite de John por calcite
 INSERT INTO `transaction` (
     `id`, `transaction_type`, `transaction_status`, `seller_id`, `buyer_id`,
     `resource_id`, `fee`, `created`, `updated`, `completed_successfully_at`, `metadata`
 ) VALUES
-    (835125411154235002, 'BARTER', 'COMPLETED', 835125411154231299, 835125411154231301,
+    (835125411154235002, 'BARTER', 'COMPLETED', 835125411154231299, 835125411154231300,
      835125411154232012, 0, DATE_SUB(NOW(), INTERVAL 5 DAY), NOW(), NOW(), '{"offeredResourceId": "835125411154232015"}');
 
 INSERT INTO `barter` (`barter_id`, `transaction_id`, `offered_resource_id`) VALUES
     (835125411154236002, 835125411154235002, 835125411154232015);
 
 INSERT INTO `resource_user` (`resource_id`, `user_id`, `resource_user_type`, `created`, `deleted`) VALUES
-   (835125411154232012, 835125411154231301, 'ACCEPTED_AS_PAYMENT', DATE_SUB(NOW(), INTERVAL 5 DAY), 0),
+   (835125411154232012, 835125411154231300, 'ACCEPTED_AS_PAYMENT', DATE_SUB(NOW(), INTERVAL 5 DAY), 0),
    (835125411154232015, 835125411154231299, 'ACCEPTED_AS_PAYMENT', DATE_SUB(NOW(), INTERVAL 5 DAY), 0);
 
 -- Barter 3: REJECTED - Carlos quiso eclogite de John
