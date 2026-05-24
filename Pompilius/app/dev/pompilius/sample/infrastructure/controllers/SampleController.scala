@@ -355,11 +355,15 @@ class SampleController @Inject() (
               ResourceUserType.OWNER.toString
             ).map(_.map(_.id).toSet)
 
+            // `moreItems` debe basarse en el resultado paginado del repo (antes de excluir OWNED)
+            hasMore = pag.limit.exists(limit => samples.length > limit)
+
             // 3. EXCLUIR SOLO samples que el usuario OWNS (no excluir los comprados, barteados, etc.)
             filteredSamples = samples.filterNot(s => userOwnedSampleIds.contains(s.id))
+            visibleSamples = pag.limit.map(limit => filteredSamples.take(limit)).getOrElse(filteredSamples)
 
             // 4. Para cada sample, obtener resource y generar preview JSON usando paginatedWriter
-            json <- paginatedWriter.toJson(Paginated(filteredSamples, pag)) { sample =>
+            json <- paginatedWriter.toJson(Paginated(visibleSamples, hasMore)) { sample =>
               for {
                 resource <-
                   resourceRepository

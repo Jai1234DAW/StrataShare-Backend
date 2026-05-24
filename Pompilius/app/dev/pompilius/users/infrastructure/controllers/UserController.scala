@@ -433,12 +433,20 @@ class UserController @Inject() (
 
   def validateEmail: Action[JsValue] =
     Action.async(parse.json) { implicit request =>
-      (request.body \ Strings.email).as[String] match {
-        case Strings.emailRegex(email) =>
+      val maybeEmail =
+        List(
+          (request.body \ Strings.email).asOpt[String],
+          (request.body \ "body" \ Strings.email).asOpt[String],
+          request.body.asOpt[String]
+        ).flatten.headOption.map(_.trim).filter(_.nonEmpty).map(_.toLowerCase)
+
+      maybeEmail match {
+        case Some(email) if Strings.emailRegex.pattern.matcher(email).matches() =>
           userRepository.findByEmail(email).map(_.isEmpty).map { available =>
             // Si el email es válido, se devuelve su disponibilidad
             Ok(Json.obj(Strings.available -> available, Strings.valid -> true))
           }
+
         case _ =>
           // Si el email no es válido, se devuelve un boolean false
           Future.successful(Ok(Json.obj(Strings.available -> false, Strings.valid -> false)))
