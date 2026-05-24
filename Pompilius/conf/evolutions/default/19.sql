@@ -6,7 +6,6 @@ CREATE TABLE `payment_intent` (
     `transaction_id` BIGINT NOT NULL,
     `gateway` ENUM('STRIPE', 'STRIPE_MOBILE') NOT NULL,
     `gateway_intent_id` VARCHAR(255) NOT NULL,
-    `resource_id` BIGINT NOT NULL,
     `price` DECIMAL (10, 2) NOT NULL,
     `surcharge` DECIMAL(10, 2) NOT NULL,
     `amount` DECIMAL(10, 2) NOT NULL,

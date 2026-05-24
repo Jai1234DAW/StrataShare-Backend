@@ -18,30 +18,27 @@ CREATE TABLE `users_events` (
 
 CREATE TABLE `badge` (
     `id` BIGINT NOT NULL,
-    `badge_type` ENUM(
-    'SEDIMENT_COLLECTOR', 'MINERAL_PROSPECTOR', 'CRYSTAL_SEEKER', 'DIAMOND_EXPLORER',
-    'FOSSIL_TRADER', 'ROCK_EXCHANGER', 'GEMSTONE_SWAPPER', 'GEODE_MASTER',
-    'STRATA_CONTRIBUTOR', 'GEOLOGICAL_LEGEND'
-) NOT NULL,
-  `name` VARCHAR(100) NOT NULL,
-  `description` TEXT NOT NULL,
-  `image_url` VARCHAR(255) NULL,
-  `created` DATETIME NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_badge_type` (`badge_type`)
+    `badge_type` ENUM('SEDIMENT_COLLECTOR', 'MINERAL_PROSPECTOR', 'CRYSTAL_SEEKER', 'DIAMOND_EXPLORER','FOSSIL_TRADER', 'ROCK_EXCHANGER', 'GEMSTONE_SWAPPER', 'GEODE_MASTER','STRATA_CONTRIBUTOR', 'GEOLOGICAL_LEGEND') NOT NULL,
+     `name` VARCHAR(100) NOT NULL,
+     `description` TEXT NOT NULL,
+     `image_url` VARCHAR(255) NULL,
+     `created` DATETIME NOT NULL,
+     PRIMARY KEY (`id`),
+     UNIQUE KEY `uk_badge_type` (`badge_type`)
 ) CHARSET=utf8mb4;
 
+
 CREATE TABLE `users_badge` (
-   `user_id` BIGINT NOT NULL,
-   `badge_id` BIGINT NOT NULL,
-   `earned_at` DATETIME NOT NULL,
-   PRIMARY KEY (`user_id`, `badge_id`),
-   INDEX `idx_user_badges_badge_id` (`badge_id`),
-   CONSTRAINT `fk_users_badges_user`
+    `user_id` BIGINT NOT NULL,
+    `badge_id` BIGINT NOT NULL,
+    `earned_at` DATETIME NOT NULL,
+    PRIMARY KEY (`user_id`, `badge_id`),
+    INDEX `idx_user_badges_badge_id` (`badge_id`),
+    CONSTRAINT `fk_users_badges_user`
        FOREIGN KEY (`user_id`)
            REFERENCES `users` (`id`)
            ON DELETE RESTRICT,
-   CONSTRAINT `fk_users_badges_badge`
+    CONSTRAINT `fk_users_badges_badge`
        FOREIGN KEY (`badge_id`)
            REFERENCES `badge` (`id`)
            ON DELETE CASCADE

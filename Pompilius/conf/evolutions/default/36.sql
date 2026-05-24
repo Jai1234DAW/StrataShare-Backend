@@ -1,4 +1,4 @@
-no ,e suma# Agregar campos platform_fee y gateway_fee a la tabla payment
+# Agregar campos platform_fee y gateway_fee a la tabla payment
 
 # --- !Ups
 ALTER TABLE `payment`
