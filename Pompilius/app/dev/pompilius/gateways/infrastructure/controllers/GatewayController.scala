@@ -203,7 +203,7 @@ class GatewayController @Inject() (
           } yield {
             val parameters =
               paymentIntent.returnUrlParams.getOrElse(Map.empty[String, String]) ++ Map(
-                Strings.resourceId -> paymentIntent.resourceId.toString,
+                Strings.resourceId -> transaction.resourceId.toString,
                 Strings.sellerId -> transaction.sellerId.toString,
                 Strings.paymentId -> paymentIntent.paymentId.toString
               )
@@ -259,7 +259,7 @@ class GatewayController @Inject() (
           } yield {
             val parameters =
               paymentIntent.returnUrlParams.getOrElse(Map.empty[String, String]) ++ Map(
-                Strings.resourceId -> paymentIntent.resourceId.toString,
+                Strings.resourceId -> transaction.resourceId.toString,
                 Strings.sellerId -> transaction.sellerId.toString,
                 Strings.paymentId -> paymentIntent.paymentId.toString
               )
@@ -373,12 +373,16 @@ class GatewayController @Inject() (
   }
 
   private def reconcileCanceledCheckout(
-      paymentIntent: dev.pompilius.payment.domain.PaymentIntent,
+      paymentIntent: PaymentIntent,
       transaction: Transaction
   ): Future[Unit] = {
 
     for {
-      _ <- paymentIntentRepository.updateStatus(paymentIntent.paymentId, PaymentIntentStatus.CANCELED)
+      _ <- paymentIntentRepository.updateStatusByCompositeKey(
+        paymentIntent.paymentId,
+        paymentIntent.transactionId,
+        PaymentIntentStatus.CANCELED
+      )
       _ <- transactionRepository.updateStatusRejectedCancelled(transaction.id, TransactionStatus.CANCELLED)
     } yield {
       logger.info(
@@ -409,7 +413,9 @@ class GatewayController @Inject() (
    receiptUrl: Option[String]
   ): Future[Unit] = {
 
-    paymentIntentRepository.markSucceededIfNotSucceeded(paymentIntent.paymentId).flatMap { updatedRows =>
+    paymentIntentRepository
+      .markSucceededIfNotSucceededByCompositeKey(paymentIntent.paymentId, paymentIntent.transactionId)
+      .flatMap { updatedRows =>
       if (updatedRows == 0) {
         logger.info(s"PaymentIntent ${paymentIntent.paymentId} already reconciled by another process")
         Future.successful(())

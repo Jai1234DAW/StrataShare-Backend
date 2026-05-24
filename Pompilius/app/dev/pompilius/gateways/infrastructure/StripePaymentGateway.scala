@@ -116,7 +116,6 @@ class StripePaymentGateway @Inject() (
         transactionId = createParams.transactionId,
         gateway = Gateway.STRIPE,
         gatewayIntentId = session.getId,
-        resourceId = createParams.resource.id,
         price = createParams.price,
         surcharge = createParams.surcharge,
         amount = createParams.amount,
