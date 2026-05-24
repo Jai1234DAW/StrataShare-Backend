@@ -292,3 +292,70 @@ INSERT INTO `resource_user` (`resource_id`, `user_id`, `resource_user_type`, `cr
     (835125411154232038, 835125411154231302, 'ACCEPTED_AS_PAYMENT', NOW(), 0),  -- Laura recibió por barter de Ana
     (835125411154232040, 835125411154231299, 'ACCEPTED_AS_PAYMENT', NOW(), 0),  -- John recibió por barter de Pedro
     (835125411154232044, 835125411154231297, 'ACCEPTED_AS_PAYMENT', NOW(), 0);  -- María recibió por barter de Laura
+
+-- ============================================================================
+-- TRANSACCIONES DE PAGO + PAYMENT_INTENT + PAYMENT (datos visibles en módulo payments)
+-- ============================================================================
+
+INSERT INTO `transaction` (
+    `id`, `transaction_type`, `transaction_status`, `seller_id`, `buyer_id`,
+    `resource_id`, `fee`, `created`, `updated`, `completed_successfully_at`, `metadata`
+) VALUES
+      (835125411154235101, 'PAYMENT', 'COMPLETED', 835125411154231297, 835125411154231298,
+       835125411154232030, 2.25, DATE_SUB(NOW(), INTERVAL 8 DAY), DATE_SUB(NOW(), INTERVAL 8 DAY), DATE_SUB(NOW(), INTERVAL 8 DAY), '{"source":"seed37"}'),
+      (835125411154235102, 'PAYMENT', 'COMPLETED', 835125411154231299, 835125411154231302,
+       835125411154232036, 11.00, DATE_SUB(NOW(), INTERVAL 6 DAY), DATE_SUB(NOW(), INTERVAL 6 DAY), DATE_SUB(NOW(), INTERVAL 6 DAY), '{"source":"seed37"}'),
+      (835125411154235103, 'PAYMENT', 'COMPLETED', 835125411154231302, 835125411154231300,
+       835125411154232043, 7.50, DATE_SUB(NOW(), INTERVAL 4 DAY), DATE_SUB(NOW(), INTERVAL 4 DAY), DATE_SUB(NOW(), INTERVAL 4 DAY), '{"source":"seed37"}'),
+      (835125411154235104, 'PAYMENT', 'PENDING', 835125411154231298, 835125411154231301,
+       835125411154232033, 9.00, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 1 DAY), NULL, '{"source":"seed37"}'),
+      (835125411154235105, 'PAYMENT', 'CANCELLED', 835125411154231300, 835125411154231297,
+       835125411154232039, 1.40, DATE_SUB(NOW(), INTERVAL 2 DAY), DATE_SUB(NOW(), INTERVAL 2 DAY), NULL, '{"source":"seed37"}');
+
+INSERT INTO `payment_intent` (
+    `payment_id`, `transaction_id`, `gateway`, `gateway_intent_id`,
+    `price`, `surcharge`, `amount`, `status`, `discount`, `url`,
+    `created`, `buyer_reference`, `instrument`, `fingerprint`,
+    `return_url_params`, `metadata`, `extra_info`, `updated`
+) VALUES
+      (835125411154237101, 835125411154235101, 'STRIPE', 'pi_seed_235101',
+       45.00, 0.00, 45.00, 'succeeded', 0.00, NULL,
+       DATE_SUB(NOW(), INTERVAL 8 DAY), 'seed-buyer-001', 'card', 'fp_seed_001',
+       '{"sellerId":"835125411154231297","resourceId":"835125411154232030"}', '{"source":"seed37"}', NULL, DATE_SUB(NOW(), INTERVAL 8 DAY)),
+      (835125411154237102, 835125411154235102, 'STRIPE', 'pi_seed_235102',
+       220.00, 0.00, 220.00, 'succeeded', 0.00, NULL,
+       DATE_SUB(NOW(), INTERVAL 6 DAY), 'seed-buyer-002', 'card', 'fp_seed_002',
+       '{"sellerId":"835125411154231299","resourceId":"835125411154232036"}', '{"source":"seed37"}', NULL, DATE_SUB(NOW(), INTERVAL 6 DAY)),
+      (835125411154237103, 835125411154235103, 'STRIPE', 'pi_seed_235103',
+       150.00, 0.00, 150.00, 'succeeded', 0.00, NULL,
+       DATE_SUB(NOW(), INTERVAL 4 DAY), 'seed-buyer-003', 'card', 'fp_seed_003',
+       '{"sellerId":"835125411154231302","resourceId":"835125411154232043"}', '{"source":"seed37"}', NULL, DATE_SUB(NOW(), INTERVAL 4 DAY)),
+      (835125411154237104, 835125411154235104, 'STRIPE', 'pi_seed_235104',
+       180.00, 0.00, 180.00, 'processing', 0.00, NULL,
+       DATE_SUB(NOW(), INTERVAL 1 DAY), 'seed-buyer-004', 'card', 'fp_seed_004',
+       '{"sellerId":"835125411154231298","resourceId":"835125411154232033"}', '{"source":"seed37"}', NULL, DATE_SUB(NOW(), INTERVAL 1 DAY)),
+      (835125411154237105, 835125411154235105, 'STRIPE', 'pi_seed_235105',
+       28.00, 0.00, 28.00, 'canceled', 0.00, NULL,
+       DATE_SUB(NOW(), INTERVAL 2 DAY), 'seed-buyer-005', 'card', 'fp_seed_005',
+       '{"sellerId":"835125411154231300","resourceId":"835125411154232039"}', '{"source":"seed37"}', NULL, DATE_SUB(NOW(), INTERVAL 2 DAY));
+
+INSERT INTO `payment` (
+    `id`, `transaction_id`, `gateway`, `gateway_payment_id`,
+    `amount`, `platform_fee`, `gateway_fee`, `net_amount`,
+    `currency`, `receipt_url`, `instrument`, `refunded`, `refunded_amount`,
+    `created`, `updated`, `metadata`
+) VALUES
+      (835125411154237101, 835125411154235101, 'STRIPE', 'ch_seed_235101',
+       45.00, 2.25, 1.61, 41.14,
+       'EUR', NULL, 'card', 0, 0.00,
+       DATE_SUB(NOW(), INTERVAL 8 DAY), DATE_SUB(NOW(), INTERVAL 8 DAY), '{"source":"seed37"}'),
+      (835125411154237102, 835125411154235102, 'STRIPE', 'ch_seed_235102',
+       220.00, 11.00, 6.68, 202.32,
+       'EUR', NULL, 'card', 0, 0.00,
+       DATE_SUB(NOW(), INTERVAL 6 DAY), DATE_SUB(NOW(), INTERVAL 6 DAY), '{"source":"seed37"}'),
+      (835125411154237103, 835125411154235103, 'STRIPE', 'ch_seed_235103',
+       150.00, 7.50, 4.65, 137.85,
+       'EUR', NULL, 'card', 0, 0.00,
+       DATE_SUB(NOW(), INTERVAL 4 DAY), DATE_SUB(NOW(), INTERVAL 4 DAY), '{"source":"seed37"}');
+
+

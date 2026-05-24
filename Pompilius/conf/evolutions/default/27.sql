@@ -8,37 +8,37 @@ INSERT INTO `users` (
     `first_name`, `last_name`, `phone`, `avatar`, `cover_photo`, `language`,
     `created`, `updated`, `bio`
 ) VALUES
-      (835125411154231297, 'maria_geology', 'yQs7N3b9Yh9spSVRgLU_cg:4abk:2Lj1wo1xRNstXKnxHfuFXgXNzMtPaWnUIPEJ8M6DGrE',
+      (835125411154231297, 'maria_geology', '7dRUYAM-WNiIdt-kP6u18w:4abk:IjoEeOaod8wMgpWkG577Rvk9K8pMtqf7bKeSUbWtifc',
        1, 'test1@example.com', 'VOLCANOLOGY,PETROLOGY,MINERALOGY',
        'ES', 'María', 'López García', '+34612345678',
        NULL, NULL, 'es', NOW(), NOW(),
        'Geology student passionate about volcanology and petrology'),
 
-      (835125411154231298, 'carlos_geo_pro', 'JBCYVMw5y_gpiRwDm3OokQ:4abk:IDpz4Jeb1LG7SQekTOKwAS9JRB1aAaHCa3V-BHUO4xY',
+      (835125411154231298, 'carlos_geo_pro', 'n4MT6hxsWXCyD9STk1zbdQ:4abk:RZDFv8hvKh-X_KYxQmR7dkaONT4KG4JbKmxcT0MTFK8',
        1, 'test2@example.com', 'STRATIGRAPHY,SEDIMENTOLOGY,PETROLEUM_GEOLOGY,GEOPHYSICS',
        'MEX', 'Carlos', 'Fernández Ruiz', '+52155987654',
        NULL, NULL, 'es', NOW(), NOW(),
        'Professional geologist with 15 years of experience in mining exploration'),
 
-      (835125411154231299, 'john_rocks', 'aP7kWtehfv6WptkirN1gdA:4abk:D3kXGNLnZHxTvM-oshv68ArOeM3FxhxkciLBNcMioMc',
+      (835125411154231299, 'john_rocks', 'qsWgryc8nBxeWKzy6CzXZQ:4abk:Hhh0OFBcD6k4FfNZ9drFOTl3tJqgSFe741z6leakZJM',
        1, 'test3@example.com', 'SEISMOLOGY,GEODYNAMICS,GEOPHYSICS',
        'USA', 'John', 'Smith', '+14155551234',
        NULL, NULL, 'en', NOW(), NOW(),
        'Geology student specializing in seismology and tectonics'),
 
-      (835125411154231300, 'ana_researcher', '9k29TeKSysmM5WaeW_-Apw:4abk:lbvkCJOlVIEvdt-YQDsBAHcWivlvIyAVE2YiIt_zMec',
+      (835125411154231300, 'ana_researcher', 'P3ye5HjRRFV6l_7unpULEA:4abk:X1iv5OoK8JZ31ZiJ9bsrdCM-AXDwVvao357Zfg2PV7M',
        1, 'test4@example.com', 'STRATIGRAPHY,SEDIMENTOLOGY,PALEONTOLOGY,HISTORICAL_GEOLOGY',
        'CHL', 'Ana', 'Torres Moreno', '+56987654321',
        NULL, NULL, 'es', NOW(), NOW(),
        'Researcher specialized in stratigraphy and sedimentology'),
 
-      (835125411154231301, 'pedro_rocas', 'QyYM4tRJIth9v0bGDO2pLA:4abk:BRByzznFX3heRSaieoUVdud8TNl3E0Sdo7u_UVpye4o',
+      (835125411154231301, 'pedro_rocas', '13avgg8AMvvBNyxJz_HQDQ:4abk:SfrT5qDD4ZtLh0PDjh9Awp9N6yosxQaZavN0mTx62qM',
        1, 'test5@example.com', 'MINERALOGY,PETROLOGY,GEOMORPHOLOGY',
        'ARG', 'Pedro', 'García', '+541134567890',
        NULL, NULL, 'es', NOW(), NOW(),
        'Geology enthusiast, mineral collector'),
 
-      (835125411154231302, 'laura_minerals', 'dNV3gxSVwYTBQR_Pyg3AJg:4abk:NczM3M8dON97ZZGcgI39221aA56f7-Jy6wlBLy7n7QY',
+      (835125411154231302, 'laura_minerals', 'bsMpDrvqv_pixAY5YDckGg:4abk:9FLZPtOF-Obdp9dBiq7fT2GWC_9Q-bhUkzz5BRIOmJI',
        1, 'test6@example.com', 'MINERALOGY,PETROLOGY,GEOTECHNICS',
        'COL', 'Laura', 'Martínez', '+573001234567',
        NULL, NULL, 'es', NOW(), NOW(),

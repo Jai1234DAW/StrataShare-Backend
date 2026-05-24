@@ -162,6 +162,21 @@ POST         /:resourceId/attachment/:attachmentId/preview                      
 GET          /:resourceId/preview                             dev.pompilius.resource.infrastructure.controllers.ResourceController.getPreviewImage(resourceId: String)
 
 ###
+#  summary: Get all resource details except owned resources
+#  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL","AMATEUR"]}
+#  responses:
+#    200:
+#      content:
+#       application/json:
+#        schema:
+#         type: array
+#         items:
+#          $ref: '#/components/schemas/Resource'
+#      description: Resource list for current user excluding owner resources
+###
+GET          /details/all                                  dev.pompilius.resource.infrastructure.controllers.ResourceController.getAllResourcesInfo(pag: Pagination)
+
+###
 #  summary: Get all details of a resource
 #  roles: {"required": "any", "roles": ["STUDENT","PROFESSIONAL","AMATEUR"]}
 #  responses:
