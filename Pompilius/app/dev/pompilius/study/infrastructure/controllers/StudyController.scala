@@ -359,11 +359,15 @@ class StudyController @Inject() (
               ResourceUserType.OWNER.toString
             ).map(_.map(_.id).toSet)
 
+            // `moreItems` debe basarse en el resultado paginado del repo (antes de excluir OWNED)
+            hasMore = pag.limit.exists(limit => studies.length > limit)
+
             // 3. EXCLUIR SOLO estudios que el usuario OWNS (no excluir los comprados, barteados, etc.)
             filteredStudies = studies.filterNot(s => userOwnedStudyIds.contains(s.id))
+            visibleStudies = pag.limit.map(limit => filteredStudies.take(limit)).getOrElse(filteredStudies)
 
             // 4. Para cada estudio, obtener resource y generar preview JSON usando paginatedWriter
-            json <- paginatedWriter.toJson(Paginated(filteredStudies, pag)) { study =>
+            json <- paginatedWriter.toFlattedJson(Paginated(visibleStudies, hasMore)) { study =>
               for {
                 resource <-
                   resourceRepository
@@ -372,19 +376,19 @@ class StudyController @Inject() (
                       _.getOrElse(throw new ResourceNotFoundException(s"Resource not found for study ${study.id}"))
                     )
 
-                ownerId <-
+                ownerOpt <-
                   resourceUserRepository
                     .findOwnerByResource(resource.id)
-                    .map(
-                      _.map(_.id).getOrElse(
-                        throw new ResourceNotFoundException(s"Owner not found for resource ${resource.id}")
-                      )
-                    )
 
-                json <-
-                  resourceWriter
-                    .asPrivate(resource, ResourceAccessLevel.PREVIEW_ONLY, ownerId, None, Some(study))
-              } yield json
+                result <- ownerOpt match {
+                  case Some(owner) =>
+                    resourceWriter
+                      .asPrivate(resource, ResourceAccessLevel.PREVIEW_ONLY, owner.id, None, Some(study))
+                      .map(Some(_))
+                  case None =>
+                    Future.successful(None)
+                }
+              } yield result
             }
 
           } yield {

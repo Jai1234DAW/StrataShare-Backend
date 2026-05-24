@@ -5,16 +5,16 @@ import dev.pompilius.attachment.domain.{Attachment, AttachmentId, AttachmentRepo
 import dev.pompilius.attachment.infrastructure.Attachments
 import dev.pompilius.attachment.infrastructure.writers.AttachmentWriter
 import dev.pompilius.resource.domain.exceptions.ResourceNotFoundException
-import dev.pompilius.resource.domain.{ResourceAccessLevel, ResourceId, ResourceRepository, ResourceType, ResourceUserRepository}
+import dev.pompilius.resource.domain.{ResourceAccessLevel, ResourceFilter, ResourceId, ResourceRepository, ResourceType, ResourceUserRepository, ResourceUserType}
 import dev.pompilius.resource.infrastructure.ResourceAccessValidator
 import dev.pompilius.resource.infrastructure.writers.ResourceWriter
 import dev.pompilius.sample.domain.SampleRepository
-import dev.pompilius.shared.domain.Pagination
+import dev.pompilius.shared.domain.{Paginated, Pagination}
 import dev.pompilius.shared.domain.exceptions.{BadRequestException, ForbiddenException}
 import dev.pompilius.shared.infrastructure.BaseController
+import dev.pompilius.shared.infrastructure.writers.PaginatedWriter
 import dev.pompilius.study.domain.StudyRepository
 import dev.pompilius.users.domain.Role
-import dev.pompilius.users.domain.Role.AMATEUR
 import play.api.libs.Files
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MultipartFormData}
@@ -31,6 +31,7 @@ class ResourceController @Inject() (
     attachmentWriter: AttachmentWriter,
     resourceUserRepository:ResourceUserRepository,
     resourceWriter: ResourceWriter,
+    paginatedWriter: PaginatedWriter,
     studyRepository: StudyRepository,
     sampleRepository: SampleRepository
 )(implicit val ec: ExecutionContext)
@@ -73,6 +74,69 @@ class ResourceController @Inject() (
             )
 
           } yield Ok(response)
+      }
+    }
+
+  def getAllResourcesInfo(pag: Pagination): Action[AnyContent] =
+    Action.async { implicit request =>
+      withAnyOfThisRoles(Seq(Role.STUDENT, Role.PROFESSIONAL, Role.AMATEUR)) {
+        case (_, user, _, _) =>
+          for {
+            // 1. Obtener recursos paginados del repositorio (con +1 para detectar más items)
+            resources <- resourceRepository.find(ResourceFilter(), pag.oneMore)
+
+            // 2. Obtener IDs de recursos OWNED por el usuario autenticado para excluirlos
+            userOwnedResourceIds <- resourceUserRepository
+              .findByUserAndType(user.id, ResourceUserType.OWNER, Pagination.all)
+              .map(_.toSet)
+
+            // 3. Calcular si hay más items ANTES de filtrar (basado en lo que devolvió el repo)
+            hasMore = pag.limit.exists(limit => resources.length > limit)
+
+            // 4. EXCLUIR SOLO recursos que el usuario OWNS
+            filteredResources = resources.filterNot(r => userOwnedResourceIds.contains(r.id))
+
+            // 5. Tomar solo los que caben en el limit
+            itemsToReturn = pag.limit.map(filteredResources.take(_)).getOrElse(filteredResources)
+
+            // 6. Para cada recurso, obtener información del owner y generar JSON
+            json <- paginatedWriter.toFlattedJson(Paginated(itemsToReturn, hasMore)) {
+              resource =>
+                val rid = resource.id
+
+                for {
+                  accessLevel <- resourceAccessValidator.getAccessLevel(rid, user.id)
+
+                  sampleOpt <-
+                    if (resource.resourceType == ResourceType.SAMPLE)
+                      sampleRepository.findByResource(rid)
+                    else
+                      Future.successful(None)
+
+                  studyOpt <-
+                    if (resource.resourceType == ResourceType.STUDY)
+                      studyRepository.findByResource(rid)
+                    else
+                      Future.successful(None)
+
+                  ownerOpt <- resourceUserRepository.findOwnerByResource(rid)
+
+                  result <- ownerOpt match {
+                    case Some(owner) =>
+                      resourceWriter.toJson(
+                        resource,
+                        accessLevel,
+                        owner.id,
+                        sampleOpt,
+                        studyOpt
+                      ).map(Some(_))
+                    case None =>
+                      Future.successful(None)
+                  }
+                } yield result
+            }
+
+          } yield Ok(json)
       }
     }
 

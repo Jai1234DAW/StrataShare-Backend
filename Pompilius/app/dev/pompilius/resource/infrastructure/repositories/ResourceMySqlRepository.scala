@@ -118,7 +118,7 @@ class ResourceMySqlRepository @Inject() (clock: Clock)(
     Future {
       DB.localTx { implicit session =>
         withSQL {
-          selectFrom(this as r).where
+          selectFrom(this as r)
             .append(
               filterToSqlSyntax(filter).map(sqls.where(_)).getOrElse(sqls.empty)
             )
