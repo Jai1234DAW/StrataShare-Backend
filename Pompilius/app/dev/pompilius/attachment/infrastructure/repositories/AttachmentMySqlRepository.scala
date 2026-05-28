@@ -146,6 +146,7 @@ class AttachmentMySqlRepository @Inject() (implicit ec: DbExecutionContext)
     Future {
       DB.localTx { implicit session =>
         val contentTypeCondition = if (attachmentType.toLowerCase.startsWith("image")) {
+
           // Si es imagen, filtra solo por imágenes (contentType empieza con "image/")
           sqls.like(att.contentType, "image/%")
         } else {
@@ -154,7 +155,9 @@ class AttachmentMySqlRepository @Inject() (implicit ec: DbExecutionContext)
         }
 
         withSQL {
-          select(sqls.count(att.id)).from(this as att).where
+          select(sqls.count(att.id))
+            .from(this as att)
+            .where
             .eq(att.resourceId, resourceId.id)
             .and
             .append(contentTypeCondition)

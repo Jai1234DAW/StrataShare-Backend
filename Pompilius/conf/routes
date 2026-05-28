@@ -35,5 +35,5 @@ GET        /api/assets/*file                           controllers.Assets.versio
 ->         /api/transaction/barter                     barter.Routes
 ->         /api/transaction/payments                   payment.Routes
 ->         /api/gateways                               gateways.Routes
-->         /api/reviews                                 review.Routes
-->         /api/badges                                  badge.Routes
+->         /api/reviews                                review.Routes
+->         /api/badges                                 badge.Routes

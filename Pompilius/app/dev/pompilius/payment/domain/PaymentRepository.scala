@@ -22,7 +22,5 @@ trait PaymentRepository {
   def find(filter: PaymentFilter, pag: Pagination): Future[List[Payment]]
 
   def findByTransactionId(transactionId: TransactionId): Future[Option[Payment]]
-
-  //Aqui luego se pueden implementar métodos que sirvan al administrador de la empresa para gestionnar incidencias
-
+  
 }

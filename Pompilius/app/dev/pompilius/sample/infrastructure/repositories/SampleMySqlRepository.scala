@@ -63,26 +63,6 @@ class SampleMySqlRepository @Inject() (
       }
     }
 
-  //Por si a caso esto lo ordenaba por el nombre antes
-//  override def find(filter: SampleFilter, pag: Pagination): Future[List[Sample]] =
-//    Future {
-//      val orderBy: Seq[SQLSyntax] = buildOrderBy(pag)
-//
-//      DB.localTx { implicit session =>
-//        withSQL {
-//          selectFrom(this as s)
-//            .append(
-//              filterToSqlSyntax(filter).map(sqls.where(_)).getOrElse(sqls.empty)
-//            )
-//            .orderBy(orderBy: _*)
-//            .append(
-//              ScalikeUtil.pag(pag)
-//            )
-//        }.map(apply(s.resultName)(_)).list()
-//      }
-//    }
-
-  //Este se hace para ordenarlo por fecha de creación por defecto del mas nuevo al mas viejo
   override def find(filter: SampleFilter, pag: Pagination): Future[List[Sample]] =
     Future {
       val r = resourceMySqlRepository.syntax("r")

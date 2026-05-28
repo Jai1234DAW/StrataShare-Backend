@@ -29,8 +29,6 @@ class ReviewController @Inject() (
 )(implicit val ec: ExecutionContext)
     extends BaseController {
 
-  /* Crear una review para un recurso. Solo puede hacer review si ha comprado/recibido el recurso */
-
   def create: Action[AnyContent] =
     Action.async { implicit request =>
       withAnyOfThisRoles(Seq(Role.STUDENT, Role.PROFESSIONAL, Role.AMATEUR)) {
@@ -92,7 +90,6 @@ class ReviewController @Inject() (
       }
     }
 
-  /* Actualizar una review existente */
   def update(reviewId: String): Action[AnyContent] =
     Action.async { implicit request =>
       withAuthenticatedUser {
@@ -101,7 +98,7 @@ class ReviewController @Inject() (
           val updateRequest = UpdateReviewRequestParser.parse(request)
           for {
 
-            // Obtener review
+
             review <-
               reviewRepository
                 .findById(rid)
@@ -124,7 +121,6 @@ class ReviewController @Inject() (
       }
     }
 
-  /* Eliminar una review */
   def delete(reviewId: String): Action[AnyContent] =
     Action.async { implicit request =>
       withAuthenticatedUser {
@@ -175,7 +171,6 @@ class ReviewController @Inject() (
     }
 
   /* Obtener estadísticas de reviews de un recurso (promedio y total) */
-
   def getResourceStats(resourceId: String): Action[AnyContent] =
     Action.async { implicit request =>
       withAuthenticatedUser {
@@ -202,7 +197,6 @@ class ReviewController @Inject() (
     }
 
   /* Obtener la review del usuario para un recurso específico */
-
   def getMyReview(reviewId: String): Action[AnyContent] =
     Action.async { implicit request =>
       withAuthenticatedUser {

@@ -52,6 +52,10 @@ libraryDependencies ++= Seq(
   "com.beachape" %% "enumeratum-play-json" % "1.9.0"
 )
 
+// https://poi.apache.org/
+libraryDependencies += "org.apache.poi" % "poi" % "5.4.1"
+libraryDependencies += "org.apache.poi" % "poi-ooxml" % "5.4.1"
+
 // Jsoup for web scraping
 libraryDependencies += "org.jsoup" % "jsoup" % "1.21.1"
 

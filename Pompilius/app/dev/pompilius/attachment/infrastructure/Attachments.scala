@@ -106,7 +106,6 @@ trait Attachments extends BaseController {
       metadata = metadata
     )
 
-    // Para encadenar operaciones asíncronas con for
     for {
       _ <- attachmentRepository.save(attachment)
     } yield attachment

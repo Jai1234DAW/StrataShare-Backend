@@ -1938,6 +1938,76 @@
         "description": "List of roles assigned to the user (e.g., STUDENT, ADMIN)"
       }
     }
+  },
+  "Report": {
+    "properties": {
+      "id": {
+        "type": "string",
+        "default": "3gqbdpbym4ua",
+        "required": true,
+        "description": "ID of the report"
+      },
+      "name": {
+        "type": "string",
+        "default": "Report name",
+        "required": true,
+        "description": "Name of the report"
+      },
+      "title": {
+        "type": "string",
+        "default": "Report title",
+        "required": true,
+        "description": "Title of the report"
+      },
+      "authorizedUsers": {
+        "items": {
+          "$ref": "#/components/schemas/User"
+        }
+      },
+      "parameters": {
+        "items": {
+          "$ref": "#/components/schemas/ReportParameter"
+        }
+      }
+    }
+  },
+  "ReportList": {
+    "properties": {
+      "items": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Report"
+        }
+      },
+      "moreItems": {
+        "type": "boolean",
+        "default": false,
+        "required": true,
+        "description": "Indicates if there are more items available beyond the current list"
+      }
+    }
+  },
+  "ReportParameter": {
+    "properties": {
+      "name": {
+        "type": "string",
+        "default": "Parameter name",
+        "required": true,
+        "description": "Name of the report parameter"
+      },
+      "dataType": {
+        "type": "string",
+        "default": "STRING",
+        "required": true,
+        "description": "Data type of the report parameter (e.g., STRING, INTEGER, BOOLEAN)"
+      },
+      "description": {
+        "type": "string",
+        "default": "Parameter value",
+        "required": true,
+        "description": "Value of the report parameter"
+      }
+    }
   }
 }
 

@@ -55,6 +55,7 @@ class PlayConfiguration @Inject() (
 
   override val baseUrl: String = playConfig.get[String](Strings.baseUrl)
   override val useSSL: Boolean = playConfig.get[Boolean](Strings.useSSL)
+  override val baseUrlAppDeployment: String = playConfig.get[String](Strings.baseUrlAppDeployment)
 
   // App
   override val app: App = App(

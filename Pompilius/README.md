@@ -6,6 +6,8 @@
 
 **Robust and scalable backend for the StrataShare platform**
 
+**Backend version: `v1.0.0`**
+
 [![Scala](https://img.shields.io/badge/Scala-2.13.16-DC322F?style=for-the-badge&logo=scala&logoColor=white)](https://www.scala-lang.org/)
 [![Play Framework](https://img.shields.io/badge/Play-3.0.8-92D13D?style=for-the-badge&logo=playframework&logoColor=white)](https://www.playframework.com/)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
@@ -30,26 +32,23 @@
 - [Database](#️-database)
 - [Docker](#-docker)
 - [Testing](#-testing)
-- [Contributing](#-contributing)
 
 ---
 
 ## 📖 Description
 
-**Pompilius** is the backend of the **StrataShare** platform, an application designed to facilitate the exchange and trading of educational resources between users. Built with Scala and Play Framework, it offers a robust and scalable RESTful API with authentication, user management, transactions, Stripe payments, and much more.
+**Pompilius** is the backend of the **StrataShare** platform, an application designed to facilitate the exchange and trading of geological resources between users. Built with Scala and Play Framework, it offers a robust and scalable RESTful API with authentication, user management, transactions, Stripe payments, and much more.
 
 ### ✨ What does StrataShare do?
 
 StrataShare allows users to:
 - 👤 Manage their profile and authentication
-- 📚 Share and sell educational resources
+- 📚 Share and sell geological resources
 - 🔄 Perform barter exchanges between users
 - 💳 Process secure payments through Stripe
-- ⭐ Leave reviews and ratings
+- 💎 Leave reviews and ratings
 - 🏆 Earn achievement badges
 - 🌍 Multi-language support (English and Spanish)
-
----
 
 ## 🎯 Features
 
@@ -62,18 +61,18 @@ StrataShare allows users to:
 - Configurable maximum login attempts
 
 ### 💼 Resource Management
-- Complete CRUD for educational resources
+- Complete CRUD for geological resources
 - Resource samples management
 - Study resources management
 - File attachments and avatars system
 - HTML sanitization for security
 
 ### 💰 Transactions and Payments
-- Complete Stripe integration
+- Stripe payment flow implemented
+- Stripe webhooks for payment confirmation
 - Transaction processing and management
 - Barter system between users
 - Platform commission management (5%)
-- Stripe webhooks for payment confirmation
 - Multi-currency support (EUR by default)
 - Automated worker for expired transaction cleanup
 
@@ -85,8 +84,7 @@ StrataShare allows users to:
 ### 📧 Communication and Events
 - Email sending with template support
 - Event tracking and processing
-- SMTP configuration for different providers
-- Asynchronous email queue system
+- SMTP configuration for different providers ((tested with Gmail))
 
 ### 🌐 API and Documentation
 - Fully documented RESTful API
@@ -102,6 +100,18 @@ StrataShare allows users to:
 
 ---
 
+### 🧭 Implemented but pending full rollout 
+
+The following capabilities are already present in the codebase and data model, but are still in progressive rollout or pending full product integration:
+
+- **User statistics module (`userStatistics`)**: base domain/repository pieces exist for usage metrics and profile-level insights.
+- **Reports module (`report`)**: report entities, repository and export-related flows are implemented, with staged activation for admin reporting.
+- **Barter email management flows**: email and queue infrastructure exists for barter lifecycle notifications, with pending coverage for all functional scenarios/templates.
+- **Advanced admin capabilities**: admin routes and role-based controls are available, with additional management features planned for future releases.
+- **Background and operational capabilities**: scheduled workers, event tracking, and maintenance flows are implemented and continue evolving for stronger observability/automation.
+
+---
+
 ## 🏗️ Architecture
 
 The project follows a **hexagonal architecture (ports and adapters)** with **Domain-Driven Design (DDD)** principles:
@@ -111,9 +121,9 @@ app/dev/pompilius/
 ├── auth/               # Authentication module
 │   ├── domain/         # Business logic and entities
 │   ├── application/    # Use cases
-│   └── infrastructure/ # Repositories, controllers, etc.
+│   └── infrastructure/ # Repositories, controllers, writers, etc.
 ├── users/              # User management
-├── resource/           # Educational resources
+├── resource/           # Geological resources
 ├── sample/             # Resource samples
 ├── study/              # Study resources
 ├── payment/            # Payment system
@@ -354,7 +364,7 @@ Pompilius/
 │       │   ├── application/         # Use cases
 │       │   └── infrastructure/      # MySQL Repositories, Controllers
 │       ├── users/                    # User management
-│       ├── resource/                 # Educational resources
+│       ├── resource/                 # Geological resources
 │       ├── sample/                   # Resource samples
 │       ├── study/                    # Study resources
 │       ├── payment/                  # Stripe payment system
@@ -384,7 +394,7 @@ Pompilius/
 │   └── evolutions/default/          # SQL migrations (37 files)
 │
 ├── test/                             # Unit and integration tests
-│   └── controllers/
+│   └── resource/
 │
 ├── project/                          # SBT configuration
 │   ├── build.properties             # SBT version
@@ -405,27 +415,27 @@ Pompilius/
 
 ### Main Modules
 
-| Module | Description |
-|--------|-------------|
-| **auth** | Authentication system, sessions, login/logout, password reset |
-| **users** | User management, profiles, avatars, email validation |
-| **resource** | Educational resource CRUD operations |
-| **sample** | Resource sample management |
-| **study** | Study resource management |
-| **payment** | Stripe integration, checkout, webhooks |
-| **transaction** | Transaction processing and management |
-| **barter** | P2P exchange system between users |
-| **review** | Reviews, ratings, feedback |
-| **badge** | Badges, achievements, gamification |
-| **attachment** | File upload, storage, and retrieval |
-| **mail** | Email sending and template management |
-| **event** | Event tracking and processing |
-| **gateways** | Payment gateway management |
-| **country** | Country and location management |
-| **context** | Application context and configuration |
+| Module | Description                                                         |
+|--------|---------------------------------------------------------------------|
+| **auth** | Authentication system, sessions, login/logout, password reset       |
+| **users** | User management, profiles, avatars, email validation                |
+| **resource** | Geological resource CRUD operations                                  |
+| **sample** | Resource sample management                                          |
+| **study** | Study resource management                                           |
+| **payment** | Stripe integration, checkout, webhooks                              |
+| **transaction** | Transaction processing and management                               |
+| **barter** | P2P exchange system between users                                   |
+| **review** | Reviews, ratings, feedback                                          |
+| **badge** | Badges, achievements, gamification                                  |
+| **attachment** | File upload, storage, and retrieval                                 |
+| **mail** | Email sending and template management                               |
+| **event** | Event tracking and processing                                       |
+| **gateways** | Payment gateway management                                          |
+| **country** | Country and location management                                     |
+| **context** | Application context and configuration                               |
 | **worker** | Background workers for scheduled tasks (e.g., expired transactions) |
-| **swagger** | API documentation generation |
-| **shared** | Utilities, pagination, error handling, filters |
+| **swagger** | API documentation generation                                        |
+| **shared** | Utilities, pagination, error handling, filters                      |
 
 ---
 
@@ -439,128 +449,13 @@ Once the application is started, access the interactive documentation:
 
 **JSON Spec**: http://localhost:9000/swagger/swagger.json
 
-### Main Endpoints
-
-#### 🔐 Authentication (`/api/auth`)
-
-```http
-POST   /api/auth/login              # Login with email/password
-GET    /api/auth/me                 # Get current session
-DELETE /api/auth/me                 # Logout/close session
-POST   /api/auth/reset              # Reset password
-POST   /api/auth/reset/email        # Send password reset email
-```
-
-#### 👥 Users (`/api/users`)
-
-```http
-GET    /api/users                   # List users (paginated)
-POST   /api/users                   # Create new user
-GET    /api/users/:id               # Get user by ID
-PUT    /api/users/:id               # Update user
-DELETE /api/users/:id               # Delete user
-GET    /api/users/:id/avatar        # Download avatar
-```
-
-#### 📚 Resources (`/api/resources`)
-
-```http
-GET    /api/resources/:resourceId/details                     # Get resource details
-GET    /api/resources/:resourceId/attachments                 # List resource files
-POST   /api/resources/:resourceId/attachments/files           # Upload files
-POST   /api/resources/:resourceId/attachments/images          # Upload images
-GET    /api/resources/:resourceId/attachment/:attachmentId    # Download file
-PUT    /api/resources/:resourceId/attachment/:attachmentId/metadata  # Update file metadata
-DELETE /api/resources/:resourceId/attachment/:attachmentId    # Delete file
-GET    /api/resources/:resourceId/ownership                   # Check resource ownership
-GET    /api/resources/:resourceId/preview                     # Get preview image
-POST   /api/resources/:resourceId/attachment/:attachmentId/preview  # Set preview image
-```
-
-#### 🔬 Samples (`/api/resources/samples`)
-
-```http
-POST   /api/resources/samples/create                          # Create sample
-POST   /api/resources/samples/fullCreate                      # Create sample with attachments
-PUT    /api/resources/samples/:sampleId                       # Update sample
-GET    /api/resources/samples                                 # Search samples (filters)
-GET    /api/resources/samples/mine                            # Get my samples
-GET    /api/resources/samples/acquired                        # Get acquired samples
-GET    /api/resources/samples/:sampleId                       # Get sample by ID
-DELETE /api/resources/samples/:sampleId                       # Delete sample (soft)
-```
-
-#### 📄 Studies (`/api/resources/studies`)
-
-```http
-POST   /api/resources/studies/create                          # Create study
-POST   /api/resources/studies/fullCreate                      # Create study with attachments
-PUT    /api/resources/studies/:studyId                        # Update study
-GET    /api/resources/studies                                 # Search studies (filters)
-GET    /api/resources/studies/mine                            # Get my studies
-GET    /api/resources/studies/:studyId                        # Get study by ID
-DELETE /api/resources/studies/:studyId                        # Delete study (soft)
-POST   /api/resources/studies/:studyId/samples                # Add samples to study
-GET    /api/resources/studies/:studyId/samples                # Get study samples
-DELETE /api/resources/studies/:studyId/samples/:sampleId      # Remove sample from study
-```
-
-#### 💳 Payments (`/api/transaction/payments`)
-
-```http
-POST   /api/transaction/payments/create-intent                # Create Stripe payment intent
-GET    /api/transaction/payments                              # Get user payments (paginated)
-GET    /api/transaction/payments/summary                      # Get payment summary with date filters
-GET    /api/transaction/payments/:paymentId                   # Get payment by ID
-GET    /api/transaction/payments/:paymentId/status            # Get payment status
-```
-
-#### 🔄 Barter (`/api/transaction/barter`)
-
-```http
-POST   /api/transaction/barter/create                         # Create barter request
-POST   /api/transaction/barter/accept                         # Accept barter request
-POST   /api/transaction/barter/deny                           # Reject barter request
-DELETE /api/transaction/barter/:barterId/cancel               # Cancel barter before acceptance
-GET    /api/transaction/barter/successful/requests            # Get successful barter requests
-GET    /api/transaction/barter/successful/sales               # Get successful barter sales
-GET    /api/transaction/barter/pending/requests               # Get pending barter requests
-GET    /api/transaction/barter/pending/sales                  # Get pending barter sales
-GET    /api/transaction/barter/pending/check                  # Check pending barter for resource
-```
-
-#### ⭐ Reviews (`/api/reviews`)
-
-```http
-POST   /api/reviews/create                                    # Create review
-PUT    /api/reviews/:reviewId                                 # Update review
-DELETE /api/reviews/:reviewId                                 # Delete review
-GET    /api/reviews/:reviewId                                 # Get review by ID
-GET    /api/reviews/resource/:resourceId                      # Get reviews for resource
-GET    /api/reviews/resource/:resourceId/statistics           # Get resource review statistics
-```
-
-#### 🏆 Badges (`/api/badges`)
-
-```http
-GET    /api/badges/my                                         # Get my badges
-GET    /api/badges/user/:userId                               # Get badges of user
-GET    /api/badges/admin/all                                  # Get all badges (admin only)
-PUT    /api/badges/admin/:badgeType/image                     # Update badge image (admin)
-DELETE /api/badges/admin/:badgeType/image                     # Remove badge image (admin)
-```
-
-#### 👨‍💼 Admin (`/api/admin/auth`)
-
-Additional endpoints with administrator permissions for system management.
-
 ---
 
 ## 🗄️ Database
 
 ### Schema
 
-The project uses **37 SQL migrations** (evolutions) to manage the database schema.
+The project uses **40 SQL migrations** (evolutions) to manage the database schema.
 
 #### Main Tables
 
@@ -568,32 +463,32 @@ The project uses **37 SQL migrations** (evolutions) to manage the database schem
 -- Users and authentication
 users
 sessions
-user_roles
+users_roles
 
 -- Educational resources
 resources
-resource_samples
-resource_studies
+samples
+study
+attachment
 resource_attachments
 
 -- Transactions
 transaction
-transaction_payments
+payment
 payment_intent
-transaction_barter
 barter
 
+
 -- Social
-reviews
-badges
-users_badges
+review
+badge
+users_badge
 users_followers
 
 -- System
 countries
 context
-email_queue
-audit_logs
+request_log
 ```
 
 ### Migrations
@@ -604,20 +499,17 @@ Migrations are located in `conf/evolutions/default/` and are applied automatical
 - `2.sql` - Resource tables
 - `3.sql` - Payment system
 - ...
-- `37.sql` - Latest migration
+- `40.sql` - Latest migration
 
 ### Migration Management
 
 ```bash
-# View migration status
-sbt "runMain dev.pompilius.migrations.Status"
-
 # Apply pending migrations (automatic on startup)
 # Configured in application.conf:
 play.evolutions.autoApply = true
 
-# Rollback (be careful in production)
-play.evolutions.autoApplyDowns = false  # Change to true
+# Rollback 
+play.evolutions.autoApplyDowns = false # Set to true to allow automatic rollbacks (use with caution)
 ```
 
 ---
@@ -668,9 +560,8 @@ environment:
   JDBC_DATABASE_PASSWORD: pompilius
   
   # Payment URLs
-  PAYMENT_COMPLETED_URL: "https://yourfrontend.com/payment-success.html?sellerId=${sellerId}&resourceId=${resourceId}"
-  PAYMENT_CANCELED_URL: "https://yourfrontend.com/payment-cancel.html?sellerId=${sellerId}&resourceId=${resourceId}"
-  PURCHASE_RESOURCE_URL: "https://yourfrontend.com/barter"
+  PAYMENT_COMPLETED_URL: "https://chimerical-arithmetic-26f21f.netlify.app/payment-success.html?sellerId=${sellerId}&resourceId=${resourceId}"
+  PAYMENT_CANCELED_URL: "https://chimerical-arithmetic-26f21f.netlify.app/payment-cancel.html?sellerId=${sellerId}&resourceId=${resourceId}"
   
   # Stripe
   STRIPE_SECRET_KEY: "sk_live_..."
@@ -689,16 +580,20 @@ volumes:
 
 ## 🧪 Testing
 
+- Unit testing with Mockito
+- Async testing support
+- Test-specific configuration support
+
 ### Test Structure
 
 ```
 test/
 ├── dev/pompilius/
-│   ├── attachment/infrastructure/repositories/
-│   │   └── AttachmentMySqlRepositorySpec.scala    # Repository tests
-│   └── resource/application/
-│       └── ResourceServiceSpec.scala              # Service tests with Mockito
-└── README.md                                      # Test documentation and examples
+    ├── attachment/infrastructure/repositories/
+    │   └── AttachmentMySqlRepositorySpec.scala    # Repository tests
+    └── resource/application/
+       └── ResourceServiceSpec.scala              # Service tests with Mockito
+                            
 ```
 
 ### Available Test Suites
@@ -721,78 +616,7 @@ sbt "test:compile"
 # Specific test file
 sbt "testOnly *ResourceServiceSpec"
 
-# Run the new unit test suites (Sample + Study + ResourceWriter)
-sbt "testOnly *SampleCrudUseCaseSpec *StudyCrudUseCaseSpec *ResourceWriterUnitTest"
-
-# Run only Sample CRUD tests
-sbt "testOnly *SampleCrudUseCaseSpec"
-
-# Run only Study CRUD tests
-sbt "testOnly *StudyCrudUseCaseSpec"
-
-# Run only ResourceWriter tests
-sbt "testOnly *ResourceWriterUnitTest"
-
-# Tests with coverage
-sbt clean coverage test coverageReport
-
-# Run with specific test pattern
-sbt 'testOnly *ResourceServiceSpec -- -z "count images correctly"'
 ```
-
-### Test Examples with Mockito
-
-The project includes complete test examples demonstrating:
-
-```scala
-// 1. Creating mocks
-val mockRepo = mock[AttachmentRepository]
-
-// 2. Stubbing methods
-when(mockRepo.countByType(any[ResourceId], eq("image")))
-  .thenReturn(Future.successful(5))
-
-// 3. Verifying interactions
-verify(mockRepo).countByType(resourceId, "image")
-verify(mockRepo, times(2)).findById(any[AttachmentId])
-
-// 4. Testing async operations
-whenReady(result) { count =>
-  count shouldBe 5
-}
-```
-
-See `test/README.md` for complete examples and best practices.
-
-### Test Configuration
-
-Tests use `application-test.conf` by default, which you can create in `conf/`:
-
-```hocon
-include "application.conf"
-
-db.default.url = "jdbc:mysql://localhost:3306/pompilius_test?..."
-```
-
----
-
-## 👥 Contributing
-
-Contributions are welcome! Please follow these steps:
-
-1. **Fork** the project
-2. Create a **branch** for your feature (`git checkout -b feature/AmazingFeature`)
-3. **Commit** your changes (`git commit -m 'Add some AmazingFeature'`)
-4. **Push** to the branch (`git push origin feature/AmazingFeature`)
-5. Open a **Pull Request**
-
-### Code Conventions
-
-- Follow Scala style guides
-- Use descriptive names in English
-- Document public functions
-- Write tests for new functionality
-- Run `sbt scapegoat` before committing
 
 ### Report Bugs
 
@@ -804,17 +628,11 @@ Open an issue with:
 
 ---
 
-## 📄 License
-
-This project is private and owned by **StrataShare**. All rights reserved.
-
----
-
 ## 📧 Contact
 
 **StrataShare Team**
 - Email: sharestrata@gmail.com
-- Website: https://stratashare.dev
+- Website: https://chimerical-arithmetic-26f21f.netlify.app/index.html
 
 ---
 
@@ -831,13 +649,9 @@ This project is private and owned by **StrataShare**. All rights reserved.
 
 **Built layer by layer 🪨 Like sedimentary strata, Pompilius was crafted with patience and precision**
 
-*From the foundations to the surface, each commit a new geological era*
-
-⭐ If this project has helped you uncover valuable resources, leave a star in our repository! ⭐
-
 ---
 
-**StrataShare Team** | *Connecting researchers through geological knowledge*
+**StrataShare Team** | *Connecting people through geological knowledge*
 
 </div>
 

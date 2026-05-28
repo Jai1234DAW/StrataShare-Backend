@@ -15,5 +15,4 @@ trait PaymentGateway {
   // Para crear el intent a la pasarela de pago
   def createPaymentIntent(createParams: PaymentCreateParams): Future[PaymentIntent]
 
-  //def validateWebhook(payload: String, signature: String): Boolean
 }

@@ -37,8 +37,7 @@ class UserEventMySqlRepository @Inject() ()(implicit dbExecutionContext: DbExecu
     Future {
       DB.localTx { implicit session =>
         withSQL {
-          selectFrom(this as ue)
-            .where
+          selectFrom(this as ue).where
             .eq(ue.userId, userId.id)
             .orderBy(ue.created)
             .desc
@@ -50,8 +49,7 @@ class UserEventMySqlRepository @Inject() ()(implicit dbExecutionContext: DbExecu
     Future {
       DB.localTx { implicit session =>
         withSQL {
-          selectFrom(this as ue)
-            .where
+          selectFrom(this as ue).where
             .eq(ue.userId, userId.id)
             .and
             .eq(ue.event, event.value)
@@ -103,4 +101,3 @@ class UserEventMySqlRepository @Inject() ()(implicit dbExecutionContext: DbExecu
       }
     }
 }
-

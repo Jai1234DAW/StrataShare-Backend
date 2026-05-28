@@ -2,14 +2,13 @@ package dev.pompilius.gateways.infrastructure
 
 import com.stripe.Stripe
 import com.stripe.model.checkout.Session
-import com.stripe.net.Webhook.constructEvent
 import com.stripe.param.checkout.SessionCreateParams
 import com.stripe.param.checkout.SessionCreateParams.LineItem.PriceData
 import com.stripe.param.checkout.SessionCreateParams.LineItem.PriceData.ProductData
 import dev.pompilius.Strings
 import dev.pompilius.gateways.domain.{Gateway, PaymentGateway}
-import dev.pompilius.payment.domain._
 import dev.pompilius.gateways.infrastructure.controllers.routes
+import dev.pompilius.payment.domain._
 import dev.pompilius.shared.domain.{Clock, Configuration}
 import dev.pompilius.shared.infrastructure.writers.RequestFingerprintWriter
 import play.api.Logger

@@ -7,6 +7,6 @@ class ResourceNotFoundException(message: String = "Resource not found") extends 
 
 object ResourceNotFoundException {
   def apply(resourceId: ResourceId): ResourceNotFoundException = {
-    new ResourceNotFoundException(s"Sample with id=${resourceId.toString} not found")
+    new ResourceNotFoundException(s"Resource with id=${resourceId.toString} not found")
   }
 }

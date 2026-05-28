@@ -2,11 +2,14 @@ package dev.pompilius.barter.infrastructure.controllers
 
 import dev.pompilius.Strings
 import dev.pompilius.auth.domain.MailToken
-import dev.pompilius.auth.infrastructure.parsers.MailTokenParser
 import dev.pompilius.auth.infrastructure.writers.MailTokenWriter
-import dev.pompilius.barter.domain.exception.{BarterAlreadyCompletedException, BarterNotAllowException, BarterNotFoundException}
-import dev.pompilius.barter.domain.{Barter, BarterData, BarterFilter, BarterId, BarterRepository}
-import dev.pompilius.barter.infrastructure.parsers.{BarterRequestParser, CreateBarterRequestParser, MailBarterRequestParser}
+import dev.pompilius.barter.domain.exception.{
+  BarterAlreadyCompletedException,
+  BarterNotAllowException,
+  BarterNotFoundException
+}
+import dev.pompilius.barter.domain.{Barter, BarterData, BarterId, BarterRepository}
+import dev.pompilius.barter.infrastructure.parsers.{BarterRequestParser, CreateBarterRequestParser}
 import dev.pompilius.barter.infrastructure.writers.BarterWriter
 import dev.pompilius.mail.domain.{Mail, MailAddress, MailContent, MailSubject}
 import dev.pompilius.mail.infrastructure.repositories.MailSmtpRepository
@@ -19,7 +22,7 @@ import dev.pompilius.transaction.domain._
 import dev.pompilius.transaction.domain.exceptions.TransactionNotFoundException
 import dev.pompilius.users.domain.Role
 import play.api.Logger
-import play.api.i18n.{Lang, Messages, MessagesImpl}
+import play.api.i18n.{Lang, MessagesImpl}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent}
 
@@ -86,7 +89,7 @@ class BarterController @Inject() (
                 transactionRepository.delete(transactionId).map(_ => throw e)
             }
 
-            //Enviar notificación por email al vendedor
+            //Enviar notificación por email al vendedor (implementación futura)
             _ <- sendBarterRequestMail(data, barterId, transactionId).recover {
               case e: Throwable =>
                 // Log el error pero no falla la operación si el email falla
@@ -152,6 +155,7 @@ class BarterController @Inject() (
     } yield ()
   }
 
+  //Implementación futura si se hiciese a través de correos la solicitud de trueques.
 //  def acceptBarter: Action[AnyContent] =
 //    Action.async { implicit request =>
 //      withAnyOfThisRoles(Seq(Role.STUDENT, Role.PROFESSIONAL)) {
@@ -324,9 +328,6 @@ class BarterController @Inject() (
                   "Only pending barters can be rejected"
                 )
             }
-//            // Marcar el trueque como rechazado
-//            updatedBarter = barter.copy(rejectedAt = Some(clock.now))
-//            _ <- barterRepository.save(updatedBarter)
 
             // Actualizar transaction a REJECTED
             _ <- transactionRepository.updateStatusRejectedCancelled(idT, TransactionStatus.REJECTED)
@@ -335,6 +336,7 @@ class BarterController @Inject() (
       }
     }
 
+// Implementación futura para denegar si se hiciese a través de correos la solicitud de trueques.
 //  def denyBarter: Action[AnyContent] =
 //    Action.async { implicit request =>
 //      withAnyOfThisRoles(Seq(Role.STUDENT, Role.PROFESSIONAL)) {
@@ -437,7 +439,6 @@ class BarterController @Inject() (
 
             // Actualizar Transaction a CANCELLED
             _ <- transactionRepository.updateStatusRejectedCancelled(transaction.id, TransactionStatus.CANCELLED)
-            //Se puede enviar una notificacion al vendedor, pero esto no es critico
 
           } yield Ok(Json.obj("message" -> "Barter cancelled successfully"))
       }
@@ -536,7 +537,7 @@ class BarterController @Inject() (
                   .map { optionBarter =>
                     optionBarter.map(barter => transaction -> barter)
                   }
-                  .map(_.get)  // Aquí sí es seguro porque validaste arriba
+                  .map(_.get)
               }
             )
 
@@ -565,7 +566,6 @@ class BarterController @Inject() (
               ),
               pag.oneMore
             )
-
 
             bartersWithTransactions <- Future.sequence(
               transactions.map { transaction =>

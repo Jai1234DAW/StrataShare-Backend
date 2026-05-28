@@ -328,23 +328,4 @@ class StudyMySqlRepository @Inject() (
       Done
     }
 
-  //Funciona pero trabajaremos con el de arriba
-//  override def findAllByUser(userId: UserId): Future[List[Study]] =
-//    Future {
-//      DB.localTx { implicit session =>
-//        val ru = resourceUserMySqlRepository.syntax("ru")
-//
-//        withSQL {
-//          select(st.result.*)
-//            .from(this as st)
-//            .innerJoin(resourceUserMySqlRepository as ru)
-//            .on(st.resourceId, ru.resourceId)
-//            .where
-//            .eq(ru.userId, userId.id)
-//            .and
-//            .eq(ru.deleted, false)
-//            .orderBy(st.name.desc)
-//        }.map(apply(st.resultName)(_)).list()
-//      }
-//    }
 }

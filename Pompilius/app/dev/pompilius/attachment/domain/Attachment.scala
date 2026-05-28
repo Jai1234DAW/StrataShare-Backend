@@ -1,8 +1,7 @@
 package dev.pompilius.attachment.domain
 
-import org.joda.time.DateTime
 import dev.pompilius.resource.domain.ResourceId
-import dev.pompilius.shared.domain.Visibility
+import org.joda.time.DateTime
 
 case class Attachment(
     id: AttachmentId,

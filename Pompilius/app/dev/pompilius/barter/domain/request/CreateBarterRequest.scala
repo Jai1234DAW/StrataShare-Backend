@@ -6,6 +6,7 @@ import dev.pompilius.users.domain.UserId
 
 case class CreateBarterRequest(
     resourceId: ResourceId,
+
     //Campos Específicos para Barter
     offeredResourceId: ResourceId
 )

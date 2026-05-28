@@ -11,7 +11,7 @@ case class Transaction(
     sellerId: UserId,
     buyerId: UserId,
     resourceId: ResourceId,
-    //Esta es la comisión de mi plataforma, pero debería ser solo para payments, para barter no se cobra comisión
+    //Esta es la comisión de la plataforma, pero es solo para payments, para barter no se cobra comisión
     fee: Option[BigDecimal],
     created: DateTime,
     updated: DateTime,

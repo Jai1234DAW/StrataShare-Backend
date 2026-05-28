@@ -47,7 +47,6 @@ class GatewayController @Inject() (
     *
     * ¿Por qué es necesario?
     * - Stripe envía notificaciones aquí cuando un pago se completa, falla o se cancela
-    * - Es la ÚNICA forma confiable de confirmar pagos (el usuario puede cerrar el navegador)
     * - Garantiza que los recursos se asignen correctamente incluso si el frontend falla
     *
     * Seguridad:

@@ -108,7 +108,7 @@ class UserController @Inject() (
     val html = dev.pompilius.users.infrastructure.views.html
       .welcome_email(
         name = user.firstName.getOrElse(user.username),
-        actionUrl = configuration.baseUrl
+        actionUrl = configuration.baseUrlAppDeployment
       )
       .body
 

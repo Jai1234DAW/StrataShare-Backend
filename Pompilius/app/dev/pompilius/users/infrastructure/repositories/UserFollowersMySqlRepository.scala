@@ -83,19 +83,6 @@ class UserFollowersMySqlRepository @Inject() (implicit dbExecutionContext: DbExe
       }
     }
 
-//  override def isFollower(userId: UserId, followerId: UserId): Future[Boolean] =
-//    Future {
-//      DB.localTx { implicit session =>
-//        withSQL {
-//          select(sqls.count)
-//            .from(this as uf)
-//            .where
-//            .eq(uf.userId, userId.id)
-//            .and
-//            .eq(uf.followerId, followerId.id)
-//        }.map(_.int(1)).single().getOrElse(0) > 0
-//      }
-//    }
 
   override def isFollower(userId: UserId, followerId: UserId): Future[Boolean] =
     Future {
