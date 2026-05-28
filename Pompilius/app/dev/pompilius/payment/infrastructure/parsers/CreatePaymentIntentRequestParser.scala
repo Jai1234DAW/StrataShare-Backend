@@ -16,8 +16,6 @@ object CreatePaymentIntentRequestParser {
         PaymentIntent(
           paymentId = PaymentId((js \ Strings.paymentId).as[String]),
           transactionId = TransactionId((js \ Strings.transactionId).as[String]),
-          //buyerId = UserId((js \ Strings.userId).as[String]),
-          //sellerId = UserId((js \ Strings.sellerId).as[String]),
           gateway = (js \ Strings.gateway).as[Gateway],
           gatewayIntentId = (js \ Strings.gatewayIntentId).as[String],
           price = (js \ Strings.price).as[BigDecimal],
@@ -31,7 +29,6 @@ object CreatePaymentIntentRequestParser {
           instrument = (js \ Strings.instrument).asOpt[String],
           fingerprint = (js \ Strings.fingerprint).asOpt[String],
           returnUrlParams = (js \ Strings.returnUrlParams).asOpt[Map[String, String]],
-          //smartLinkId = (js \ Strings.smartLinkId).asOpt[String].map(SmartLinkId(_)),
           metadata = (js \ Strings.metadata).asOpt[String],
           extraInfo = (js \ Strings.extraInfo).asOpt[String]
         )

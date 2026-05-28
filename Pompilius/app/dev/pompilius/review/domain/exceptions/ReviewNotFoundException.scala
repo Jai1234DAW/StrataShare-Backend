@@ -7,6 +7,6 @@ class ReviewNotFoundException(message: String = "Review not found") extends Verb
 
 object ReviewNotFoundException {
   def apply(reviewId: ReviewId): ReviewNotFoundException = {
-    new ReviewNotFoundException(s"Sample with id=${reviewId.toString} not found")
+    new ReviewNotFoundException(s"Review with id=${reviewId.toString} not found")
   }
 }

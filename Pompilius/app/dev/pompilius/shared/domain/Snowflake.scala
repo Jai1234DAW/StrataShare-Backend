@@ -15,7 +15,7 @@ trait Snowflake {
   private val epoch: Long = 0x16f5e66e800L
   private val snowflakeSeq = new AtomicLong(0)
 
-  //  Preguntar aquí, porque al no tener nodo se le puede colocar un número aleatorio, o un número fijo, o un número basado en la hora, etc. Lo importante es que sea único para cada instancia de la aplicación.
+
   def genId(node: Int): Long = {
     if (node < 0 || node > 63)
       throw new IllegalArgumentException("Node ID must be between 0 and 63")

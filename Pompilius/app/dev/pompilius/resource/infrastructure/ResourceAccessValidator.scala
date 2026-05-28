@@ -1,9 +1,8 @@
 package dev.pompilius.resource.infrastructure
 
 import com.google.inject.ImplementedBy
-import dev.pompilius.resource.domain.ResourceUserType.BARTERED
-import dev.pompilius.resource.domain.exceptions.{ResourceNotAllowedException, ResourceNotFoundException}
 import dev.pompilius.resource.domain._
+import dev.pompilius.resource.domain.exceptions.{ResourceNotAllowedException, ResourceNotFoundException}
 import dev.pompilius.shared.domain.exceptions.ForbiddenException
 import dev.pompilius.shared.domain.{Pagination, Visibility}
 import dev.pompilius.users.domain.UserId

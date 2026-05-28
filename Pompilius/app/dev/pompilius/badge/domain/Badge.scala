@@ -1,6 +1,5 @@
 package dev.pompilius.badge.domain
 
-import dev.pompilius.attachment.domain.AttachmentId
 import org.joda.time.DateTime
 
 case class Badge(

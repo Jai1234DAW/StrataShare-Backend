@@ -106,8 +106,7 @@ class StudyController @Inject() (
 
             json <- resourceWriter.asPublic(newResource, ResourceAccessLevel.OWNER, user.id, None,None, Some(newStudy))
 
-            //Llamo aquí a lo de eventos.
-            // Registrar evento
+        // Registrar evento para llevar conteo de badges relacionados a subir estudios
             studiesBadges <- badgeService.registerEventAndCheckBadges(user.id, EventU.STUDY_UPLOADED)
 
             _ = if (studiesBadges.nonEmpty) {
@@ -281,8 +280,7 @@ class StudyController @Inject() (
 
             json <- accessLevel match {
               case ResourceAccessLevel.FULL_ACCESS =>
-                // Si es público: sin relación, puede verlo todo por ser público
-                // Si es privado: tiene FULL_ACCESS porque existe una relación (comprado, aceptado, bartered, etc)
+
                 for {
                   resourceUserOpt <- resourceUserRepository.findByResourceAndUser(resource.id, user.id)
                   userTypeRelation = resourceUserOpt.map(_.resourceUserType.toString)
@@ -443,7 +441,7 @@ class StudyController @Inject() (
       }
     }
 
-  //Para añadir muestras a un estudio
+  //Para asociar muestras a un estudio
   def addSamples(studyId: String): Action[AnyContent] =
     Action.async { implicit request =>
       withAnyOfThisRoles(Seq(Role.STUDENT, Role.PROFESSIONAL)) {

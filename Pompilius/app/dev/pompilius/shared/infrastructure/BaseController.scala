@@ -392,7 +392,8 @@ trait BaseController extends InjectedController {
     }
   }
 
-  //Esto es para crear una "huella" del navegador
+  //Esto es para crear una "huella" del navegador para auditoría y seguridad, combinando la dirección IP, el país, el user agent y el idioma preferido del usuario.
+  // No es una identificación única, pero ayuda a detectar patrones sospechosos o fraudes.
   def getFingerprint[A](implicit request: Request[A]): RequestFingerprint = {
     RequestFingerprint(
       remoteAddress = request.remoteAddress,

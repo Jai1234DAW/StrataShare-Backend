@@ -1,7 +1,5 @@
 package dev.pompilius.badge.infrastructure.controllers
 
-import dev.pompilius.attachment.domain.Attachment
-import dev.pompilius.attachment.domain.exceptions.AttachmentNotFoundException
 import dev.pompilius.attachment.infrastructure.Attachments
 import dev.pompilius.badge.application.BadgeService
 import dev.pompilius.badge.domain.exceptions.BadgeNotFoundException
@@ -9,13 +7,10 @@ import dev.pompilius.badge.domain.{BadgeRepository, BadgeType}
 import dev.pompilius.badge.infrastructure.parsers.UpdateBadgeImageRequestParser
 import dev.pompilius.badge.infrastructure.writers.BadgeWriter
 import dev.pompilius.shared.domain.exceptions.BadRequestException
-import dev.pompilius.shared.domain.{Clock, Configuration}
 import dev.pompilius.shared.infrastructure.BaseController
 import dev.pompilius.users.domain.{Role, UserId}
 import play.api.Logger
-import play.api.libs.Comet.initialHtmlChunk.body
-import play.api.libs.Files
-import play.api.mvc.{Action, AnyContent, MultipartFormData}
+import play.api.mvc.{Action, AnyContent}
 
 import javax.inject._
 import scala.concurrent.ExecutionContext
@@ -25,8 +20,6 @@ class BadgeController @Inject() (
     badgeService: BadgeService,
     badgeRepository: BadgeRepository,
     badgeWriter: BadgeWriter,
-    clock: Clock,
-    configuration: Configuration
 )(implicit val ec: ExecutionContext)
     extends BaseController with Attachments {
 
@@ -58,7 +51,6 @@ class BadgeController @Inject() (
 
   /**
     * Actualiza la URL de la imagen de un badge específico (solo para user admins)
-    *
     * Body: { "imageUrl": "https://cdn.example.com/badges/sediment.png" }
     */
 
@@ -92,6 +84,7 @@ class BadgeController @Inject() (
       }
     }
 
+  //Funcionalidades futuras a implementar: subir una imagen para un badge (solo para admins) y descargar la imagen de un badge
 //  def uploadBadgeImage(badgeTypeStr: String): Action[MultipartFormData[Files.TemporaryFile]] =
 //    Action.async(parse.multipartFormData) { implicit request =>
 //      withAnyOfThisRoles(Seq(Role.ADMIN)) {

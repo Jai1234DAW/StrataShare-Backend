@@ -16,7 +16,6 @@ class UserRoleMySqlRepository @Inject() (implicit dbExecutionContext: DbExecutio
     extends UserRoleRepository
     with SQLSyntaxSupport[UserRole] {
 
-  //Usabilidad de esto
   implicit val overwrittenZoneId: OverwrittenZoneId = OverwrittenZoneId(ZoneId.of("UTC"))
   override val tableName = "users_role"
 

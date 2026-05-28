@@ -20,7 +20,7 @@ object Gateway extends Enum[Gateway] with PlayJsonEnum[Gateway] {
     override def value: String = "STRIPE_MOBILE"
   }
 
-  //Implementación Futura, se agregan más gateways a medida que se integren
+  //Implementación Futura, se agregan más gateways a medida que se integren a la plataforma
   //  @SuppressWarnings(Array("ObjectNames"))
   //  case object PAYPAL extends Gateway {
   //    override def value: String = "PAYPAL"

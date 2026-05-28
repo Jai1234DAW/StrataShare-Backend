@@ -16,6 +16,7 @@ import dev.pompilius.users.domain.exceptions.UserNotFoundException
 import dev.pompilius.users.domain.{User, UserId, UserRepository}
 import org.apache.pekko.Done
 import play.api.Logger
+import play.api.libs.json.Json
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -75,7 +76,7 @@ class TransactionServImpl @Inject() (
         // Extraer el offeredResourceId del metadata
         transaction.metadata.flatMap { metadata =>
           try {
-            val json = play.api.libs.json.Json.parse(metadata)
+            val json = Json.parse(metadata)
             (json \ "offeredResourceId").asOpt[String].map(id => ResourceId(id.toLong) == offeredResourceId)
           } catch {
             case _: Exception => None

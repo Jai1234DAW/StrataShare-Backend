@@ -10,7 +10,6 @@ import javax.inject.{Inject, Singleton}
 class PaymentGatewayFactory @Inject() (
     stripePaymentGateway: StripePaymentGateway
     // Aquí se inyectarían otras implementaciones en el futuro:
-    // paypalPaymentGateway: PaypalPaymentGateway,
 ) {
 
   def getGateway(gateway: Gateway): PaymentGateway = {

@@ -14,7 +14,6 @@ import scala.concurrent.{ExecutionContext, Future}
 trait TransactionWriter {
   def toJson(transaction: Transaction): Future[JsValue]
   def asList(transactions: List[Transaction]): Future[JsValue]
-  //def asAdmin(transaction: Transaction): Future[JsValue]
 }
 
 @Singleton

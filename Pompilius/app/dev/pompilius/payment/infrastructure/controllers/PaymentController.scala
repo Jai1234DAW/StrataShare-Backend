@@ -10,7 +10,6 @@ import dev.pompilius.shared.infrastructure.BaseController
 import dev.pompilius.shared.infrastructure.writers.PaginatedWriter
 import dev.pompilius.transaction.domain._
 import dev.pompilius.transaction.domain.exceptions.{TransactionNotAllowedException, TransactionNotFoundException}
-import dev.pompilius.transaction.infrastructure.writer.TransactionWriter
 import dev.pompilius.users.domain.Role
 import org.joda.time.DateTime
 import play.api.Logger
@@ -137,7 +136,7 @@ class PaymentController @Inject() (
       }
     }
 
-  //Esta es como comprador, obtiene los pagos que ha realizado
+  //Se obtiene los pagos que ha realizado según el rol de participación en la transacción.
   def getMyPaymentsAs(pag: Pagination, paymentRole: String): Action[AnyContent] =
     Action.async { implicit request =>
       withAuthenticatedUser {
@@ -195,59 +194,7 @@ class PaymentController @Inject() (
     }
 
 
-  //Esta es como comprador, obtiene los pagos que ha realizado
-//  def getMyPayments(pag: Pagination): Action[AnyContent] =
-//    Action.async { implicit request =>
-//      withAuthenticatedUser {
-//        case (_, user, _) =>
-//          // Primero obtenemos las transacciones de tipo Payment del usuario que estén completadas
-//          val transactionFilter = TransactionFilter(
-//            buyerId = Some(user.id),
-//            transactionType = Some(TransactionType.PAYMENT),
-//            transactionStatus = Some(TransactionStatus.COMPLETED)
-//          )
-//
-//          //Creo que no tiene sentido mostrarle al usuario los pagos que ha recibido como vendedor, pero se podría hacer algo similar con sellerId en el filtro
-////            case "seller" =>
-////              TransactionFilter(
-////                sellerId = Some(user.id),
-////                transactionType = Some(TransactionType.PAYMENT),
-////                transactionStatus = Some(TransactionStatus.COMPLETED)
-////              )
-//
-//          for {
-//            transactions <- transactionRepository.find(transactionFilter, pag.oneMore)
-//
-//            // Por cada transacción, obtener el pago asociado
-//            payments <- Future.sequence(
-//              transactions.map { transaction =>
-//                paymentRepository.findByTransactionId(transaction.id)
-//              }
-//            )
-//
-//            // Para cada transaction, obtener el payment asociado y convertirlo a JSON. Si no se encuentra el payment, lanzamos una excepción.
-//            json <- paginatedWriter.toJson(Paginated(transactions, pag)) { transaction =>
-//              for {
-//                payment <-
-//                  paymentRepository
-//                    .findByTransactionId(transaction.id)
-//                    .map(
-//                      _.getOrElse(
-//                        throw new PaymentNotFoundException(s"Payment not found for transaction ${transaction.id}")
-//                      )
-//                    )
-//                //Luego se pordá acceder con más datos a cada uno de ellos.
-//                json <- paymentWriter.asBuyer(transaction, payment)
-//              } yield json
-//            }
-//          } yield {
-//            Ok(json)
-//          }
-//      }
-//    }
-
   // Obtiene un pago específico por ID
-
   def getPaymentById(paymentId: String): Action[AnyContent] =
     Action.async { implicit request =>
       withAuthenticatedUser {
@@ -332,7 +279,6 @@ class PaymentController @Inject() (
                   }
                 case None => true
               }
-
               isAfterFromDate && isBeforeToDate
             }
 

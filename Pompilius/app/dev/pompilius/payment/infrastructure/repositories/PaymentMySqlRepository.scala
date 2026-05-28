@@ -34,7 +34,7 @@ class PaymentMySqlRepository @Inject() ()(implicit dbExecutionContext: DbExecuti
       gateway = Gateway.withNameInsensitive(rs.get[String](p.gateway)),
       gatewayPaymentId = rs.get[String](p.gatewayPaymentId),
       amount = rs.get[BigDecimal](p.amount),
-      platformFee=rs.get[BigDecimal](p.platformFee),
+      platformFee = rs.get[BigDecimal](p.platformFee),
       gatewayFee = rs.get[BigDecimal](p.gatewayFee),
       netAmount = rs.get[BigDecimal](p.netAmount),
       currency = rs.get[String](p.currency),

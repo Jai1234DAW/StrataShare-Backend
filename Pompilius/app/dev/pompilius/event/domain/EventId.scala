@@ -8,5 +8,3 @@ object EventId extends Snowflake {
   def apply(s: String): EventId = EventId(parseId(s))
   def gen(node: Int): EventId = EventId(genId(node))
 }
-
-// Esto posiblemente se elimine

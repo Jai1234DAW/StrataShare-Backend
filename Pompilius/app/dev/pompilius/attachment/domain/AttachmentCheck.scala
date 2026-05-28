@@ -2,7 +2,6 @@ package dev.pompilius.attachment.domain
 
 import com.google.inject.ImplementedBy
 import dev.pompilius.attachment.domain.exceptions.AttachmentNotFoundException
-import dev.pompilius.attachment.domain._
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}

@@ -256,7 +256,7 @@ class BadgeServiceImpl @Inject() (
         BadgeId.gen(configuration.nodeId),
         BadgeType.STRATA_CONTRIBUTOR,
         "Strata Contributor",
-        s" $STRATA_CONTRIBUTOR_THRESHOLD geological documentation",
+        s"Actively participated in contributing for $STRATA_CONTRIBUTOR_THRESHOLD geological documentation",
         Some("https://res.cloudinary.com/dk7yydz0v/image/upload/v1778878841/STRATA_CONTRIBUTOR_yfoope.png"),
         clock.now
       ),

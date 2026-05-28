@@ -1,7 +1,6 @@
 package dev.pompilius.badge.application
 
 import dev.pompilius.badge.domain.BadgeRepository
-import dev.pompilius.shared.domain.{Clock, Configuration}
 import play.api.Logger
 
 import javax.inject.{Inject, Singleton}

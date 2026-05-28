@@ -1,10 +1,9 @@
 package dev.pompilius.attachment.infrastructure.writers
 
-import dev.pompilius.attachment.domain.Attachment
 import com.google.inject.ImplementedBy
-import dev.pompilius.shared.infrastructure.JsUtils.{JodaDateTimeFormat, toJsValueWrapper}
 import dev.pompilius.Strings
-import dev.pompilius.users.domain.User
+import dev.pompilius.attachment.domain.Attachment
+import dev.pompilius.shared.infrastructure.JsUtils.{JodaDateTimeFormat, toJsValueWrapper}
 import play.api.libs.json._
 
 import javax.inject.{Inject, Singleton}
@@ -17,7 +16,7 @@ trait AttachmentWriter {
   def asList(attachments: List[Attachment], resourceId: String): Future[JsValue]
 }
 
-//Aqui puedo tener más cosas, por ejemplo el de admin puede tener la fingerprint y todo eso
+
 @Singleton
 class AttachmentWriterImpl @Inject() (implicit ex: ExecutionContext) extends AttachmentWriter {
 
@@ -64,7 +63,7 @@ class AttachmentWriterImpl @Inject() (implicit ex: ExecutionContext) extends Att
   }
 
   override def asList(attachments: List[Attachment], resourceId: String): Future[JsValue] = {
-    // Extrae el resourceId del primer attachment (todos deberían tener el mismo)
+    // Extrae el resourceId del primer attachment (todos deberían tener el mismo id de resource asociado)
 
     for {
       attachmentsJson <- Future.sequence(attachments.map(asCurrentUser))

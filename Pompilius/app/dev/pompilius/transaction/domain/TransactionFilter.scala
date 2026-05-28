@@ -8,5 +8,5 @@ case class TransactionFilter(
     sellerId: Option[UserId] = None,
     resourceId: Option[ResourceId] = None,
     transactionType: Option[TransactionType] = None, // PAYMENT o BARTER
-    transactionStatus: Option[TransactionStatus] = None, // PENDING, COMPLETED, etc.
+    transactionStatus: Option[TransactionStatus] = None,
 )

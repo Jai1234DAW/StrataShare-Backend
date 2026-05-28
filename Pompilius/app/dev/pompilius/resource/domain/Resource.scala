@@ -1,6 +1,5 @@
 package dev.pompilius.resource.domain
 
-import dev.pompilius.attachment.domain.AttachmentId
 import dev.pompilius.shared.domain.Visibility
 import org.joda.time.DateTime
 

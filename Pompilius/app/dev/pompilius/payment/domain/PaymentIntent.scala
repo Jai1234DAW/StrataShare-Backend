@@ -14,12 +14,11 @@ import org.joda.time.DateTime
   */
 case class PaymentIntent(
     paymentId: PaymentId,
-    transactionId: TransactionId, // FK a Transaction
+    transactionId: TransactionId,
     gateway: Gateway,
     gatewayIntentId: String, // ID del intent en la pasarela (ej: pi_xxx de Stripe)
     price: BigDecimal, // Precio base del recurso
-    //Fee de la pasarela, se calcula al crear el intent (ej: 2.9% + 0.30 USD en Stripe)
-    surcharge: BigDecimal,
+    surcharge: BigDecimal, //Fee de la pasarela, se calcula al crear el intent (ej: 2.9% + 0.30 USD en Stripe)
     amount: BigDecimal, // Total a cobrar (price + fee + surcharge - discount)
     status: PaymentIntentStatus, // Estado del intent (PENDING → SUCCEEDED/FAILED)
     //couponCode: Option[String] = None,

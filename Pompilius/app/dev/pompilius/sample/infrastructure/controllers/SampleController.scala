@@ -276,8 +276,6 @@ class SampleController @Inject() (
             json <- accessLevel match {
               case ResourceAccessLevel.FULL_ACCESS =>
 
-                // Si es público: sin relación, puede verlo todo por ser público
-                // Si es privado: tiene FULL_ACCESS porque existe una relación (comprado, aceptado, bartered, etc)
                 for {
                   resourceUserOpt <- resourceUserRepository.findByResourceAndUser(resource.id, user.id)
                   userTypeRelation = resourceUserOpt.map(_.resourceUserType.toString)

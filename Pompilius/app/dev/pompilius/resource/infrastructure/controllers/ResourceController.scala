@@ -5,16 +5,16 @@ import dev.pompilius.attachment.domain.{Attachment, AttachmentId, AttachmentRepo
 import dev.pompilius.attachment.infrastructure.Attachments
 import dev.pompilius.attachment.infrastructure.writers.AttachmentWriter
 import dev.pompilius.resource.domain.exceptions.ResourceNotFoundException
-import dev.pompilius.resource.domain.{ResourceAccessLevel, ResourceFilter, ResourceId, ResourceRepository, ResourceType, ResourceUserRepository, ResourceUserType}
+import dev.pompilius.resource.domain._
 import dev.pompilius.resource.infrastructure.ResourceAccessValidator
 import dev.pompilius.resource.infrastructure.writers.ResourceWriter
 import dev.pompilius.sample.domain.SampleRepository
-import dev.pompilius.shared.domain.{Paginated, Pagination}
 import dev.pompilius.shared.domain.exceptions.{BadRequestException, ForbiddenException}
+import dev.pompilius.shared.domain.{Paginated, Pagination}
 import dev.pompilius.shared.infrastructure.BaseController
 import dev.pompilius.shared.infrastructure.writers.PaginatedWriter
 import dev.pompilius.study.domain.StudyRepository
-import dev.pompilius.users.domain.Role
+import dev.pompilius.users.domain.{Role, User}
 import play.api.libs.Files
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MultipartFormData}
@@ -29,7 +29,7 @@ class ResourceController @Inject() (
     attachmentRepository: AttachmentRepository,
     resourceAccessValidator: ResourceAccessValidator,
     attachmentWriter: AttachmentWriter,
-    resourceUserRepository:ResourceUserRepository,
+    resourceUserRepository: ResourceUserRepository,
     resourceWriter: ResourceWriter,
     paginatedWriter: PaginatedWriter,
     studyRepository: StudyRepository,
@@ -41,7 +41,7 @@ class ResourceController @Inject() (
   def getResourceInfo(resourceId: String): Action[AnyContent] =
     Action.async { implicit request =>
       withAnyOfThisRoles(Seq(Role.STUDENT, Role.PROFESSIONAL, Role.AMATEUR)) {
-        case (_, user, _,_) =>
+        case (_, user, _, _) =>
           val rid = ResourceId(resourceId)
 
           for {
@@ -51,7 +51,6 @@ class ResourceController @Inject() (
                 .map(_.getOrElse(throw new ResourceNotFoundException(s"Resource $rid not found")))
 
             accessLevel <- resourceAccessValidator.getAccessLevel(rid, user.id)
-
 
             sampleOpt <-
               if (resource.resourceType == ResourceType.SAMPLE)
@@ -86,9 +85,10 @@ class ResourceController @Inject() (
             resources <- resourceRepository.find(ResourceFilter(), pag.oneMore)
 
             // 2. Obtener IDs de recursos OWNED por el usuario autenticado para excluirlos
-            userOwnedResourceIds <- resourceUserRepository
-              .findByUserAndType(user.id, ResourceUserType.OWNER, Pagination.all)
-              .map(_.toSet)
+            userOwnedResourceIds <-
+              resourceUserRepository
+                .findByUserAndType(user.id, ResourceUserType.OWNER, Pagination.all)
+                .map(_.toSet)
 
             // 3. Calcular si hay más items ANTES de filtrar (basado en lo que devolvió el repo)
             hasMore = pag.limit.exists(limit => resources.length > limit)
@@ -100,40 +100,41 @@ class ResourceController @Inject() (
             itemsToReturn = pag.limit.map(filteredResources.take(_)).getOrElse(filteredResources)
 
             // 6. Para cada recurso, obtener información del owner y generar JSON
-            json <- paginatedWriter.toFlattedJson(Paginated(itemsToReturn, hasMore)) {
-              resource =>
-                val rid = resource.id
+            json <- paginatedWriter.toFlattedJson(Paginated(itemsToReturn, hasMore)) { resource =>
+              val rid = resource.id
 
-                for {
-                  accessLevel <- resourceAccessValidator.getAccessLevel(rid, user.id)
+              for {
+                accessLevel <- resourceAccessValidator.getAccessLevel(rid, user.id)
 
-                  sampleOpt <-
-                    if (resource.resourceType == ResourceType.SAMPLE)
-                      sampleRepository.findByResource(rid)
-                    else
-                      Future.successful(None)
+                sampleOpt <-
+                  if (resource.resourceType == ResourceType.SAMPLE)
+                    sampleRepository.findByResource(rid)
+                  else
+                    Future.successful(None)
 
-                  studyOpt <-
-                    if (resource.resourceType == ResourceType.STUDY)
-                      studyRepository.findByResource(rid)
-                    else
-                      Future.successful(None)
+                studyOpt <-
+                  if (resource.resourceType == ResourceType.STUDY)
+                    studyRepository.findByResource(rid)
+                  else
+                    Future.successful(None)
 
-                  ownerOpt <- resourceUserRepository.findOwnerByResource(rid)
+                ownerOpt <- resourceUserRepository.findOwnerByResource(rid)
 
-                  result <- ownerOpt match {
-                    case Some(owner) =>
-                      resourceWriter.toJson(
+                result <- ownerOpt match {
+                  case Some(owner) =>
+                    resourceWriter
+                      .toJson(
                         resource,
                         accessLevel,
                         owner.id,
                         sampleOpt,
                         studyOpt
-                      ).map(Some(_))
-                    case None =>
-                      Future.successful(None)
-                  }
-                } yield result
+                      )
+                      .map(Some(_))
+                  case None =>
+                    Future.successful(None)
+                }
+              } yield result
             }
 
           } yield Ok(json)
@@ -168,7 +169,7 @@ class ResourceController @Inject() (
       }
     }
 
-// Este método solo quedará para redimensioanr
+// Este método solo quedará para redimensionar
 //  def uploadImages(resourceId: String): Action[MultipartFormData[Files.TemporaryFile]] =
 //    Action.async(parse.multipartFormData) { implicit request =>
 //      withAnyOfThisRoles(Seq(Role.PROFESSIONAL, Role.STUDENT)) {
@@ -218,47 +219,47 @@ class ResourceController @Inject() (
 //      }
 //    }
 
-
   def uploadImages(resourceId: String): Action[MultipartFormData[Files.TemporaryFile]] =
-  Action.async(parse.multipartFormData) { implicit request =>
-    withAnyOfThisRoles(Seq(Role.PROFESSIONAL, Role.STUDENT)) {
-      case (_, user, _, _) =>
-        val rid = ResourceId(resourceId)
-        val body = request.body
+    Action.async(parse.multipartFormData) { implicit request =>
+      withAnyOfThisRoles(Seq(Role.PROFESSIONAL, Role.STUDENT)) {
+        case (_, user, _, _) =>
+          val rid = ResourceId(resourceId)
+          val body = request.body
 
-        val imageFiles =
-          body.files.filter(_.contentType.exists(_.startsWith("image/")))
+          val imageFiles =
+            body.files.filter(_.contentType.exists(_.startsWith("image/")))
 
-        if (imageFiles.isEmpty) {
-          Future.failed(new BadRequestException("No image files uploaded"))
-        } else {
-          for {
-            _ <- resourceRepository
-              .findById(rid)
-              .map(_.getOrElse(throw new ResourceNotFoundException("Resource not found")))
+          if (imageFiles.isEmpty) {
+            Future.failed(new BadRequestException("No image files uploaded"))
+          } else {
+            for {
+              _ <-
+                resourceRepository
+                  .findById(rid)
+                  .map(_.getOrElse(throw new ResourceNotFoundException("Resource not found")))
 
-            _ <- resourceAccessValidator.verifyOwnership(rid, user.id)
+              _ <- resourceAccessValidator.verifyOwnership(rid, user.id)
 
-            attachments <- Future.sequence {
-              imageFiles.map { filePart =>
-                saveAsAttachment(
-                  user = user,
-                  id = None,
-                  resourceId = Some(rid),
-                  file = filePart.ref.path.toFile,
-                  originalFilename = filePart.filename,
-                  description = Some("image"),
-                  contentType = filePart.contentType
-                )
+              attachments <- Future.sequence {
+                imageFiles.map { filePart =>
+                  saveAsAttachment(
+                    user = user,
+                    id = None,
+                    resourceId = Some(rid),
+                    file = filePart.ref.path.toFile,
+                    originalFilename = filePart.filename,
+                    description = Some("image"),
+                    contentType = filePart.contentType
+                  )
+                }
               }
-            }
 
-            response <- attachmentWriter.asList(attachments.toList, resourceId)
+              response <- attachmentWriter.asList(attachments.toList, resourceId)
 
-          } yield Ok(response)
-        }
+            } yield Ok(response)
+          }
+      }
     }
-  }
 
   def getPreviewImage(resourceId: String): Action[AnyContent] =
     Action.async { implicit request =>
@@ -317,9 +318,8 @@ class ResourceController @Inject() (
 
             _ <- resourceAccessValidator.verifyOwnership(rid, user.id)
 
-            _<-attachmentRepository.findPreviewImageByResourceId(rid).flatMap {
+            _ <- attachmentRepository.findPreviewImageByResourceId(rid).flatMap {
               case Some(existingPreview) if existingPreview.id != aid =>
-
                 // Si ya hay una imagen de preview diferente, quitarle el flag
                 val updatedExisting = existingPreview.copy(previewImage = false)
                 attachmentRepository.save(updatedExisting)
@@ -393,16 +393,20 @@ class ResourceController @Inject() (
             resource <-
               resourceRepository
                 .findById(rid)
-                .map(_.getOrElse(
-                  throw new ResourceNotFoundException(s"Resource $rid not found")
-                ))
+                .map(
+                  _.getOrElse(
+                    throw new ResourceNotFoundException(s"Resource $rid not found")
+                  )
+                )
 
             owner <-
               resourceUserRepository
                 .findOwnerByResource(rid)
-                .map(_.getOrElse(
-                  throw new ResourceNotFoundException(s"Owner not found for resource $rid")
-                ))
+                .map(
+                  _.getOrElse(
+                    throw new ResourceNotFoundException(s"Owner not found for resource $rid")
+                  )
+                )
 
           } yield {
             if (owner.id == user.id)
@@ -556,6 +560,7 @@ class ResourceController @Inject() (
       }
     }
 
+  //Futuras implementaciones para reemplazar un archivo (mismo attachmentId, nuevo contenido)
   //  def replaceFile(attachmentId: String): Action[MultipartFormData[Files.TemporaryFile]] =
   //    Action.async(parse.multipartFormData) { implicit request =>
   //      withAnyOfThisRoles(Seq(Role.STUDENT, Role.PROFESSIONAL)) {
@@ -594,7 +599,7 @@ class ResourceController @Inject() (
   //    }
 
   private def uploadMultipleFiles(
-      user: dev.pompilius.users.domain.User,
+      user: User,
       body: MultipartFormData[Files.TemporaryFile],
       resourceId: ResourceId
   )(implicit request: play.api.mvc.Request[MultipartFormData[Files.TemporaryFile]]): Future[Seq[Attachment]] = {
@@ -625,7 +630,7 @@ class ResourceController @Inject() (
                 .findById(rid)
                 .map(_.getOrElse(throw new ResourceNotFoundException(s"Resource $rid not found")))
 
-            count <- attachmentRepository.countByType(rid, attachmentType )
+            count <- attachmentRepository.countByType(rid, attachmentType)
 
           } yield Ok(Json.obj("AttachmentCount" -> count))
       }
@@ -643,6 +648,7 @@ class ResourceController @Inject() (
     byMime || byExtension || byContent
   }
 
+  //Implementación futura para obtener los recursos que el usuario ha comprado (todos los que tiene acceso pero no es owner)
   //def getMyPurchasedResources()
 //  def getMyLibrary(pag: Pagination): Action[AnyContent] =
 //    Action.async { implicit request =>

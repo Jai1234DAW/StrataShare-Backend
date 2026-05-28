@@ -23,6 +23,7 @@ trait Configuration {
 
   def baseUrl: String
   def useSSL: Boolean
+  def baseUrlAppDeployment: String
 
   //App
   case class App(
@@ -164,7 +165,6 @@ trait Configuration {
 
   case class Payments(
       currency: String,
-      //allowedOneTimePaymentGateways: List[AllowedGateway],
       paymentCompletedUrl: String,
       paymentCanceledUrl: String,
       defaultFee: BigDecimal,
