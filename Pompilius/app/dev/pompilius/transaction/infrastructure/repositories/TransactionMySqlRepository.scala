@@ -18,6 +18,7 @@ import org.joda.time.DateTime
 import scalikejdbc._
 import scalikejdbc.jodatime.JodaParameterBinderFactory._
 import scalikejdbc.jodatime.JodaTypeBinder._
+import play.api.Logger
 
 import java.time.ZoneId
 import javax.inject.{Inject, Singleton}
@@ -27,6 +28,8 @@ import scala.concurrent.Future
 class TransactionMySqlRepository @Inject() (clock: Clock)(implicit dbExecutionContext: DbExecutionContext)
     extends TransactionRepository
     with SQLSyntaxSupport[Transaction] {
+
+  private val logger = Logger(this.getClass)
 
   override val tableName = "transaction"
   implicit val overwrittenZoneId: OverwrittenZoneId = OverwrittenZoneId(ZoneId.of("UTC"))
@@ -79,14 +82,17 @@ class TransactionMySqlRepository @Inject() (clock: Clock)(implicit dbExecutionCo
       Done
     }
 
-  override def findById(id: TransactionId): Future[Option[Transaction]] =
-    Future {
-      DB.localTx { implicit session =>
-        withSQL {
-          selectFrom(this as t).where.eq(t.id, id.id)
-        }.map(apply(t.resultName)(_)).single()
-      }
-    }
+   override def findById(id: TransactionId): Future[Option[Transaction]] =
+     Future {
+       logger.info(s"[TRANSACTION REPO] findById called with: id.id=${id.id} (Long), id.toString=${id.toString} (base36)")
+       DB.localTx { implicit session =>
+         val result = withSQL {
+           selectFrom(this as t).where.eq(t.id, id.id)
+         }.map(apply(t.resultName)(_)).single()
+         logger.info(s"[TRANSACTION REPO] findById result: $result")
+         result
+       }
+     }
 
   override def find(filter: TransactionFilter, pag: Pagination): Future[List[Transaction]] =
     Future {

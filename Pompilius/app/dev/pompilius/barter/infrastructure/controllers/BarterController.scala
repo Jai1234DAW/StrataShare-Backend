@@ -228,20 +228,28 @@ class BarterController @Inject() (
 //      }
 //    }
 
-  def acceptBarter: Action[AnyContent] =
-    Action.async { implicit request =>
-      withAnyOfThisRoles(Seq(Role.STUDENT, Role.PROFESSIONAL)) {
-        case (_, user, _, _) =>
-          val acceptRequest = BarterRequestParser.parse(request)
+   def acceptBarter: Action[AnyContent] =
+     Action.async { implicit request =>
+       withAnyOfThisRoles(Seq(Role.STUDENT, Role.PROFESSIONAL)) {
+         case (_, user, _, _) =>
+           val acceptRequest = BarterRequestParser.parse(request)
 
-          val idB = BarterId(acceptRequest.barterId)
-          val idT = TransactionId(acceptRequest.transactionId)
+           logger.info(s"[BARTER ACCEPT] Input - barterId: ${acceptRequest.barterId}, transactionId: ${acceptRequest.transactionId}")
 
-          for {
-            transaction <-
-              transactionRepository
-                .findById(idT)
-                .map(_.getOrElse(throw new BadRequestException("Transaction not found")))
+           val idB = BarterId(acceptRequest.barterId)
+           logger.info(s"[BARTER ACCEPT] Parsed barterId Long: ${idB.id}")
+
+           val idT = TransactionId(acceptRequest.transactionId)
+           logger.info(s"[BARTER ACCEPT] Parsed transactionId Long: ${idT.id}")
+
+           for {
+             transaction <-
+               transactionRepository
+                 .findById(idT)
+                 .map { result =>
+                   logger.info(s"[BARTER ACCEPT] DB query result: ${result}")
+                   result.getOrElse(throw new BadRequestException("Transaction not found"))
+                 }
 
             barter <-
               barterRepository
@@ -283,20 +291,28 @@ class BarterController @Inject() (
       }
     }
 
-  def denyBarter: Action[AnyContent] =
-    Action.async { implicit request =>
-      withAnyOfThisRoles(Seq(Role.STUDENT, Role.PROFESSIONAL)) {
-        case (_, user, _, _) =>
-          val denyRequest = BarterRequestParser.parse(request)
+   def denyBarter: Action[AnyContent] =
+     Action.async { implicit request =>
+       withAnyOfThisRoles(Seq(Role.STUDENT, Role.PROFESSIONAL)) {
+         case (_, user, _, _) =>
+           val denyRequest = BarterRequestParser.parse(request)
 
-          val idB = BarterId(denyRequest.barterId)
-          val idT = TransactionId(denyRequest.transactionId)
+           logger.info(s"[BARTER DENY] Input - barterId: ${denyRequest.barterId}, transactionId: ${denyRequest.transactionId}")
 
-          for {
-            transaction <-
-              transactionRepository
-                .findById(idT)
-                .map(_.getOrElse(throw new BadRequestException("Transaction not found")))
+           val idB = BarterId(denyRequest.barterId)
+           logger.info(s"[BARTER DENY] Parsed barterId Long: ${idB.id}")
+
+           val idT = TransactionId(denyRequest.transactionId)
+           logger.info(s"[BARTER DENY] Parsed transactionId Long: ${idT.id}")
+
+           for {
+             transaction <-
+               transactionRepository
+                 .findById(idT)
+                 .map { result =>
+                   logger.info(s"[BARTER DENY] DB query result: ${result}")
+                   result.getOrElse(throw new BadRequestException("Transaction not found"))
+                 }
 
             barter <-
               barterRepository
