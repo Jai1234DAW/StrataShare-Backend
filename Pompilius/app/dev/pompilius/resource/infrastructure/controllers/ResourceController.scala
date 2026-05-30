@@ -153,7 +153,7 @@ class ResourceController @Inject() (
           if (body.files.isEmpty) {
             Future.failed(new BadRequestException("No files uploaded"))
           } else if (body.files.exists(checkIsImage)) {
-            Future.failed(new BadRequestException("Images are not allowed in this endpoint"))
+            Future.failed(new BadRequestException("Images are not allowed here"))
           } else {
             for {
               _ <-
