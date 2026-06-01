@@ -1,0 +1,4 @@
+.env
+conf/application-local.conf
+.git
+target
