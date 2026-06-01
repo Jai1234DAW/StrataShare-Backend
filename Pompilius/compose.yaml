@@ -20,9 +20,10 @@ services:
     image: ghcr.io/jai1234daw/pompilius:latest
     container_name: pompiliusbackend
     environment:
-      ENVIRONMENT: "development"
+      ENVIRONMENT: "docker"
       BASE_URL: ${BASE_URL}
       USE_SSL: ${USE_SSL}
+      NODE_ID: ${NODE_ID}
 
       SECRET_KEY: ${SECRET_KEY}
 
@@ -38,7 +39,7 @@ services:
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
 
       MAIL_TOKEN_SECRET_KEY: ${MAIL_TOKEN_SECRET_KEY}
-      MAIL_USERNAME: ${MAIL_USERNAME}
+      USERNAME_MAIL: ${USERNAME_MAIL}
       MAIL_PASSWORD: ${MAIL_PASSWORD}
 
       PAYMENT_COMPLETED_URL: ${PAYMENT_COMPLETED_URL}
