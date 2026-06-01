@@ -4,10 +4,10 @@ services:
     container_name: pompiliusdb
     hostname: mysql
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: pompilius
-      MYSQL_USER: pompilius
-      MYSQL_PASSWORD: pompilius
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     volumes:
       - pompilius-db:/var/lib/mysql
     healthcheck:
@@ -15,23 +15,34 @@ services:
       interval: 10s
       timeout: 20s
       retries: 5
+
   backend:
     image: ghcr.io/jai1234daw/pompilius:latest
     container_name: pompiliusbackend
     environment:
-      ENVIRONMENT: "docker"
-      BASE_URL: "http://localhost:9000"
-      USE_SSL: "false"
+      ENVIRONMENT: "development"
+      BASE_URL: ${BASE_URL}
+      USE_SSL: ${USE_SSL}
 
-      JDBC_DATABASE_URL: "jdbc:mysql://mysql:3306/pompilius?useUnicode=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
-      JDBC_DATABASE_USERNAME: pompilius
-      JDBC_DATABASE_PASSWORD: pompilius
+      SECRET_KEY: ${SECRET_KEY}
 
-      RESET_PASSWORD_URL: "http://localhost/pages/auth/reset-password.html"
-      PURCHASE_RESOURCE_URL: "http://localhost/pages/resources/biblioteca.html"
+      JDBC_DATABASE_URL: ${JDBC_DATABASE_URL}
+      JDBC_DATABASE_USERNAME: ${JDBC_DATABASE_USERNAME}
+      JDBC_DATABASE_PASSWORD: ${JDBC_DATABASE_PASSWORD}
 
-      PAYMENT_COMPLETED_URL: "http://localhost/pages/transactions/payment-success.html?sellerId=$${sellerId}&resourceId=$${resourceId}"
-      PAYMENT_CANCELED_URL: "http://localhost/pages/transactions/payment-cancel.html?sellerId=$${sellerId}&resourceId=$${resourceId}"
+      RESET_PASSWORD_URL: ${RESET_PASSWORD_URL}
+      PURCHASE_RESOURCE_URL: ${PURCHASE_RESOURCE_URL}
+
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+
+      MAIL_TOKEN_SECRET_KEY: ${MAIL_TOKEN_SECRET_KEY}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+
+      PAYMENT_COMPLETED_URL: ${PAYMENT_COMPLETED_URL}
+      PAYMENT_CANCELED_URL: ${PAYMENT_CANCELED_URL}
     ports:
       - 9000:9000
     volumes:
@@ -45,8 +56,8 @@ services:
     ports:
       - 80:80
     environment:
-      BACKEND_URL: "http://localhost:9000"
-      API_URL: "http://localhost:9000/api"
+      BACKEND_URL: ${BACKEND_URL}
+      API_URL: ${API_URL}
     depends_on:
       - backend
 volumes:

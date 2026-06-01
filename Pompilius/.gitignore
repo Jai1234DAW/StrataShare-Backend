@@ -12,3 +12,5 @@ project/project
 /local
 *.sc
 *.log
+.env
+conf/application-local.conf
